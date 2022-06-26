@@ -55,4 +55,4 @@
 
 ## 4. Git工作示意图
 
-![Remote  fetch/clone  push  pull  checkout  Repository  Index  commit  workspace  add ]([https://gitee.com/angeya/notes/raw/master/images](https://github.com/angeya/notes/blob/main/images/git-construction.png)
+![Remote  fetch/clone  push  pull  checkout  Repository  Index  commit  workspace  add ]([https://github.com/angeya/notes/blob/main/images/git-construction.png])
