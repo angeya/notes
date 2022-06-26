@@ -55,4 +55,4 @@
 
 ## 4. Git工作示意图
 
-![image-20220323202621424](images/image-20220323202621424.png)
+![image-20220323202621424](images/git-construction.png)
