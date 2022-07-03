@@ -785,6 +785,8 @@ demo.service文件
 ```shell
 [Unit]
 Documentation=demo-service
+After=network.target
+After=mysqld.service
  
 [Service]
 User=root
