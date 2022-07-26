@@ -56,3 +56,13 @@
 ## 4. Git工作示意图
 
 ![image-20220323202621424](images/git-construction.png)
+
+## 5. 解决 Failed to connect to github.com port 443:connection timed out超时
+```shell
+# 设置代理
+git config --global http.proxy http://127.0.0.1:1080
+git config --global https.proxy http://127.0.0.1:1080
+# 取消代理
+git config --global --unset http.proxy
+git config --global --unset https.proxy
+```
