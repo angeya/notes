@@ -434,7 +434,8 @@ num ++;
 //方案二：在表达式里面让变量 num 复制到变量 n 中，然后使用变量 n 即可
 int num = 99;
 show((x, y) -> {
-    System.out.println(++num);
+	int n = num;
+    System.out.println(++n);
     return x * y;
 });
 ```
@@ -984,57 +985,208 @@ stop是不安全的，因为线程立马被终止，同时释放所有的对象�
 
 suspend不会破坏对象。但是，如果用suspend挂起一个持有锁的线程，那么，在线程恢复运行之前这个锁是不可用的，而挂起线程等待resume方法恢复，这样容易导致死锁。
 
-
-
 ### 线程安全的集合
 
+可以通过提供锁来保护共享的数据，但是选择线程安全的数据结构实现可能更为容易。
 
+虽然线程安全的集合可以保证内部数据结构不会因为多线程修改而被破坏，但是并不能保证在多线程业务使用就是正确的，这需要保证业务操作的原子性。
 
-### 任务和线程池
+#### 阻塞队列
 
+在协调多个线程之间的合作时，阻塞队列是一个有用的工具。常用的阻塞队列（它们都实现了BlockingQueue接口）有：
 
+| 阻塞队列               | 描述                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| ArrayBlockingQueue     | 循环数组实现                                                 |
+| LinkedBlockingQueue    | 链表实现，默认容量为Integer.MAX_VALUE，最好限制              |
+| PriorityBolockingQueue | 阻塞优先队列                                                 |
+| DelayQueue             | 延时队列，只有过期的元素可以被取出                           |
+| SynchronousQueue       | 一个不存储元素的阻塞队列。每一个put操作必须等待一个take操作。吞吐量高于LinkBlockingQueue和ArrayBlockingQueue |
+
+阻塞队列的方法：
+
+| 方法    | 正常操作           | 特殊情况操作       |
+| ------- | ------------------ | ------------------ |
+| add     | 添加元素           | 队列满则抛异常     |
+| element | 返回队头元素       | 队列为空则抛异常   |
+| remove  | 移除并返回队头元素 | 队列为空则抛异常   |
+| offer   | 添加元素并返回true | 队列满则返回false  |
+| peek    | 返回队头元素       | 队列为空则返回null |
+| poll    | 移除并返回队头元素 | 队列为空则返回null |
+| put     | 添加元素           | 队列满则阻塞       |
+| take    | 移除并返回队头元素 | 队列空则阻塞       |
+
+#### 高效的映射、集和队列
+
+java.util.concurrent包提供了映射、有序集和队列的高效实现：ConcurrentHashMap、ConcurrentSkipListMap、ConcurrentSkipListSet、ConcurrentLinkedQueue。
+
+#### 写数组的拷贝
+
+CopyOnWriteArrayList和CopyOnWriteArraySet是线程安全的集合，其中所有更改器会建立底层数组的一个副本。即便有线程修改了数组，之前通过数组获取的迭代器依然可以正常使用（但是数据可能过时了），而且不存在任何同步开销。
+
+#### 较早的线程安全集合
+
+从Java的初始版本开始，Vector和HashTable类就提供了动态数组和散列表的线程安全的实现。现在这些类被认为已经过时了（里面都是同步方法，效率低），而被ArrayList和HashMap所取代（不过他们并不是线程安全的）。
+
+集合库中还提供了一种不同的机制：任何集合类都可以通过使用包装器变成线程安全的。
+
+```java
+List<String> syncList = Collections.synchronizedList(new ArrayList<>());
+Map<String, String> syncMap = Collections.synchronizedMap(new HashMap<>());
+```
+
+通常最好使用JUC包中定义的集合，而不是使用包装器。
+
+#### 同步计数器
+
+##### CountDownLatch
+
+同步辅助类，可以用于在若干个任务完成后再继续后面的操作。例如：主线程需要等待三个子线程完成工作后，做一个汇总，则通过构造函数初始化倒计时的数，每个线程完成时调用CountDownLatch对象的countDown方法表示一个任务完成。主线程会阻塞在CountDownLatch对象的await()方法中，直到countDown将倒计数减为0；
+
+##### Semaphore
+
+计数信号量。应用场景为，允许同时有n个线程工作（获取许可），通过构造方法初始化并发个数，每个线程调用Semaphore对象的acquire方法获取许可，在获取许可前一直阻塞。线程工作完成后调用release方法释放一个许可，这时其他线程可以获取许可。资源有限的场景可用，如线程池、连接池、排队等。
+
+##### CyclicBarrier
+
+直译过来是循环屏障，同步辅助类，通过构造函数确定有几个线程进行协同作业，用于确保若干个线程都到达(缺一不可)某一步时（即每个在线程中都调用了CyclicBarrier对象的await方法），所有线程才能继续往下执行。CyclicBarrier重点是多个线程互相等待，CountDownLatch重点是一个线程等待其他多个线程完成。
+
+### 线程池
+
+如果频繁地创建线程，而且这些线程做的工作又很少。那么创建线程的开销相对业务来说就很大。这种情况应该使用线程池，池中的线程会不断复用（原理：创建多个线程，然后调用Runnable对象的run方法）。
+
+线程池相关类：
+
+Executor：执行器，线程池的顶级接口，严格来说不算线程池，而是一个执行线程的工具。
+
+Executors：线程池辅助类，有许多实用的静态方法。
+
+ExecutorService：执行器服务，真正地线程池接口。继承Executor接口，并声明了submit、invokeAll、shutdown等方法。
+
+ThreadPoolExecutor：ExecutorService的默认实现，继承了类AbstractExecutorService。可以用来创建自定义线程池。
+
+#### JDK内置线程池
+
+以下为JDK内置的几种常见线程池：
+
+```java
+// 固定大小的线程池，可能队列中任务过多导致OOM
+ExecutorService executorService = Executors.newFixedThreadPool(10);
+// 动态伸缩的线程池，可能会创建大量的线程降低系统性能
+ExecutorService executorService = Executors.newCachedThreadPool();
+// 创建单线程线程池，保证任务执行顺序，也可以用于测试单线程与多线程的性能差异
+ExecutorService executorService = Executors.newSingleThreadExecutor();
+```
+
+#### 自定义线程池
+
+内置线程池不满足需求的时候，需要我们创建自己的线程池。ThreadPoolExecutor是创建线程池的核心类，有多个构造方法，但是最终都会调用下面这个方法。
+
+```java
+ExecutorService service = new ThreadPoolExecutor(10, 15, 60,
+                TimeUnit.SECONDS, new ArrayBlockingQueue<>(10),
+                Executors.defaultThreadFactory(), 
+                new ThreadPoolExecutor.AbortPolicy());
+```
+
+线程工厂ThreadFactory是用来创建线程的（返回一个Thread对象），可以自定义实现，不过一般使用默认提供的就够了。
+
+拒绝策略，默认是AbortPolicy
+
+#### ExecutorService常用方法
+
+```java
+Future<T> submit(Callable<T> task); // 提交callable任务
+Future<T> submit(Runnable task, T result); // 
+Future<?> submit(Runnable task); //
+void execute(Runnable task); // 执行任务，没有返回值
+shutdown(); // 不再接收新任务，等所有提交的任务执行完后关闭线程池
+shutdownNow(); // 等正在执行任务完成就关闭线程池
+```
+
+### Callable和Future
+
+Runnable封装一个异步运行的任务，可以把它想象成一个没有参数和返回值的异步方法。Callable与Runnable类似，但是有返回值。Callable接口是一个参数化的类型，只有一个方法call。
+
+Future保存异步计算结果，Future<V>接口有如下方法：
+
+```java
+V get(); // 获取任务结果，会阻塞到任务执行完成为止
+V get(long timeout, TimeUnit unit); // 也会阻塞，但是超时没有结果会抛出TimeoutException异常
+void cancel(boolean mayInterrupt); // 取消任务。如果任务还没有开始会被取消。如果正在执行，mayInterrupt为true则任务被中断
+boolean isCaneled(); // 任务是否已经被取消
+boolean isDone(); // 任务是否执行完成
+```
+
+Callable一般都是配合Futrue一起使用的，使用方法由以下两种：
+
+```java
+// 创建一个任务
+Callable<String> stringCallable = new Callable<String>() {
+    @Override
+    public String call() throws Exception {
+        Thread.sleep(3000);
+        return "This is callable";
+    }
+};
+// 方法一：通过FutureTask，它实现了Future和Runnable接口
+FutureTask<String> task = new FutureTask<>(stringCallable);
+Thread thread = new Thread(task);
+thread.start();
+System.out.println(task.get()); // 打印执行结果
+// 方法二：通过执行器执行
+ExecutorService service = Executors.newSingleThreadExecutor();
+Future<String> result = service.submit(stringCallable);
+service.shutdown();
+System.out.println(result.get()); // 打印执行结果
+// 也可以批量在线程池中执行任务
+List<Callable<Integer>> callableList = ...
+List<Future<Integer>> resultList = executorService.invokeAll(callableList);
+```
 
 ### 异步计算
 
-
+等待添加...
 
 ### 进程
 
+有时需要执行一个另一个程序。可以使用ProcessBuilder和ProcessL类。Process类在一个单独的操作系统中进程中执行一个命令，允许我们与标准输入、输出、错误流交互。ProcessBuilder类则允许我们配置Process对象。
 
+ProcessBuilder类可以取代RunTime.exec调用，而且更为灵活。
 
+#### 创建进程
 
+运行ipconfig命令
 
+```java
+// 一般都需要“/c”参数
+ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/C", "ipconfig");
+Process p = builder.start();
+// 获取输入流（进程的输出）并打印信息
+Scanner scanner = new Scanner(p.getInputStream(), StandardCharsets.US_ASCII);
+while (scanner.hasNextLine()) {
+    System.out.println(scanner.nextLine());
+}
+```
 
+#### 进程句柄
 
+获取进程句柄可以使用ProcessHandle接口，以下4种方式都可以获取到ProcessHandle。
 
+1. 通过一个Process对象获取：process.toHandle()
+2. 通过进程Id获取：ProcessHandle.of(pid)
+3. 获取当前虚拟机进程：Process.current()
+4. 获取所有的进程：ProcessHandle.allProcesses()，返回值为Stream<ProcessHandle>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+````java
+// 获取所有进程句柄作为一个流
+ProcessHandle.allProcesses().forEach(processHandle -> {
+    ProcessHandle.Info info = processHandle.info();
+    // 因为有进程可能结束，所以是Optional对象
+    Optional<String> cmd = info.command();
+    cmd.ifPresent(System.out::println);
+});
+````
 
 
 
@@ -1133,8 +1285,8 @@ Files.exists(path); // 文件是否存在
 Files.isDirectory(path); // 文件是否是目录
 Files.isRegularFile(path); // 是否是常规文件
 Files.size(path); // 获取文件大小，单位字节
-Stream<Path> files Files.list(dirPath);// 获取目录中的文件（只获取一级）
-Stream<Path> files Files.walk(dirPath);// 递归获取目录中的文件（可以指定深度），不方便做删除操作
+Stream<Path> files = Files.list(dirPath);// 获取目录中的文件（只获取一级）
+Stream<Path> files = Files.walk(dirPath);// 递归获取目录中的文件(可以指定深度),不方便做删除操作
 ```
 
 ### 内存映射文件
@@ -1149,7 +1301,6 @@ java.nio包使内存映射变得十分简单：
 
 ```java
 FileChannel channel = FileChannel.open(path, options);
-
 ```
 
 除了ByteBuffer还有IntBuffer、DoubleBuffer等，他们底层都是对基本数据类型数组的封装。
@@ -1496,11 +1647,216 @@ String localeDateTime = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).
 // 普通定制格式
 String commonDateTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(now);
 // 带上下午的格式
-String specialDateTime=  DateTimeFormatter.ofPattern("yyyy-MM-dd a KK mm ss").format(now);
+String specialDateTime = DateTimeFormatter.ofPattern("yyyy-MM-dd a KK mm ss").format(now);
 // 解析字符串时间
 ZonedDateTime.parse(isoDateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME));
 ZonedDateTime.parse(localeDateTime,
                     DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL));
 ZonedDateTime.parse(commonDateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 ```
+
+## 第7章 国际化
+
+### Locale
+
+Locale类可以用来标识不同的国家与地区，对于国际化程序实现本地化有很大帮助。获取Locale对象最简单的方式就是使用该类的静态变量，如Locale.CHINA，或者是系统默认的Locale.getDefault()。
+
+locale由多达5个部分构成，包括语言、国家码等。如果语言zh代表中文（ZhongWen），en代表应为（English）。CN代表中国，US代表美国。
+
+### 数字格式化
+
+不同国家数字和货币的显示格式很可能是不一样的，Java提供了NumberFormat类来实现不同国家地区的数字显示。使用代码如下：
+
+```java
+// 数字格式化
+NumberFormat formatter = NumberFormat.getNumberInstance(Locale.CHINA);
+String res = formatter.format(123456.78);
+float num = formatter.parse("3.1415").floatValue();
+//货币格式化
+NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(china);
+String res = currencyFormatter.format(123456.789); // 会在数值前面加上￥，美元则加$
+```
+
+### 消息格式化
+
+Java类库中有一个用来对包含变量部分的文本进行格式化的MessageFormat类，它的格式化方法与用printf方法进行格式化很类似，但是它支持locale。
+
+
+
+## 第8章 Java平台模块系统
+
+多个现有的Java模块系统都依赖类加载器来实现类之间的隔离。但是，Java9引入了一个由Java编译器和虚拟机支持的新系统，称为Java平台模块系统。
+
+为什么在我们自己的程序中要考虑使用Java平台模块系统而不是传统的使用类路径上的 JAR 文件呢？因为这样做有以下两个有点：
+
+1. 强封装性：我们可以控制哪些包是可访问的，并且无需操心去维护那些我们不想开放给公众去访问的代码。
+2. 可靠的配置：我们可以避免诸如雷重复或者丢失这类常见的类路径问题。
+
+### 对模块的命名
+
+模块是包的集合。模块中的包无须彼此相关。
+
+当创建供他人使用的模块时，重要的是确保它的名字是全局唯一的。我们期望大多数的模块名都遵循“反向域名” 惯例，就像包名一样。
+
+命名模块最简单的方式就是按照模块提供的顶级包名来命名。
+
+### 模块的简单示例
+
+在 IDEA 新建一个名为 hello 的 module ，在 src 下右键新建一个 module-info.java，src 下新建两个public 类，com.sinovatio.haha.Hello 和 com.sinovatio.haha.Laugh，module-info.java的内容为
+
+```java
+module hello {
+    exports com.sinovatio.hello;
+}
+```
+
+即模块 hello 将 com.sinovatio.hello 包导出，供其他模块使用，com.sinovatio.haha则不能被其他模块使用。
+
+要使用 hello 模块，我们可以新建一个 useHello 模块，module-info.java 的内容为
+
+```java
+module useHello {
+    requires hello;
+}
+```
+
+在 useHello 模块中，我们会发现 com.sinovatio.haha.Hello 类可以使用，但是 com.sinovatio.haha.Laugh 类不可以使用。
+
+### 模块和反射式访问
+
+在过去，总是可以通过使用反射来克服令人讨厌的访问权限问题。过去我们都是使用如下方式访问私有域的
+
+```java
+Field f = obj.getClass().getDeclaredField("salary");
+f.setAccessible(true);
+double value = f.getDouble(obj);
+```
+
+f.setAccessible(true); 会调用成功，但是在模块化的世界中，这种方式行不通了。如果一个类在模块中，那么对非共有成员的反射式访问将失败。
+
+不过，通过 opens 关键字，模块就可以打开包，从而启动对给定包中的类的所有实例进行反射式访问。代码如下：
+
+```javascript
+module useHello {
+    requires hello;
+    opens hi;
+}
+```
+
+### 限定导出和开放
+
+opexports 和 opens 有一种变体，将他们的作用域窄化到指定的模块集。
+
+如 hello模块的 com.sinovatio.hello 包只对 useHello 模块开放
+
+```java
+module hello {
+    exports com.sinovatio.hello to useHello;
+    exports com.sinovatio.haha;
+}
+```
+
+如 hi 模块只对 hello 模块开放
+
+```java
+module useHello {
+    requires hello;
+    opens hi to hello;
+}
+```
+
+
+
+## 图形用户界面程序设计
+
+### 显示简单窗体
+
+在Java中，顶层窗口（就是没有包含在其他窗口中的窗口）被称为框架（frame）。在AWT库中有一个称为Frame的类，用于描述顶层窗口。这个类的Swing版本名为JFrame，它扩展于Frame类。JFrame是极少数几个不绘制在画布上的Swing组件之一。因此，它的修饰部件（按钮、标题栏、图标等）由用户的窗口系统绘制，而不是由Swing绘制。
+
+```java
+public class HelloWorld {
+    public static void main(String[] args) {
+        EventQueue.invokeLater(() -> {
+            var frame = new HelloWorldFrame();
+            frame.setTitle("helloworld");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setVisible(true);
+        });
+    }
+}
+// 自己实现JFrame
+class HelloWorldFrame extends JFrame {
+    public HelloWorldFrame() throws HeadlessException {
+        var com = new HelloWorldComponent();
+        this.add(com);
+        this.pack();
+    }
+}
+// 很多组件都实现了JComponent，只需重写paintComponent方法，并绘制内容即可
+class HelloWorldComponent extends JComponent {
+    private static final int MESSAGE_X = 75;
+    private static final int MESSAGE_Y = 100;
+    private static final int MESSAGE_W = 500;
+    private static final int MESSAGE_H = 400;
+    
+    @Override
+    protected void paintComponent(Graphics g) {
+        g.setFont(new Font("SansSerif", Font.BOLD, 20));
+        g.drawString("Hello World", MESSAGE_X, MESSAGE_Y);
+    }
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(MESSAGE_W, MESSAGE_H);
+    }
+}
+
+```
+
+### 在窗体中显示信息
+
+可以将消息字符串直接绘制在框架中，但这并不是一种好的编程习惯。在Java中，框架被设计为放置组件的容器，可以将菜单栏和其他的用户界面元素放置在其中。在通常情况下，应该在另一组件上绘制信息，并将这个组件添加到框架中。
+
+JFrame的结构相当复杂。在下图中给出了JFrame的结构。可以看到，在JFrame中有四层面板。其中的根面板、层级面板和玻璃面板人们并不太关心；它们是用来组织菜单栏和内容窗格以及实现观感的。Swing程序员最关心的是内容窗格（content pane）。
+
+<img src="Java学习笔记.assets/image-20220902142414141.png" alt="image-20220902142414141" style="zoom:67%;" />
+
+在设计框架的时候，要使用下列代码将所有的组件添加到内容窗格中。
+
+```java
+Component com = ...;
+frame.add(com);
+```
+
+绘制一个组件，需要定义一个扩展JComponent的类，并覆盖其中的paintComponent方法。paintComponent方法有一个Graphics类型的参数，这个参数保存着用于绘制图像和文本的设置，例如，设置的字体或当前的颜色。在Java中，所有的绘制都必须使用Graphics对象，其中包含了绘制图案、图像和文本的方法。
+
+无论何种原因，只要窗口需要重新绘图，事件处理器就会通告组件，从而引发执行所有组
+
+件的painComponent方法。一定不要自己调用paintComponent方法。在应用程序需要重新绘图的时候，这个方法将被自动地调用，不要人为地干预这个自动的处理过程。
+
+### 事件处理
+
+任何支持GUI的操作环境都要不断地监视敲击键盘或点击鼠标这样的事件。操作环境将这些事件报告给正在运行的应用程序。如果有事件产生，每个应用程序将决定如何对它们做出响应。
+
+像Java这样的面向对象语言，都将事件的相关信息封装在一个事件对象（event object）中。在Java中，所有的事件对象都最终派生于java.util.EventObject类。不同的事件源可以产生不同类别的事件。例如，按钮可以发送一个ActionEvent对象，而窗口可以发送WindowEvent对象。
+
+为了实现ActionListener接口，监听器类必须有一个被称为actionPerformed的方法，该方法接收一个ActionEvent对象参数。可以的使用Lambda表达式。
+
+```java
+var actionBtn = new JButton("一个按钮");
+button.addActionListener(e -> {
+    // 处理事件
+});
+```
+
+### LayoutManger布局管理器
+
+Component中有一个方法setBounds()可以设置当前容器的位置和大小，但是为我们手动设置位置大小，会造成程序的不通用性，不同操作系统要达到一样效果需要更改像素。
+
+为了解决这个问题，java提供了LayoutManger布局管理器，可以根据运行平台自动调整组件的大小，程序员不用在手动设置组件的大小和位置，只需要选择合适的布局管理器即可。
+
+布局管理器提供以下几种布局方式：网格、流式、卡片、网格包、边框布局。
+
+<img src="Java学习笔记.assets/image-20220902144711202.png" alt="image-20220902144711202" style="zoom: 80%;" />
+
+
 
