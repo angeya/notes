@@ -43,9 +43,9 @@
   git remote set-url origin url 修改远程仓库地址
   ```
 
-- fetch与full
+- fetch与pull
 
-  full是拉取当前服务器上最新的内容，并合并到当前本地仓库。
+  pull是拉取当前服务器上最新的内容，并合并到当前本地仓库。
 
   fetch是拉取最新的内容，但是并不会自动合并到本地仓库，fetch到的信息保存在FETCH_FIRST文件中
 
