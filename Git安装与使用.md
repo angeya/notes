@@ -32,7 +32,9 @@
   git add file 添加到暂存区 
   git commit -m "" 添加commit信息 
   git push origin 将本地分支推送到服务器上去 
-  git pull origin master 拉取远程仓库代码与本地合并(git pull 等于 git fetch + git merge)
+  git pull origin 拉取远程仓库代码与本地合并(git pull 等于 git fetch + git merge)
+  git fetch 拉取远程代码，但是不合并
+  git merge 合并远程代码和本地代码
   
   git log 查看日志 
   git status 查看当前状态 
@@ -52,6 +54,10 @@
   可以通过git log -p master..origin/master比较本地仓库与远程仓库的区别，也可以通过
 
   git merger origin/master命令合并fetch到的当前的本地仓库。
+  
+- 冲突解决
+
+  当提交之后，上传到远程仓库发生冲突时，可以使用 git pull 命令拉取并合并远程仓库最新代码，可能需要手动解决，然后再 push 即可
 
 ## 4. Git工作示意图
 
