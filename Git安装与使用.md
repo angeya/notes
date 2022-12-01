@@ -32,15 +32,16 @@
   git add file 添加到暂存区 
   git commit -m "" 添加commit信息 
   git push origin 将本地分支推送到服务器上去 
-  git pull origin 拉取远程仓库代码与本地合并(git pull 等于 git fetch + git merge)
+  git pull origin 拉取远程仓库代码与本地合并（相当于git fetch + git merge）
   git fetch 拉取远程代码，但是不合并
   git merge 合并远程代码和本地代码
-  
+  git pull origin master 
+
   git log 查看日志 
   git status 查看当前状态 
   git tag 查看版本号 
   git diff 查看尚未提交的更新
-  
+
   git remote -v 查看远程仓库信息
   git remote set-url origin url 修改远程仓库地址
   ```
