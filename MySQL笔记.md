@@ -29,7 +29,7 @@ SQL接口（SQL Interface）：用于接受客户端发送的各种SQL命令，�
 
 ### 存储引擎对比
 
-| 存储引擎 | 主外键 | 事务   | 行表锁                                           | 存储                           | 表空间 | 关注点 | 默认安装 |
+| 存储引擎 | 外键   | 事务   | 行表锁                                           | 存储                           | 表空间 | 关注点 | 默认安装 |
 | -------- | ------ | ------ | ------------------------------------------------ | ------------------------------ | ------ | ------ | -------- |
 | MyISAM   | 不支持 | 不支持 | 表锁，操作一条记录会锁住整个表，不适合高并发操作 | 只缓存索引                     | 小     | 读性能 | 是       |
 | InnoDB   | 支持   | 支持   | 行锁，操作只锁某一行，适合高并发操作             | 缓存索引和真实数据，需要内存多 | 大     | 事务   | 是       |
@@ -51,6 +51,127 @@ MyISAM存储引擎：
 ## 配置文件
 
 mysql 的配置文件在Windows操作系统系统下叫`my.ini`，在Linux下是`/etc/my.cnf`
+
+## 7种Join理论
+
+mysql支持内连接（inner可以省略），左外连接和右外连接（outer可以省略），不支持全连接（Oracle支持）。
+
+1.  AB的交集（内连接）：
+
+   ```sql
+   select * from a join b on a.b_id = b.id;
+   ```
+
+2. 包含A的所有（A左连接B）：
+
+   ```sql
+   select * from a left join b on b.id = a.b_id;
+   ```
+
+3. 包含B的所有（A右连接B）：
+
+   ```sql
+   select * from a right join b on b.id = a.b_id;
+   ```
+
+4. AB中A独有的：
+
+   ```sql
+   select * from a left join b on a.b_id = b.id where b.id is null;
+   ```
+
+5. AB中B独有的：
+
+   ```sql
+   select * from a right join b on a.b_id = b.id where a.id is null;
+   ```
+
+6. 包含AB全部：
+
+   ```sql
+   select * from a left join b on b.id = a.b_id
+   union
+   select * from a right join b on b.id = a.b_id;
+   -- union 联合查询会去掉重复的数据，union all则不会
+   ```
+
+7. 包含A独有和B独有：
+
+   ```sql
+   select * from a left join b on a.b_id = b.id where b.id is null
+   union
+   select * from a right join b on a.b_id = b.id where a.id is null;
+   ```
+
+## 索引
+
+### 索引简介
+
+索引是为了更快地查找数据而组织起来的数据结构。索引的节点指向真实的数据地址，便于数据的查找。
+
+索引也是需要空间的，一张表最好不超过5个索引。索引的创建和维护也是需要系统资源的。当对表中的数据进行增加、删除和修改的时候，索引也要动态维护。
+
+### 索引的增删查
+
+查询索引：
+
+```sql
+show index from tableName;
+```
+
+删除索引：
+
+```sql
+drop index indexName on tableName;
+```
+
+索引的建立分为以下好几种类型：
+
+- 唯一索引：
+
+  使用unique参数可以设置索引为唯一索引，在创建唯一索引时，限制该索引的值必须是唯一的，但允许有空值。通过唯一索引，可以更快地确定某条记录。
+
+  ```sql
+  -- 为user表email字段添加唯一索引
+  alter table user add unique index(email);
+  ```
+
+  
+
+- 主键索引：
+  主键索引是一种特殊的唯一性索引，在唯一索引的基础上增加了不为空的约束，一张表中最多只有一个唯一索引。这是由主键索引的物理实现方式决定的，因为数据存储在文件中只能按照一种顺序进行存储。
+
+  ```sql
+  -- 为user表id字段添加主键索引
+  alter table user add primary key (id);
+  ```
+
+- 普通索引：
+
+  在创建普通索引时，不附加任何限制条件，只是用于提高查询效率，这类索引可以创建在任何数据类型中，其值是否唯一和非空，要由字段本身的完整性约束条件决定。
+
+  ```sql
+  -- 为user表name字段添加索引
+  alter table user add index idx_name (name);
+  ```
+
+- 组合（联合）索引：
+
+  多列索引时在表的多个字段上创建一种索引。该索引指向创建时对应的多个字段，可以通过这几个字段进行查询，但是只有查询条件中使用了这些字段中的第一个字段时才会被使用。
+
+  ```sql
+  -- 为user表name和city字段添加索引，查询时包含name字段时才会走索引
+  alter table user add index idx_name_city(name, city_id);
+  ```
+
+- 全文索引：
+
+  全文索引(也称全文检索)它能够利用分词技术等多种算法智能分析出文本文字中关键词的频率和重要性，然后按照一定的短发规则智能地筛选出我们想要是搜索结果，前文索引非常适合大型数据集，对于小的数据集，他的用处比较小。全文索引只能创建在char、varchar、text类型上，查询数据量较大的字符串类型的字段时，使用全文索引可以提高查询效率。
+
+  ```sql
+  -- 为user表的intro字段添加全文索引
+  alter table user add fulltext index (intro);
+  ```
 
 ## 事务
 
