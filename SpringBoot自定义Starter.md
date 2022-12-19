@@ -45,7 +45,7 @@
    @EnableConfigurationProperties(SimpleProperty.class) // 定义配置类SimpleProperty
    public class AutoConfiguration {
    
-       // 装配业务逻辑Bean，这一步可以没有（这就需要在使用的项目中注入），也可以直接在类中使用Component等注解
+       // 装配业务逻辑Bean，这一步可以没有（这就需要在使用的项目中手动声明为Bean），也可以直接在类中使用Component等注解
        @Bean
        public SimpleHandler simpleHandler() {
            return new SimpleHandler();
@@ -86,9 +86,58 @@
    }
    ```
 
+5. 接下来是实现自动注入的关键，SpringBoot会去扫描依赖Jar包中META-INF/spring.factories中的内容，因此在resources目录下新建META-INF/spring.factories，写下配置信息：
+
+   ```
+   org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+   top.angeya.sss.AutoConfiguration
+   ```
+
    
+
+
 
 ## 2 使用Starter
 
+经过以上的步骤，就可以实现一个简单的自定义Starter了。一下是使用方法
 
+1. pom.xml引入Starter依赖
+
+   ```xml
+    <dependency>
+        <groupId>top.angeya</groupId>
+        <artifactId>simple-spring-starter</artifactId>
+        <version>1.0-SNAPSHOT</version>
+   </dependency>
+   ```
+
+2. 编写配置文件 application.yml
+
+   ```yaml
+   simple:
+     greet: Hello
+     name: July
+   ```
+
+3. 使用自定义Starter的Bean完成业务逻辑
+
+   ```java
+   @Service
+   public class TestService {
+       @Autowired
+       SimpleHandler simpleHandler;
+   
+       @PostConstruct
+       public void test() {
+           String sentence = simpleHandler.handleGreet("sunny");
+           System.out.println(sentence);
+       }
+   }
+   ```
+
+启动项目后输入结果如下：
+
+```
+Hello sunny, I am July
+```
 
