@@ -173,6 +173,12 @@ drop index indexName on tableName;
   alter table user add fulltext index (intro);
   ```
 
+
+
+## 外键
+
+级联删除 
+
 ## 事务
 
 ### 事务特性
