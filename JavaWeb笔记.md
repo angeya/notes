@@ -12,7 +12,7 @@ Filter是一个接口，可以用来实现对请求的一个过滤。
 
 init 方法在初始化时执行，主要用来做一些初始化的工作，比如通过 filterConfig 对象获取配置参数，连接数据库等操作。
 
-doFilter 是过滤的核心方法，可以获取请求和响应对象，可以得到请求路径，请求和响应参数等等。filterChain 是过滤器链，如果需要继续请求操作，则需要调用 filterChain.doFilter() 方法并传入请求和响应参数。否则请求不会往下执行。如果有多个过滤器，则过滤器的执行顺序是按照过滤器名称来排序的。
+doFilter 是过滤的核心方法，可以获取请求和响应对象，可以得到请求路径，请求和响应参数等等。filterChain 是过滤器链，如果需要继续请求操作，则需要调用 filterChain.doFilter() 方法并传入请求和响应参数。否则请求不会往下执行，前端返回200状态空白。如果有多个过滤器，则过滤器的执行顺序是按照过滤器名称来排序的。
 
 destroy 方法执行过滤器的销毁操作。
 
@@ -73,32 +73,22 @@ public class WebApp {
 1. 登录状态验证
 
    ```java
-   public void doFilter(ServletRequest arg0, ServletResponse arg1,
-                        FilterChain filterChain) throws IOException, ServletException {
-   
-       HttpServletRequest request=(HttpServletRequest) arg0;
-       HttpServletResponse response=(HttpServletResponse) arg1;
-       HttpSession session=request.getSession();
-   
-       String path=request.getRequestURI();
-       Integer uid = (Integer)session.getAttribute("userid");
-   
-       if(path.indexOf("/login.jsp")>-1){ // 登录页面不过滤
-           filterChain.doFilter(arg0, arg1); // 递交给下一个过滤器
-           return;
+   @WebFilter("/user/*")
+   public class AuthFilter implements Filter {
+       public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+               throws IOException, ServletException {
+           System.out.println("AuthFilter: check authentication");
+           HttpServletRequest req = (HttpServletRequest) request;
+           HttpServletResponse resp = (HttpServletResponse) response;
+           if (req.getSession().getAttribute("user") == null) {
+               // 未登录，自动跳转到登录页
+               System.out.println("AuthFilter: not signin!");
+               resp.sendRedirect("/signin");
+           } else {
+               // 已登录，继续处理
+               chain.doFilter(request, response);
+           }
        }
-       if(path.indexOf("/register.jsp")>-1){ // 注册页面不过滤
-           filterChain.doFilter(request, response);
-           return;
-       }
-   
-       if(uid!=null){//已经登录
-           filterChain.doFilter(request, response); // 放行，递交给下一个过滤器
-   
-       }else{
-           response.sendRedirect("login.jsp");
-       }
-   
    }
    ```
 
