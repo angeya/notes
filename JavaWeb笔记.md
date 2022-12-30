@@ -113,3 +113,96 @@ public class WebApp {
 
 ## Listener
 
+### 简介
+
+除了Servlet和Filter外，JavaEE的Servlet规范还提供了第三种组件：Listener。
+
+Listener顾名思义就是监听器，有好几种Listener，每一种都不同事件下触发的，可以根据具体业务使用合适的Listener。通过Listener我们可以监听Web应用程序的生命周期，获取`HttpSession`等创建和销毁的事件。
+
+使用方式与 Filter 类似，首先应该实现具体的 Listener 接口及其相应方法，同时实现类需要标注 @WebListener 注解或者 @Component 注解。
+
+以下是几种 Listener 的介绍。
+
+| 监听器类型                      | 介绍                                                         |
+| ------------------------------- | ------------------------------------------------------------ |
+| ServletContextListener          | 监听Servlet上下文创建和销毁事件                              |
+| HttpSessionListener             | 监听Session的创建和销毁事件                                  |
+| ServletRequestListener          | 监听接收Http请求创建和销毁事件                               |
+| ServletRequestAttributeListener | 监听ServletRequest请求的属性变化事件（即调用`ServletRequest.setAttribute()`方法） |
+| ServletContextAttributeListener | 监听ServletContext的属性变化事件（即调用`ServletContext.setAttribute()`方法） |
+
+
+
+### ServletContextListener
+
+下面的`AppListener`实现了`ServletContextListener`接口，它会在整个Web应用程序初始化完成后，以及Web应用程序关闭后获得回调通知。我们可以把初始化数据库连接池等工作放到`contextInitialized()`回调方法中，把清理资源的工作放到`contextDestroyed()`回调方法中，因为Web服务器保证在`contextInitialized()`执行后，才会接受用户的HTTP请求。
+
+```java
+@WebListener
+public class AppListener implements ServletContextListener {
+    // 在此初始化WebApp,例如打开数据库连接池等:
+    public void contextInitialized(ServletContextEvent sce) {
+        System.out.println("WebApp initialized.");
+    }
+
+    // 在此清理WebApp,例如关闭数据库连接池等:
+    public void contextDestroyed(ServletContextEvent sce) {
+        System.out.println("WebApp destroyed.");
+    }
+}
+```
+
+一个Web服务器可以运行一个或多个WebApp，对于每个WebApp，Web服务器都会为其创建一个全局唯一的`ServletContext`实例，我们在`AppListener`里面编写的两个回调方法实际上对应的就是`ServletContext`实例的创建和销毁。`ServletContext`是一个WebApp运行期的全局唯一实例，可用于设置和共享配置信息。
+
+`ServletRequest`、`HttpSession`等很多对象也提供`getServletContext()`方法获取到同一个`ServletContext`实例。
+
+```java
+public void contextInitialized(ServletContextEvent sce) {
+    System.out.println("WebApp initialized: ServletContext = " + sce.getServletContext());
+}
+```
+
+很多第三方Web框架都会通过一个`ServletContextListener`接口初始化自己。
+
+### HttpSessionListener
+
+HttpSessionListener 可以监听 Session 的创建和销毁事件。可以用来统计在线人数，或者结合 WebSocket 等实现超时前端跳转到登录页面等功能。
+
+Session 的详细介绍见相应章节。
+
+```java
+@WebListener
+public class SessionListener implements HttpSessionListener {
+    
+    @Override
+    public void sessionCreated(HttpSessionEvent se) {
+        System.out.println("Session创建" + se.getSession());
+    }
+
+    @Override
+    public void sessionDestroyed(HttpSessionEvent se) {
+        System.out.println("Session销毁" + se.getSession());
+    }
+}
+```
+
+### ServletRequestListener
+
+ServletRequestListener 可以监听Http请求创建和销毁事件，可以做一些与拦截相关的业务。
+
+```java
+@WebListener
+public class RequestListener implements ServletRequestListener {
+
+    @Override
+    public void requestInitialized(ServletRequestEvent servletRequestEvent) {
+        System.out.println("请求初始化了");
+    }
+
+    @Override
+    public void requestDestroyed(ServletRequestEvent servletRequestEvent) {
+        System.out.println("请求销毁了");
+    }
+}
+```
+
