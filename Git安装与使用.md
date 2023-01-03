@@ -77,3 +77,31 @@ git config --global https.proxy http://127.0.0.1:1080
 git config --global --unset http.proxy
 git config --global --unset https.proxy
 ```
+
+## 6. Java项目 .gitignore 文件样例
+
+```
+#设置忽略文件
+node_modules/
+dist/
+package-lock.json
+
+#MAVEN打包文件忽略
+target/
+
+#文件格式忽略
+*.log
+*.class
+*.war
+*.iml
+
+#文件忽略
+.idea/
+.idea
+.vscode
+.project
+.classpath
+.settings
+
+```
+
