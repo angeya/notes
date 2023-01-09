@@ -38,4 +38,16 @@
 
 - 查看端口占用进程
 
+## Java相关
+
+- 后台运行 jar 包
+
+  ```bash
+  start javaw -jar xxx.jar > log
+  exit
+  ```
+
   
+
+- 
+
