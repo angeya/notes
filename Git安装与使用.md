@@ -94,6 +94,12 @@ target/
 *.class
 *.war
 *.iml
+*.jar
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
 
 #文件忽略
 .idea/
