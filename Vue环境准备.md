@@ -36,127 +36,150 @@
 
 ## 3.Vue项目开发
 
-- vue.config.js配置
+### vue.config.js配置
 
-  ```javascript
-  module.exports = {
-    publicPath: './',
-    devServer: {
-      port: 8082,
-      // 代理配置(表)，在这里可以配置特定的请求代理到对应的API接口
-      // 例如将'localhost:8080/api/xxx'代理到'http://xxxxxx.com/api/xxx'，xxxxxx.com为target
-      // 在请求接口的时候，vue自动拼接本地ip + axios baseurl + 接口路径
-      proxy: {
-        '/api': { // 规定请求地址api作为开头，如登录接口localhost/api/login，然后将localhost的地址转换为代理的地址
-          target: 'http://127.0.0.1',
-          ws: true,
-          changeOrigin: true, // 是否跨域
-          pathRewrite: {
-            '^/api': '' // 正则表达式字符串替换，将开头的api去掉，地址最后变为http://localhost:8080/login
-          }
+```javascript
+module.exports = {
+  publicPath: './',
+  devServer: {
+    port: 8082,
+    // 代理配置(表)，在这里可以配置特定的请求代理到对应的API接口
+    // 例如将'localhost:8080/api/xxx'代理到'http://xxxxxx.com/api/xxx'，xxxxxx.com为target
+    // 在请求接口的时候，vue自动拼接本地ip + axios baseurl + 接口路径
+    proxy: {
+      '/api': { // 规定请求地址api作为开头，如登录接口localhost/api/login，然后将localhost的地址转换为代理的地址
+        target: 'http://127.0.0.1',
+        ws: true,
+        changeOrigin: true, // 是否跨域
+        pathRewrite: {
+          '^/api': '' // 正则表达式字符串替换，将开头的api去掉，地址最后变为http://localhost:8080/login
         }
       }
-    },
-    lintOnSave: false
-  }
+    }
+  },
+  lintOnSave: false
+}
+```
+
+### main.js 常用配置
+
+```javascript
+import Vue from 'vue'
+import App from './App.vue'
+import ElementUI from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
+import router from './router/router'
+import axios from 'axios'
+import notification from './js/notification.js'
+import em from './js/event-manager.js'
+import store from './store/store'
+Vue.config.productionTip = false
+Vue.use(ElementUI);
+notification.register(Vue)
+
+// 如果是开发环境，则加上api,触发代理
+Vue.prototype.axios = axios.create({
+  baseURL: process.env.NODE_ENV !== 'production' ? '/api/' : '',
+  crossDomain: true,
+});
+Vue.prototype.em = em
+new Vue({
+  store,
+  router,
+  render: h => h(App),
+}).$mount('#app');
+
+```
+
+### 安装其他依赖
+
+- 安装ElementUI
+
+  ```bash
+  npm i element-ui --save
   ```
 
-- main.js 常用配置
+  引入并使用ElementUI
 
-  ```javascript
-  import Vue from 'vue'
-  import App from './App.vue'
-  import ElementUI from 'element-ui'
-  import 'element-ui/lib/theme-chalk/index.css'
-  import router from './router/router'
-  import axios from 'axios'
-  import notification from './js/notification.js'
-  import em from './js/event-manager.js'
-  import store from './store/store'
-  Vue.config.productionTip = false
+  ```bash
+  import ElementUI from 'element-ui';
+  import 'element-ui/lib/theme-chalk/index.css';
+  
   Vue.use(ElementUI);
-  notification.register(Vue)
-  
-  // 如果是开发环境，则加上api,触发代理
-  Vue.prototype.axios = axios.create({
-    baseURL: process.env.NODE_ENV !== 'production' ? '/api/' : '',
-    crossDomain: true,
-  });
-  Vue.prototype.em = em
-  new Vue({
-    store,
-    router,
-    render: h => h(App),
-  }).$mount('#app');
-  
   ```
 
-  
+- 安装stylus
 
-- 创建一个Vue实例（this指向实例自己）
-
-  ```javascript
-  let myVue = new Vue({
-  	el: '#app', //通过Css选择器或者元素名选择挂载的元素，只能挂载一个元素
-  	data: {
-  		return() {
-              // 实例属性数据
-          }
-  	},
-  	methods: {
-  		// 存放方法
-  		// 方法没有缓存，每次渲染时方法都会执行，
-  		// 计算属性有缓存，只有在相关依赖发生变化时才会重新取值，
-  	},
-  	filters: {
-  		// 存放过滤器（其实就是有返回值的方法，管道中调用），2.0版本后取消了内置过滤器
-  	},
-  	computed: {
-  		// 计算属性，与方法类似，只是有缓存功能和返回值
-  		// 通常是一个有返回值的方法（get方法，方法也是对象），通过插值法直接调用
-  		// 也可以是一个对象，对象中设置set(与get相反操作)和get方法，以及cache属性
-  	},
-  	watch: {
-  		// 监听属性，存放方法。可以监听data中某属性的值，如果值有变化，方法会执行
-          // 方法名需与监听的属性名相同，参数可选oldValue、newValue
-  	},
-  	directives:{
-  		// 自定义指令（局部），不需要前缀v-；可通过Vue.directive(id, function)设置全局指令
-      }，
-  });
-  
+  ```bash
+  npm install stylus stylus-loader --save-dev
   ```
 
-- ## Vue生命周期
+  使用时只需在 .vue 文件的style标签中设置 lang="stylus" 即可。
 
-  ```javascript
-  let myVue = new Vue({
-      beforeCreate: function(){
-          // 在实例初始化时同步调用，数据观测、事件等未初始化
-      },
-      created: function(){
-          // 实例初始化完成后调用，已经完成数据绑定、事件方法。但还未挂载到document中
-      },
-      beforeMount: function(){
-          // 在挂载之前执行
-      },
-      mouted: function(){
-          // DOM编译，挂载完成
-      },
-      beforeUpdate: function(){
-          // 实例挂载之后，再次更新实例（如data中的变量）时会调用，但此时还未渲染DOM
-      },
-      updated: function(){
-          // vue实例数据更新之后，DOM的更新也渲染好了
-      },
-      beforeDestroy: function(){
-          // 实例在被销毁之前调用，此实例还有效
-      },
-      destroyed: function(){
-          // 实例被销毁之后调用。之前所有绑定和实例指令都已经解绑，子实例也被销毁
-      },  
-  })
-  ```
+### 创建Vue实例（this指向实例）
+
+```javascript
+let myVue = new Vue({
+	el: '#app', //通过Css选择器或者元素名选择挂载的元素，只能挂载一个元素
+	data: {
+		return() {
+            // 实例属性数据
+        }
+	},
+	methods: {
+		// 存放方法
+		// 方法没有缓存，每次渲染时方法都会执行，
+		// 计算属性有缓存，只有在相关依赖发生变化时才会重新取值，
+	},
+	filters: {
+		// 存放过滤器（其实就是有返回值的方法，管道中调用），2.0版本后取消了内置过滤器
+	},
+	computed: {
+		// 计算属性，与方法类似，只是有缓存功能和返回值
+		// 通常是一个有返回值的方法（get方法，方法也是对象），通过插值法直接调用
+		// 也可以是一个对象，对象中设置set(与get相反操作)和get方法，以及cache属性
+	},
+	watch: {
+		// 监听属性，存放方法。可以监听data中某属性的值，如果值有变化，方法会执行
+        // 方法名需与监听的属性名相同，参数可选oldValue、newValue
+	},
+	directives:{
+		// 自定义指令（局部），不需要前缀v-；可通过Vue.directive(id, function)设置全局指令
+    }，
+});
+
+```
+
+### Vue生命周期
+
+```javascript
+let myVue = new Vue({
+    beforeCreate: function(){
+        // 在实例初始化时同步调用，数据观测、事件等未初始化
+    },
+    created: function(){
+        // 实例初始化完成后调用，已经完成数据绑定、事件方法。但还未挂载到document中
+    },
+    beforeMount: function(){
+        // 在挂载之前执行
+    },
+    mouted: function(){
+        // DOM编译，挂载完成
+    },
+    beforeUpdate: function(){
+        // 实例挂载之后，再次更新实例（如data中的变量）时会调用，但此时还未渲染DOM
+    },
+    updated: function(){
+        // vue实例数据更新之后，DOM的更新也渲染好了
+    },
+    beforeDestroy: function(){
+        // 实例在被销毁之前调用，此实例还有效
+    },
+    destroyed: function(){
+        // 实例被销毁之后调用。之前所有绑定和实例指令都已经解绑，子实例也被销毁
+    },  
+})
+```
 
 ## 4.Vuex（单一状态树）
 
