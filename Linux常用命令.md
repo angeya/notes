@@ -96,6 +96,7 @@ export HISTTIMEFORMAT="%F %T " # 设置history命令格式（增加时间列）�
 !! # 执行上一条命令
 ntsysv # 查看当前系统开启启动的进程有哪些，如果仅仅想查看一个进程服务，可以使用systemctl status即可
 lsof -i :8086 # 查看8086端口的使用情况
+alias # 显示所有命令的别名 设置别名：alias ll='ls -l'。删除别名 unalias ll。（命令方式为临时方式，写在文件 ~/.bashrc 中则永久生效）
 ```
 
 #### 软件包管理
