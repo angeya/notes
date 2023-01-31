@@ -95,7 +95,24 @@ psql -h 127.0.0.1 -U postgres -f xxx.sql # 导入sql脚本
 export HISTTIMEFORMAT="%F %T " # 设置history命令格式（增加时间列），只对当前ssh session有用，全局可以在/etc/profile中设置
 !! # 执行上一条命令
 ntsysv # 查看当前系统开启启动的进程有哪些，如果仅仅想查看一个进程服务，可以使用systemctl status即可
+lsof -i :8086 # 查看8086端口的使用情况
 ```
+
+#### 软件包管理
+
+##### yum
+
+1，设置阿里 yum 源
+
+```
+wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+```
+
+/etc/yum.repos.d 目录为 yum 源配置目录，只要文件后缀为 repo 就会被加载。
+
+##### rpm
+
+
 
 linux系统运行级别说明：
 
