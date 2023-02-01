@@ -10,7 +10,7 @@
 
    例如一个项目中，部署时需要依赖于node.js、Redis、RabbitMQ、MySQL等，这些服务部署时所需要的函数库、依赖项各不相同，甚至会有冲突。给部署带来了极大的困难。
 
-   ![image-20221128104656635](Docker学习笔记.assets/image-20221128104656635.png)
+   <img src="Docker学习笔记.assets/image-20221128104656635.png" alt="image-20221128104656635" style="zoom:40%;" />
 
    
 
@@ -22,7 +22,7 @@
 
    - 将每个应用放到一个隔离**容器**去运行，避免互相干扰
 
-     ![image-20221128104857728](Docker学习笔记.assets/image-20221128104857728.png)
+     <img src="Docker学习笔记.assets/image-20221128104857728.png" alt="image-20221128104857728" style="zoom:40%;" />
 
    这样打包好的应用包中，既包含应用本身，也保护应用所需要的Libs、Deps，无需再操作系统上安装这些，自然就不存在不同应用之间的兼容问题了。
 
@@ -45,7 +45,7 @@
    - Docker将用户程序与所需要调用的系统(比如Ubuntu)函数库一起打包
    - Docker运行到不同操作系统时，直接基于打包的函数库，借助于操作系统的Linux内核来运行
 
-   ![image-20221128110005509](Docker学习笔记.assets/image-20221128110005509.png)
+   <img src="Docker学习笔记.assets/image-20221128110005509.png" alt="image-20221128110005509" style="zoom:70%;" />
 
    总结：Docker允许开发中将应用、依赖、函数库、配置一起**打包**，形成可移植镜像，Docker应用运行在容器中，使用沙箱机制，相互**隔离**
 
@@ -55,11 +55,11 @@
 
    **Docker**仅仅是封装函数库，并没有模拟完整的操作系统，如图：
 
-   ![image-20221128112939842](Docker学习笔记.assets/image-20221128112939842.png)
+   <img src="Docker学习笔记.assets/image-20221128112939842.png" alt="image-20221128112939842" style="zoom:25%;" />
 
    对比来看：
 
-   ![image-20221128113005246](Docker学习笔记.assets/image-20221128113005246.png)
+   <img src="Docker学习笔记.assets/image-20221128113005246.png" alt="image-20221128113005246" style="zoom: 40%;" />
 
 5. Docker架构
 
@@ -75,7 +75,7 @@
 
      DockerHub是一个官方的Docker镜像的托管平台。这样的平台称为Docker Registry。国内也有类似于DockerHub 的公开服务，比如 [网易云镜像服务](https://c.163yun.com/hub)、[阿里云镜像库](https://cr.console.aliyun.com/)等。
 
-     ![image-20221128114000334](Docker学习笔记.assets/image-20221128114000334.png)
+     <img src="Docker学习笔记.assets/image-20221128114000334.png" alt="image-20221128114000334" style="zoom:25%;" />
 
    - Docker架构
 
@@ -220,7 +220,7 @@ docker version # 查看docker版本
 
 镜像是将应用程序及其需要的系统函数库、环境、配置、依赖打包而成。我们以MySQL为例，来看看镜像的组成结构：
 
-![image-20221128170511864](Docker学习笔记.assets/image-20221128170511864.png)
+<img src="Docker学习笔记.assets/image-20221128170511864.png" alt="image-20221128170511864" style="zoom:25%;" />
 
 简单来说，镜像就是在系统函数库、运行环境基础上，添加应用程序文件、配置文件、依赖文件等组合，然后编写好启动脚本打包在一起形成的文件。
 
@@ -230,7 +230,7 @@ docker version # 查看docker版本
 
 **Dockerfile**就是一个文本文件，其中包含一个个的**指令(Instruction)**，用指令来说明要执行什么操作来构建镜像。每一个指令都会形成一层Layer。
 
-![image-20221128170624082](Docker学习笔记.assets/image-20221128170624082.png)
+<img src="Docker学习笔记.assets/image-20221128170624082.png" alt="image-20221128170624082" style="zoom: 25%;" />
 
 ### 3.3构建Java项目
 
@@ -310,7 +310,8 @@ Docker Compose可以基于Compose文件帮我们快速的部署分布式应用�
 3. 在当前文件夹中执行如下命令，DockerCompose会对yaml文件中声明的service下拉和创建镜像，并创建容器然后运行。
 
    ```bash
-   docker-compose up -d
+   docker-compose up -d # 后台运行service
+   docker-compose down # 关闭service
    ```
 
 DockerCompose的详细语法参考官网：https://docs.docker.com/compose/compose-file/
