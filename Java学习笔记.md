@@ -1267,14 +1267,16 @@ Path接口和Files类时在Java7中新添加进来的，它们封装了在用户
 使用代码示例：
 
 ```java
-Path path = Paths.get("/home", "demo.txt");
+Path path = Paths.get("/home", "demo.txt"); // 获取路径
 String content = Files.readString(path, charset); // 读取字符串
 List<String> lines = Files.readAllLines(path, charset); // 读取所有行到集合中
 Files.writeString(path, content, charset); // 写入字符串
-Files.write(path, lines, charset);//写入字符串集合
-Files.createDirectory(path);//创建目录
+Files.write(path, lines, charset);// 写入字符串集合
+Files.createDirectory(path);// 创建目录
 Files.createDirectories(path); // 递归创建目录
-Files.createFile(path);//创建文件
+Files.createFile(path);// 创建文件 一般配合 write 方法一起使用
+Files.write(path, fileData.getBytes()); // 将字节数组写入文件，实现文件的写入
+Files.getLastModifiedTime(path); // 获取文件修改时间，返回FileTime对象
 Files.copy(srcPath, destPath); // 复制
 Files.copy(srcPath, destPath, StandardCopyOptions.REPLACE_EXIST); // 复制，如果存在则覆盖
 Files.move(srcPath, destPath); // 移动（复制之后删除,不保证原子性）
