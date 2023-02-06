@@ -201,6 +201,34 @@ let myVue = new Vue({
 
   modules：为防止项目数据过于复杂臃肿，modules分担store的数据。
 
+
+- Vuex安装
+
+  ```bash
+  npm install --save vuex@3 # 不指定版本使用最新版本，可能出现问题
+  ```
+
+- 注册
+
+  在src创建一个store文件夹，下面创建一个index.js里面写上以下代码。同时需要在main.js中引入该文件并使用。
+
+  ````js
+  import Vuex from 'vuex'
+  import Vue from 'vue'
+  Vue.use(Vuex)
+  const store = new Vuex.Store({
+      state: {num: 2}, // 存放数据
+      getters: {}, // 计算属性
+      mutations: {}, // 修改state中数据的一些方法
+      actions: {}, // 异步方法
+      modules: {} // store模块
+  })
+  // 暴露实例
+  export default store 
+  ````
+
+  
+
 - 使用实例代码
 
   ```javascript
