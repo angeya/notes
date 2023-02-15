@@ -147,6 +147,33 @@
 
    完整安装步骤可见官网 `https://docs.docker.com/engine/install/centos/`
 
+### 1.3 卸载
+
+1. 停掉docker服务
+
+2. 删除docker所在目录
+
+   ```bash
+   rm -rf /etc/docker
+   rm -rf /run/docker
+   rm -rf /var/lib/dockershim
+   rm -rf /var/lib/docker
+   ```
+
+3. 查询docker已安装的包
+
+   ```bash
+   yum list installed | grep docker
+   ```
+
+4. 删除安装包
+
+   ```bash
+   yum remove docker-ce.x86_64 ddocker-ce-cli.x86_64 -y
+   ```
+
+   
+
 ## 2.基本操作
 
 可以使用 docker command --help 命令查看具体命令的用法。
