@@ -131,7 +131,7 @@ yum list          												    # yum list显示所有已经安装和可以安
 yum list <package_name> 											# 显示安装包信息rpm，显示installed ，这里是包名，版本和仓库名
 yum list repolist all												# 查询所有的yum仓库
 yum info <package_name>                           					   # 显示安装包rpm的详细信息
-yum groupinfo <group_name>             								  #显示程序组group信息
+yum groupinfo <group_name>             								  # 显示程序组group信息
 
 # yum 搜索查看
 yum search string 													# 根据关键字string查找安装包

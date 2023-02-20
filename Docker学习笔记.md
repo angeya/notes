@@ -199,7 +199,7 @@ docker run # 创建容器并运行，相当于create和start两条命令,docker 
 对容器的操作可以指定容器名或者容器id
 
 ```bash
-docker cp # 在容器和本地文件系统之间复制文件或者目录，容器的路径前面加上容器名和冒号，如nginx:/home
+docker cp # 在容器和本地文件系统之间复制文件或者目录，容器的路径前面加上容器名和冒号，如 docker cp /home/conf.txt nginx:/home/conf.txt
 docker pause # 让一个运行的容器暂停
 docker unpause #  让一个容器从暂停状态恢复运行
 docker stop # 停止一个运行的容器
@@ -208,7 +208,8 @@ docker rm # 删除一个容器
 docker ps # 查看运行的容器，加 -a 参数查看所有容器
 docker kill # 强制关闭容器
 docker rename # 容器重命名 docker rename oldName newName
-docker exec # 在运行的容器执行命令，如进入容器：docker exec -it container bash
+docker exec # 在运行的容器执行命令，如进入容器：docker exec -it container bash（-i 保持STDIN打开，-t 分配一个伪终端。bash/sh 是进入容器后第一个执行的命令）
+docker logs -f container # 查看容器的运行日志
 ```
 
 ### 2.3数据卷
