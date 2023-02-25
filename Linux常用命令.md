@@ -128,6 +128,7 @@ yum makecache
 
 # yum 显示信息
 yum list          												    # yum list显示所有已经安装和可以安装的程序包   
+yum list installed                                                      # 显示已经安装的软件包
 yum list <package_name> 											# 显示安装包信息rpm，显示installed ，这里是包名，版本和仓库名
 yum list repolist all												# 查询所有的yum仓库
 yum info <package_name>                           					   # 显示安装包rpm的详细信息
