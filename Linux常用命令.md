@@ -65,7 +65,9 @@ source # 在当前bash环境下读取并执行文件中的命令 如source test.
 #### 系统维护
 
 ```shell
+free -h # 查看内存和交换区使用情况
 df -h # 磁盘剩余空间(disk free) -h 以人类友好的单位方式显示
+hostnamectl set-hostname name # 设置主机名
 du -sh * # 查看当前目录下各个文件(夹)所占存储空间大小
 date -s "2020-02-02 08:30:30" # 按照日期 时分秒设置系统时间
 date -s "08:30:30" # 按照时分秒设置系统时间
