@@ -18,6 +18,22 @@
 
   用户目录下：.npmrc文件记录了以上路径配置。.node_repl_history文件记录node命令交互历史。
 
+- 设置淘宝镜像源
+
+  ```bash
+  npm config set registry https://registry.npm.taobao.org/
+  # 查看是否配置成功
+  npm config set registry https://registry.npmjs.org/
+  ```
+
+- 恢复为npn官方镜像源
+
+  ```bash
+  npm config set registry https://registry.npmjs.org/
+  ```
+
+  
+
 ## 2.准备VueCli
 
 - 安装VueCli
