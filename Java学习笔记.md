@@ -1196,6 +1196,63 @@ ProcessHandle.allProcesses().forEach(processHandle -> {
 
 ## 第1章 Java 8 的流库
 
+### Stream 的一些应用场景
+
+通用类Person
+
+```java
+public static class Person{
+    private String name;
+    private Integer age;
+    private Boolean isFemale;
+}
+```
+
+#### 使用partitioningBy进行分类
+
+```java
+// 按照是否大于30岁进行分类
+Map<Boolean, List<Person>> personMap = persons.stream().collect(partitioningBy(person -> person.getAge() > 30));
+System.out.println("> 30");
+personMap.get(true).forEach(p -> System.out.println(p.getAge()));
+System.out.println("<= 30");
+personMap.get(false).forEach(p -> System.out.println(p.getAge()));
+```
+
+#### 找到最xxx的人
+
+```java
+Stream<String> nameStream = Stream.of("Sunnyangeya", "Lily", "Tom", "Snake");
+System.out.println(nameStream.reduce((x, y) -> x.length() > y.length() ? x : y).get());
+```
+
+#### 对流中的某个字段进行排序
+
+```java
+// 年幼优先
+persons.stream().sorted(Comparator.comparing(Person::getAge)).forEach(p -> System.out.println(p.getAge()));
+// 女士优先(可以根据需要加上reversed进行倒序）
+persons.stream().sorted(Comparator.comparing(Person::getFemale).reversed()).forEach(p -> System.out.println(p.getName()));
+```
+
+#### 收集结果时指定特定容器
+
+```java
+Set<String> nameSet = topMenuList.stream()
+				.map(PfUserMenuOrder::getMenuId).collect(Collectors.toCollection(LinkedHashSet::new));
+```
+
+#### 转化为Map并指定键值的来源字段
+
+```
+Map<String, Person> namePersonMap = persons.stream()
+				.collect(Collectors.toMap(Person::getName, person -> person));
+```
+
+
+
+
+
 ## 第2章输入与输出
 
 ### 输入/输出流
