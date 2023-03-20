@@ -171,20 +171,23 @@ pop() //删除并返回数组的最后一项
 // 队列方法
 shift() // 删除并返回数组第一项，可以与push（）方法结合实现队列
 unshift() // 将参数添加到数组的第一项，可以与pop（）方法结合实现逆序的队列
+
 // 重排序方法
 reverse() // 将数组反转
 sort() // 对数组进行排序，排序方法作为参数传入
+
 // 操作方法
 concat() // 创建数组的一个副本，并将参数加入到副本的末尾，最后返回这个副本
 slice(start, end) // 切片，返回下标之间的项组成的数组，不影响原数组。end默认为数组长度
 splice(start, num, newItem...) // 从下标start开始删除num项，并从start处添加newItem...
              //可以实现数组的删除，插入，替换等功能。返回值是删除掉的项组成的数组
+
 // 位置方法
 // 两个方法都返回要查找的项所在的位置，或者没有返回-1，参数一是查找项，参数二是从哪里开始
 indexOf() // 从头至尾
 lastIndexOf() // 从尾至头
-// 迭代方法
-// 每一个方法都是对数组中的每一项给指定的函数，有返回值的不会改变原本数组
+
+// 迭代方法 每一个方法都是对数组中的每一项给指定的函数，有返回值的不会改变原本数组
 every() // 如果每一项在函数中都返回true，则返回true
 filter() // 返回每一项在函数中返回true的项组成的数组
 forEach() // 数组中每一项都给函数，无返回值
@@ -254,8 +257,6 @@ find() // 返回满足条件的第一个值
    })
    app.listen(8888)
    ```
-
-
 
 
 ### BOM相关
@@ -346,19 +347,13 @@ Element类型：实例表示DOM元素，如<div></div>，nodeType为1，元素�
 
    相对于父元素的偏移，属性有element.offsetTop,element.offsetWith,element.offsetParent...
 
-   ![image-20200825144111475](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20200825144111475.png)
-
    如果想计算某个元素在页面的偏移量，则需要将这个元素的offsetLeft和offersetRight与其offsetParent的相同属性相加，如此循环直至根元素。
 
 2. 客户区大小
 
-   ![image-20200825144519658](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20200825144519658.png)
-
 3. 滚动大小
 
    指包含滚动内容的元素的大小
-
-   ![image-20200825145046115](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20200825145046115.png)
 
    如果元素没有滚动条，则scrollWidth 和 scrollHeight 与 clientWidth 和 clientHeight 之间的关系并不十分清晰，各个浏览器不同，它们有可能相等也有可能不相等。
 
@@ -380,18 +375,11 @@ Element类型：实例表示DOM元素，如<div></div>，nodeType为1，元素�
 
    event.clientX和event.clientY。所有的浏览器都支持这两个属性。
 
-   ![image-20200825150120672](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20200825150120672.png)
-
 2. 页面坐标位置
 
    event.pageX和event.pageY，在页面没有滚动的情况下，pageX和pageY的值与clientX和clientY的值相等。
 
-
-
 3. 屏幕坐标位置
-
-   ![image-20200825150526514](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20200825150526514.png)
-
 
 
 iframe
@@ -416,8 +404,6 @@ runtime之间互相操作（或者是通信）是有域限制的，跨域不可�
     setTimeout(arguments.callee, interval); 
    }, interval); 
    ```
-
-
 
 2. `setInterval`是重复定时，缺点是当上一次定时代码还没有执行完成甚至还在代码队列中的时候，又将要把本次的定时代码加入到代码队列中（`JavaScript`会避免这样，因此会导致某些间隔的定时器代码会被跳过），但是这样会导致定时器的时间间隔发生很大的改变，有可能之前的代码刚执行完又要执行本次代码了（小于设定的时间），所以可以使用`setTimeout`代替`setInterval`
 
@@ -494,8 +480,6 @@ runtime之间互相操作（或者是通信）是有域限制的，跨域不可�
 3. WebGL 是针对 Canvas 的 3D 上下文，多数浏览器还不支持
 
 ### 避免错误的一些编程知识点
-
-
 
 1. 在函数中对函数参数进行类型校验
 
