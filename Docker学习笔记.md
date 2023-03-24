@@ -292,7 +292,8 @@ Docker Compose可以基于Compose文件帮我们快速的部署分布式应用�
 1. 执行如下命令下载docker-compse并放到指定目录
 
    ```bash
-   curl -L https://github.com/docker/compose/releases/download/1.23.1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+   curl -L https://github.com/docker/compose/releases/download/v2.17.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+   # 其中 -L表示遇到重定向时自动跟随。`uname -a` 和 `uname -m`是两个命令，用于获取操作系统名和处理器架构名
    ```
 
 2. 添加执行权限
