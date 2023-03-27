@@ -1244,7 +1244,7 @@ Set<String> nameSet = topMenuList.stream()
 
 #### 转化为Map并指定键值的来源字段
 
-```
+```java
 Map<String, Person> namePersonMap = persons.stream()
 				.collect(Collectors.toMap(Person::getName, person -> person));
 ```
