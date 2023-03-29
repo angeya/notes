@@ -2,7 +2,30 @@ Java Web有三大组件，分别是Servlet、Filter和Listener，以下对这三
 
 ## Servlet
 
+### 重定向
 
+重定向，请求端会请求两次。
+
+```java
+@RestController
+@RequestMapping("web")
+public class IndexController {
+    @GetMapping("index")
+    public String index() {
+        LocalDateTime localDateTime = LocalDateTime.now();
+        return "Hello, now is " + localDateTime;
+    }
+    @GetMapping("/test/redirect")
+    public void redirect(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        System.out.println("---");
+        response.sendRedirect("index");
+    }
+}
+```
+
+默认地址只能修改一级。如果前端访问："web/test/redirect"，则redirect方法会被执行，然后前端地址改为“web/text/index”，再请求一次。
+
+如果需要重新指定地址，应该使用`response.sendRedirect(request.getContextPath() + "web/index");`则会访问到“web/index”接口。
 
 ## Filter
 
