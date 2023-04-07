@@ -280,8 +280,6 @@ window对象的常用属性有
 
 Node类型：在DOM中，每一个部分都是节点，一共有12个节点，使用1-12个常数表示（nodeType属性），如Node.ELEMENT_NODE(1)，Node.ATTRIBUTE_NODE(2)， Node.TEXT_NODE(3)；在DOM的任意一个部分都属于节点，并对应12种节点中的一个。
 
-节点的关系如图所示<img src="C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20201224163629363.png" alt="image-20201224163629363" style="zoom:60%;" />
-
 Document类型：表示文档，在浏览器中document对象是HTMLDocument类型（继承自Document，可能xml对应XMLDocument类型）的一个实例。常用方法有createElement()、getElementByxx()、querySelector()等。document对象属于window的属性，所以可以直接全局访问。
 
 Element类型：实例表示DOM元素，如<div></div>，nodeType为1，元素一定是节点，但是节点不一定是元素。比如文本节点，注释节点，元素属性节点等。
@@ -434,8 +432,6 @@ runtime之间互相操作（或者是通信）是有域限制的，跨域不可�
        context.fillRect(30, 30, 50, 50); 
    }
    ```
-
-
 
 2. 2D上下文
 
@@ -737,8 +733,6 @@ y // "obj"
   f.name // "hi"
   ```
 
-  
-
 5. 箭头函数
 
   基本用法：
@@ -765,8 +759,6 @@ y // "obj"
   3，函数体不存在arguments对象。可以使用rest参数代替
 
   4，不可以使用yield命令
-
-
 
 ### Set和Map 数据结构
 
@@ -901,14 +893,13 @@ y // "obj"
 
     Reflect对象一共有13个静态方法，常用的方法如下
 
-    `Reflect.apply(target, thisArg, args)
-    `
-
-    `Reflect.construct(target, args)`
-
-    ``Reflect.get(target, name, receiver)`
-
-    `Reflect.set(target, name, value, receiver)`
+    `Reflect.apply(target, thisArg, args)`
+    
+`Reflect.construct(target, args)`
+    
+`Reflect.get(target, name, receiver)`
+    
+`Reflect.set(target, name, value, receiver)`
 
 ### Iterator和for of
 
@@ -971,7 +962,7 @@ y // "obj"
 
 ### async函数
 
-1. async是Generator函数的语法糖，可以使得一步操作变得更加简单方便（使异步操作看起来像是同步操作）
+1. async是Generator函数的语法糖，可以使得操作变得更加简单方便（使异步操作看起来像是同步操作）
 
 2. 在一async异步函数操作中，需要同步的地方需要使用await关键字，且await后面返回的应该是一个Promise对象，
 
