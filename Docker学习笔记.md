@@ -184,14 +184,14 @@
 
 ```bash
 docker build # 构建镜像 docker build  -t imageName:tagName dir
-docker pull # 从仓库拉取镜像
+docker pull # 从仓库拉取镜像，可以在镜像前面写上仓库地址，指定镜像仓库
 docker iamges # 查看所有的本地镜像
 docker search # 在远程仓库搜索相关镜像
 docker push # 将本地镜像推送到仓库
 docker save # 保存镜像为一个压缩包
 docker load # 加载压缩包为镜像
 docker create # 通过镜像创建容器
-docker run # 创建容器并运行，相当于create和start两条命令,docker run --name nginx -p 80:80 -d nginx 参数：-p端口映射，-d后台运行
+docker run # 创建容器并运行，相当于create和start两条命令,docker run --name nginx -p 80:80 -d nginx 参数：-p配置主机端口和容器端口的映射，第一个是-d后台运行
 ```
 
 ### 2.2容器操作
@@ -403,7 +403,7 @@ DockerCompose的详细语法参考官网：https://docs.docker.com/compose/compo
    ```bash
    # 打开要修改的文件
    vi /etc/docker/daemon.json
-   # 添加内容：
+   # 添加json内容：
    "insecure-registries":["http://192.168.150.101:8080"]
    # 重加载
    systemctl daemon-reload
