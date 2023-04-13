@@ -21,9 +21,12 @@
 - 设置淘宝镜像源
 
   ```bash
+  # 全局设置源
   npm config set registry https://registry.npm.taobao.org/
-  # 查看是否配置成功
-  npm config set registry https://registry.npmjs.org/
+  # 查看当前源，验证是否配置成功
+  npm config get registry
+  # 安装包时使用某个源
+  npm i packageName --registry=地址
   ```
 
 - 恢复为npn官方镜像源
@@ -32,7 +35,7 @@
   npm config set registry https://registry.npmjs.org/
   ```
 
-  
+- 
 
 ## 2.准备VueCli
 
