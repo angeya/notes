@@ -27,23 +27,26 @@
 - 常用命令
 
   ```shell
-  git init 项目初始化 
-  git clone 远程克隆项目到本地 
-  git add file 添加到暂存区 
-  git commit -m "" 添加commit信息 
-  git push origin 将本地分支推送到服务器上去 
-  git pull origin 拉取远程仓库代码与本地合并（相当于git fetch + git merge）
-  git fetch 拉取远程代码，但是不合并
-  git merge 合并远程代码和本地代码
-  git pull origin master 
-
-  git log 查看日志 
-  git status 查看当前状态 
-  git tag 查看版本号 
-  git diff 查看尚未提交的更新
-
-  git remote -v 查看远程仓库信息
-  git remote set-url origin url 修改远程仓库地址
+  git init # 项目初始化 
+  git clone # 远程克隆项目到本地 
+  git add file # 添加到暂存区 
+  git commit -m "" # 添加commit信息 
+  git push origin # 将本地分支推送到服务器上去 
+  git pull origin # 拉取远程仓库代码与本地合并（相当于git fetch + git merge）
+  git fetch # 拉取远程代码，但是不合并
+  git merge # 合并远程代码和本地代码
+  git pull origin master # 
+  
+  git reset --hard commitID # 将暂存区设置为某个版本。既可以实现版本回退，也可以做实现重做（tortoise需要再show log中操作）
+  git revert commitID # 撤销提交（创建一个新的提交，反转之前提交的操作）（tortoise需要再show log中操作，并需要手动提交）
+  
+  git log # 查看日志 
+  git status # 查看当前状态 
+  git tag # 查看版本号 
+  git diff # 查看尚未提交的更新
+  
+  git remote -v # 查看远程仓库信息
+  git remote set-url origin url # 修改远程仓库地址
   ```
 
 - fetch与pull
