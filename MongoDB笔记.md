@@ -188,26 +188,65 @@
 
 ### MongoTemplate 方式
 
-1. 直接引入MongoTemplate并使用，使用方式类似MybatisPlus
+#### 基本用法
+
+直接引入MongoTemplate并使用，使用方式类似MybatisPlus
+
+```java
+@Service
+public class MongoService {
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
+    public void increaseAge(String id) {
+        // 查询对象，用于确认修改哪一个文档
+        Query query = Query.query(Criteria.where("_id").is(id));
+        // 更新对象，包含具体更新操作
+        Update update = new Update();
+        // 更新增加的的字段，可以通过第二个参数设置步长
+        update.inc("age");
+        this.mongoTemplate.updateFirst(query, update, "user");
+    }
+}
+```
+
+#### 增删改查
+
+1. 新增数据
 
    ```java
-   @Service
-   public class MongoService {
-   
-       @Autowired
-       private MongoTemplate mongoTemplate;
-   
-       public void increaseAge(String id) {
-           // 查询对象，用于确认修改哪一个文档
-           Query query = Query.query(Criteria.where("_id").is(id));
-           // 更新对象，包含具体更新操作
-           Update update = new Update();
-           // 更新增加的的字段，可以通过第二个参数设置步长
-           update.inc("age");
-           this.mongoTemplate.updateFirst(query, update, "user");
-       }
-   }
+   mongoTemplate.insert(user);
+   mongoTemplate.save(user);
+   ```
+
+   使用 `insert()` 方法将 `User` 对象插入到 MongoDB 中，如果该对象ID已存在，则不会再次插入。可以使用 `save()` 方法实现相同的功能，但是它也会替换掉已经存在的文档（值为null的字段则被删除），因此更适合执行覆盖性的操作。
+
+2. 删除
+
+   ```java
+   Query query = new Query(Criteria.where("id").is(id));
+   mongoTemplate.remove(query, User.class);
+   ```
+
+   使用 `remove()` 方法根据 ID 删除单个 `User` 对象，可以使用 `removeMulti()` 方法实现删除多个文档。
+
+3. 修改
+
+   ```java
+   Query query = new Query(Criteria.where("age").is(age));
+   Update update = new Update().set("name", name);
+   mongoOps.updateMulti(query, update, User.class);
+   ```
+
+4. 查询
+
+   ```java
+   Query query = new Query(Criteria.where("id").is(id));
+   return mongoTemplate.findOne(query, User.class);
    ```
 
    
+
+
 

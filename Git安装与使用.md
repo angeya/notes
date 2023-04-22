@@ -47,7 +47,7 @@
   git checkout branchName # 使用指定的分支，加上参数 -b 如果没有分支会创建再切换
   git push --set-upstream origin branchName # 提交到远程仓库指定分支，如果远程没有分支，则创建
   git merge srcBranch # 分支合并，指定支合并到当前分支
-  
+  git branch -d branchName # 删除指定分支（会做一些检查，比如是否已经合并），参数 -D 强制删除
   
   git log # 查看日志 
   git status # 查看当前状态，可以查看和远程仓库是不是一样的，不一样则有提交没有push
