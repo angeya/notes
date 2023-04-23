@@ -27,23 +27,35 @@
 - 常用命令
 
   ```shell
-  git init 项目初始化 
-  git clone 远程克隆项目到本地 
-  git add file 添加到暂存区 
-  git commit -m "" 添加commit信息 
-  git push origin 将本地分支推送到服务器上去 
-  git pull origin 拉取远程仓库代码与本地合并（相当于git fetch + git merge）
-  git fetch 拉取远程代码，但是不合并
-  git merge 合并远程代码和本地代码
-  git pull origin master 
-
-  git log 查看日志 
-  git status 查看当前状态 
-  git tag 查看版本号 
-  git diff 查看尚未提交的更新
-
-  git remote -v 查看远程仓库信息
-  git remote set-url origin url 修改远程仓库地址
+  git init # 项目初始化 
+  git clone # 远程克隆项目到本地 
+  git add file # 添加到暂存区 
+  git commit -m "" # 添加commit信息 
+  git push origin # 将本地分支推送到服务器上去 
+  git pull origin # 拉取远程仓库代码与本地合并（相当于git fetch + git merge）
+  git fetch # 拉取远程代码，但是不合并
+  git merge # 合并远程代码和本地代码
+  git pull origin master # 
+  
+  # 版本恢复
+  git reset --hard commitID # 将暂存区设置为某个版本。既可以实现版本回退，也可以做实现重做（tortoise需要再show log中操作）
+  git revert commitID # 撤销提交（创建一个新的提交，反转之前提交的操作）（tortoise需要再show log中操作，并需要手动提交）
+  
+  # 分支
+  git branch # 查看所有分支和当前使用的分支
+  git branch branchName # 创建一个新的分支
+  git checkout branchName # 使用指定的分支，加上参数 -b 如果没有分支会创建再切换
+  git push --set-upstream origin branchName # 提交到远程仓库指定分支，如果远程没有分支，则创建
+  git merge srcBranch # 分支合并，指定支合并到当前分支
+  git branch -d branchName # 删除指定分支（会做一些检查，比如是否已经合并），参数 -D 强制删除
+  
+  git log # 查看日志 
+  git status # 查看当前状态，可以查看和远程仓库是不是一样的，不一样则有提交没有push
+  git tag # 查看版本号 
+  git diff # 查看尚未提交的更新
+  
+  git remote -v # 查看远程仓库信息
+  git remote set-url origin url # 修改远程仓库地址
   ```
 
 - fetch与pull
