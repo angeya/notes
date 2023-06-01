@@ -895,6 +895,7 @@ y // "obj"
 
     `Reflect.apply(target, thisArg, args)`
     
+
 `Reflect.construct(target, args)`
     
 `Reflect.get(target, name, receiver)`
@@ -970,21 +971,27 @@ y // "obj"
 
     ```javascript
     function read() {
-        return new Promise(function(resolve, reject){
+        // 返回Promise对象这一步是同步的，只是对象内部可以存放未来才执行完成的方法
+        return new Promise( function (resolve, reject){
             // 异步操作
         })
     }
     function write(data) {
-        return new Promise(function(resolve, reject){
+        return new Promise( function (resolve, reject){
             // 异步操作
         })
     }
     async function asyncRead() {
         // read的结果是write的输入
+        // data是promise中resolve的数据
         let data = await read()
         await write(dir2, data)
     }
+    // async函数是异步的，只有内部是同步的
+    // 所以这段代码会先打印123，然后456，再是异步函数中的异步方法
+    console.log("123")
     asyncRead()
+    console.log("456")
     ```
 
 ### class的基本语法

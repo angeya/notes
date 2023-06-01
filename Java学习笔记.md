@@ -796,6 +796,89 @@ Collections.shuffle(list);
 Collections.binarySerch(list, element);
 ```
 
+### List的一些使用使用场景
+
+#### 遍历List删除元素的几种方法
+
+普通遍历删除存在的问题：
+
+```java
+// 基础数据
+List<String> list = new ArrayList<>();
+list.add("北京市");
+list.add("上海市");
+list.add("江苏省");
+
+// fori循环，删除北京市，这种情况下看似没问题
+// 其实北京市被删除之后，上海的下标变为了0，第二次循环就直接跳过上海市了，直接到江苏省
+// 当删除的元素的更多时，问题更加容易显现出来
+for (int i = 0; i < list.size(); i++) {
+    if (list.get(i).contains("市")) {
+        list.remove(i);
+    }
+}
+
+// 使用高级for循环（基于迭代器），会抛出 ConcurrentModificationException 异常
+for (String s : list) {
+    if (s.contains("市") {
+        list.remove(s);
+    }
+}
+```
+
+1. for循环手动修改下标
+
+   ```java
+   for (int i = 0; i < list.size(); i++) {
+       if (list.get(i).contains("市")) {
+           list.remove(i);
+           // 因为元素向前移动了一位，所以下标要向前移动，避免跳过元素
+           i--;
+       }
+   }
+   ```
+
+   
+
+2. for循环倒序遍历
+
+   ```java
+   // 倒序使被删除的元素不影响剩余的元素
+   for (int i = list.size() - 1; i >= 0; i--) {
+       if (list.get(i).contains("市")) {
+           list.remove(i);
+       }
+   }
+   ```
+
+   
+
+3. 使用迭代器删除
+
+   ```java
+   Iterator<String> iterator = list.iterator();
+   while(iterator.hasNext()) {
+       if (iterator.next().contains("市")) {
+           iterator.remove();
+       }
+   }
+   ```
+
+4. removeIf方法
+
+   ```java
+   list.removeIf(s -> s.contains("市"));
+   ```
+
+5. 使用Stream中的filter筛选
+
+   ```java
+   // 筛序不包含"市"的字符串
+   list = list.stream().filter(s -> !s.contains("市")).collect(Collectors.toList());
+   ```
+
+   
+
 ## 第12章 并发
 
 ### 什么是线程
