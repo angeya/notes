@@ -46,5 +46,94 @@ server:
 
 注意：1，通过配置文件的方式，无法让项目既支持https又支持https。2，https在地址栏不输入端口的话，默认是443
 
+### 使用Fastjson作为序列化框架
+
+1. 引入fastjson依赖
+
+在项目的pom.xml文件中引入fastjson依赖：
+
+```xml
+<dependency>
+    <groupId>com.alibaba</groupId>
+    <artifactId>fastjson</artifactId>
+    <version>1.2.72</version>
+</dependency>
+```
+
+2. 自定义FastJsonHttpMessageConverter
+
+在Spring Boot中默认使用Jackson作为JSON序列化和反序列化框架，需要自己定义一个FastJsonHttpMessageConverter来替换掉Jackson，使得Spring Boot使用fastjson进行处理。代码如下：
+
+```java
+@Configuration
+public class FastJsonHttpMessageConverterConfig {
+
+    @Bean
+    public HttpMessageConverters fastJsonHttpMessageConverters() {
+        // 1.创建FastJson信息转换对象
+        FastJsonHttpMessageConverter converter = new FastJsonHttpMessageConverter();
+
+        // 2.创建FastJson配置对象
+        FastJsonConfig config = new FastJsonConfig();
+        config.setSerializerFeatures(
+            SerializerFeature.PrettyFormat,
+            // List为null输出为空数组
+            SerializerFeature.WriteNullListAsEmpty,
+            // 禁用循环引用检测
+            SerializerFeature.DisableCircularReferenceDetect,
+            // 日期使用格式化输出（默认输出时间戳）
+            SerializerFeature.WriteDateUseDateFormat);
+        // 设置日期格式
+        config.setDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        // 3.处理中文乱码问题
+        List<MediaType> mediaTypes = new ArrayList<>();
+        mediaTypes.add(MediaType.APPLICATION_JSON_UTF8);
+        converter.setSupportedMediaTypes(mediaTypes);
+
+        // 4.将FastJson配置给到转换器，并添加到HttpMessageConverter转换器列表中
+        converter.setFastJsonConfig(config);
+        return new HttpMessageConverters(converter);
+    }
+}
+```
+
+以上代码通过@Bean注解将`FastJsonHttpMessageConverter`注册为Bean，并添加到`HttpMessageConverter`转换器列表中。在`FastJsonConfig`中设置了一些fastjson的配置参数，如是否格式化输出、序列化null值的规则及禁用循环引用检测等。
+
+3. 配置Spring Boot使用FastJson替代Jackson
+
+在Spring Boot的配置文件application.yml（或application.properties）中增加配置项，使得Spring Boot使用FastJson进行JSON处理而非默认的Jackson。
+
+```yaml
+spring:
+  http:
+    converters:
+      preferred-json-mapper: fastjson
+```
+
+4. 测试
+
+在Controller中使用@ResponseBody注解将返回结果序列化成JSON格式并返回给客户端，如下所示：
+
+```java
+@RestController
+@RequestMapping("/user")
+public class UserController {
+
+    @RequestMapping("/info")
+    public User getUser(){
+        User user = new User();
+        user.setId("123");
+        user.setName("小明");
+        user.setAge(24);
+        user.setAddress("江苏南京");
+        user.setBirthday(new Date());
+        return user;
+    }
+}
+```
+
+完成以上操作后，就可以使用fastjson作为Spring Boot的JSON序列化和反序列化框架了。
+
 
 
