@@ -135,5 +135,34 @@ public class UserController {
 
 完成以上操作后，就可以使用fastjson作为Spring Boot的JSON序列化和反序列化框架了。
 
+### 读取resources目录下的文件
+
+1. 方式1（项目打成 jar 包后，路径有问题，导致读取不到文件内容，因此只能在开发环境使用）
+
+   ```java
+   // 注意getResource("")里面是空字符串
+   String path = this.getClass().getClassLoader().getResource("").getPath();
+   // 如果路径中带有中文会被URLEncoder,因此这里需要解码
+   String filePath = URLDecoder.decode(path, "UTF-8");
+   ```
+
+   
+
+2. 方式2（获取 jar 包中文件的输入流，可以在生产环境使用）
+
+   ```java
+   /* 可以使用以下几种方式获取输入流 */
+   
+   // 获取类加载器后使用getResourceAsStream方法获取流
+   InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(fileName);
+   // 直接使用getResourceAsStream方法获取流
+   InputStream inputStream = this.getClass().getResourceAsStream("/" + fileName);
+   // 通过ClassPathResource的方式获取
+   ClassPathResource classPathResource = new ClassPathResource(fileName);
+   InputStream inputStream = classPathResource.getInputStream();
+   ```
+
+   
+
 
 
