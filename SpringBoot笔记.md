@@ -6,6 +6,8 @@
 
 SpringBoot默认的静态路径是`resources/static`。在此路径下放入媒体文件是可以直接访问的。
 
+
+
 ### SpringBoot 支持 https
 
 想要支持https，首先需要获取证书，证书的颁发机构（AC）越权威越好，安全性也越高（访问https网站，可以点击地址栏的锁查看证书相关的信息）。
@@ -45,6 +47,8 @@ server:
 然后启动项目就可以了。
 
 注意：1，通过配置文件的方式，无法让项目既支持https又支持https。2，https在地址栏不输入端口的话，默认是443
+
+
 
 ### 使用Fastjson作为序列化框架
 
@@ -134,6 +138,8 @@ public class UserController {
 ```
 
 完成以上操作后，就可以使用fastjson作为Spring Boot的JSON序列化和反序列化框架了。
+
+
 
 ### 读取resources目录下的文件
 
