@@ -38,6 +38,8 @@
 
 - 查看端口占用进程
 
+  netstat -ao | findstr 9025
+
 ## Java相关
 
 - 后台运行 jar 包
