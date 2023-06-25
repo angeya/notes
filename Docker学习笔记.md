@@ -208,7 +208,8 @@ docker rm # 删除一个容器
 docker ps # 查看运行的容器，加 -a 参数查看所有容器
 docker kill # 强制关闭容器
 docker rename # 容器重命名 docker rename oldName newName
-docker exec # 在运行的容器执行命令，如进入容器：docker exec -it container bash（-i 保持STDIN打开，-t 分配一个伪终端。bash/sh 是进入容器后第一个执行的命令）
+docker exec # 在运行的容器执行命令，如进入容器：docker exec -it container bash（-i 保持STDIN打开，-t 分配一个伪终端。bash/sh 是进入容器后第一个执行的命令）；如测试nginx配置：docker exec nginxContainer nginx -t 其中nginx -t是nginx测试配置是否正确的命令 
+
 docker logs -f container # 查看容器的运行日志
 ```
 
