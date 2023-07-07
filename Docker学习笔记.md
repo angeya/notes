@@ -191,7 +191,7 @@ docker push # 将本地镜像推送到仓库
 docker save # 保存镜像为一个压缩包
 docker load # 加载压缩包为镜像
 docker create # 通过镜像创建容器
-docker run # 创建容器并运行，相当于create和start两条命令,docker run --name nginx -p 80:80 -d nginx 参数：-p配置主机端口和容器端口的映射，第一个是-d后台运行
+docker run # 创建容器并运行，相当于create和start两条命令,docker run --name nginx -p 80:80 -d nginx 参数：-p配置主机端口和容器端口的映射，第一个是-d后台运行。也可以使用 ---network=host 配置项设置容器的网络模式，设置为host时，容器将会直接使用主机的端口，避免了配置端口映射的麻烦，默认的网络模式是bridge。
 ```
 
 ### 2.2容器操作
@@ -212,6 +212,14 @@ docker exec # 在运行的容器执行命令，如进入容器：docker exec -it
 docker logs -f container # 查看容器的运行日志
 docker inspect container # 查看容器的详细信息
 ```
+
+`docker inspect` 命令显示信息（json格式）：
+
+1. Created属性显示容器创建日期。
+2. State显示容器状态
+3. Mounts属性显示主机和容器的文件映射以及读写信息。
+4. Config属性显示核心的配置项，其中Env显示容器的环境变量（和容器内部的env命令类似）。Cmd显示启动配置命令（数组的第一条是配置项，第二条是配置值）。ExposedPorts显示容器暴露的端口号。Image显示创建容器的镜像。Volumes显示容器数据卷。Labels显示镜像的详细信息，如镜像地址、作者、版本号等。
+5. NetworkSettings显示网络设置，包括端口映射、网络模式等等。
 
 ### 2.3数据卷
 
