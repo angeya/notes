@@ -211,6 +211,7 @@ docker rename # 容器重命名 docker rename oldName newName
 docker exec # 在运行的容器执行命令，如进入容器：docker exec -it container bash（-i 保持STDIN打开，-t 分配一个伪终端。bash/sh 是进入容器后第一个执行的命令）
 docker logs -f container # 查看容器的运行日志
 docker inspect container # 查看容器的详细信息
+docker stats container # 查看容器占用的资源 如cpu和内存等
 ```
 
 `docker inspect` 命令显示信息（json格式）：
