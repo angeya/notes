@@ -294,6 +294,24 @@ server:
 
 
 
+### 拦截controller方法入参和出参
+
+1. 使用Fastjson作为序列化框架
+
+   入参可以在`FastJsonHttpMessageConverter`类的`readType`方法中打断点查看。反序列化过程会读取Http的输入流内容，然后转化为字节数组，再使用字节数组通过`JSON.parseObject()`方法进行解析成控制方法对应的类型对象。
+
+   可以使用如下代码查看请求参数：
+
+   ```java
+   new String(bytes);
+   ```
+
+   出参可以在类的`writeInternal`方法打断点查看，该方法中的`Object object`参数即是返回的对象。序列化时将object转化为json字符串，然后将字符串写入到字节流`ByteArrayOutputStream`中，最后通过Http输出流输出。
+
+2. 使用默认的序列化框架
+
+
+
 ### 使用Fastjson作为序列化框架
 
 1. 引入fastjson依赖
