@@ -306,11 +306,21 @@ server:
    new String(bytes);
    ```
 
-   出参可以在类的`writeInternal`方法打断点查看，该方法中的`Object object`参数即是返回的对象。序列化时将object转化为json字符串，然后将字符串写入到字节流`ByteArrayOutputStream`中，最后通过Http输出流输出。
+   出参可以在`FastJsonHttpMessageConverter`类的`writeInternal`方法打断点查看，该方法中的`Object object`参数即是返回的对象。序列化时将object转化为json字符串，然后将字符串写入到字节流`ByteArrayOutputStream`中，最后通过Http输出流输出。
 
 2. 使用默认的序列化框架
 
+   入参可以在`AbstractJackson2HttpMessageConverter`的`readJavaType`方法中打断点拦截。拦截到`inputMesage`对象，只需要获取其内容输入流，然后执行一下代码即可：
 
+   ````java
+   InputStream inputStream = inputMessage.getBody();
+   byte[] bytes = new byte[inputStream.available()];
+   // 将会消费输入流
+   inputStream.read(bytes);
+   new String(bytes);
+   ````
+
+   出参在`AbstractJackson2HttpMessageConverter`类的`writeInternal`方法查看，该方法中的`Object object`参数即是返回的对象。
 
 ### 使用Fastjson作为序列化框架
 
