@@ -163,6 +163,37 @@ yum  install -y epel-release # 我们安装的网络yum源基本都是基础的y
 
 
 
+### 无法识别域名(一般出现在虚拟机中)
+
+比如ping www.baidu.com 的时候报错：Name or service not known。但是ping 百度的ip可以ping通。
+
+大概率是DNS配置的问题。解决步骤如下：
+
+1. 设置DNS服务器
+
+   编辑文件`/etc/resolv.conf`，在文件中增加如下DNS服务器配置：
+
+   ```
+   nameserver 8.8.8.8
+   nameserver 8.8.4.4
+   ```
+
+   保存退出，重启服务器（不重启好像也可以），之后再ping 一次试一试。
+
+2. 配置以太网卡
+
+   如果以上方法不行。
+
+   编辑文件`/etc/sysconfig/network-scprits/ifcfg-ens33`,文件名可能不是33而是其他编号。
+
+   在文件中 找到 ONBOOT=NO 改成 ONBOOT=yes
+
+   重启网络： `service network restart`
+
+### 查看linux的IP地址
+
+使用ifconfig命令会输出多个信息，本机ip的信息一般在ens33中。
+
 ### Linux系统运行级别
 
 init级别	systemctl target   说明 （重置密码1，常用3，图形5）
