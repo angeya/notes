@@ -188,8 +188,9 @@ docker pull # 从仓库拉取镜像，可以在镜像前面写上仓库地址，
 docker iamges # 查看所有的本地镜像
 docker search # 在远程仓库搜索相关镜像
 docker push # 将本地镜像推送到仓库
-docker save # 保存镜像为一个压缩包
-docker load # 加载压缩包为镜像
+docker save # 保存镜像为一个压缩包 如：docker save -o cni.tar flannel/flannel-cni-plugin 参数-o为output
+docker load # 加载压缩包为镜像 如：docker load -i cni.tar 参数-i为input
+docker tag # 修改镜像的tag或者名称 如：docker tag xxx flannel/flannel-cni-plugin:1.2.0 其中xxx为镜像id，这里是会复制出一个新的镜像，但是新旧镜像id是一样的，要删除旧镜像只能通过 rmi name:tag 的方式
 docker create # 通过镜像创建容器
 docker run # 创建容器并运行，相当于create和start两条命令,docker run --name nginx -p 80:80 -d nginx 参数：-p配置主机端口和容器端口的映射，第一个是-d后台运行。也可以使用 ---network=host 配置项设置容器的网络模式，设置为host时，容器将会直接使用主机的端口，避免了配置端口映射的麻烦，默认的网络模式是bridge。
 ```
