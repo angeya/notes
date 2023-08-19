@@ -252,6 +252,25 @@ SpringBoot默认的静态路径是`resources/static`。在此路径下放入媒�
 
 
 
+### 获取当前请求的相关参数
+
+当前请求的参数存放在`HttpServletRequest`中，当我们需要使用请求参数或者响应对象的时候，需要在controller中的方法携带参数过来。
+
+但是当我们需要处理的业务逻辑调用栈很深的时候，就需要一直携带着`HttpServletRequest`和`HttpServletResponse`参数，这样比较麻烦。
+
+其实SpringMvc通过ThreadLocal实现了通过当前线程获取请求参数的方法。关键类是`org.springframework.web.context.request.RequestContextHolder`，其中的方法是`getRequestAttributes()`。
+
+`getRequestAttributes()`方法返回的是`RequestAttributes`接口的实例，需要强转为`ServletRequestAttributes`对象，才可以获取`HttpServletRequest`和`HttpServletResponse`属性。具体使用如下：
+
+```java
+// 请求对象
+HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
+// 响应对象
+HttpServletResponse request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getResponse();
+```
+
+
+
 ### SpringBoot 支持 https
 
 想要支持https，首先需要获取证书，证书的颁发机构（AC）越权威越好，安全性也越高（访问https网站，可以点击地址栏的锁查看证书相关的信息）。
@@ -273,8 +292,6 @@ keytool -genkey -alias tomcat -dname "CN=Andy,OU=kfit,O=kfit,L=HaiDian,ST=BeiJin
 # -keystore keystore.p12：指定要创建的密钥库文件名为“keystore.p12”。
 # -validity 365：指定密钥对的有效期为365天。
 ```
-
-xxxxxxxxxx Object currentProxy();java
 
 将自签或者购买的证书放在SpringBoot项目resources目录下，然后在配置文件中添加以下配置（以自签证书为例）：
 
