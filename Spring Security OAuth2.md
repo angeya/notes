@@ -344,6 +344,19 @@ Oauth协议目前发展到2.0版本，1.0版本过于复杂，2.0版本已得到
 
 ### 2  授权服务器配置
 
+maven依赖：
+
+```xml
+<!-- oauth2支持 -->
+<dependency>
+    <groupId>org.springframework.security.oauth</groupId>
+    <artifactId>spring-security-oauth2</artifactId>
+    <version>2.3.5.RELEASE</version>
+</dependency>
+```
+
+
+
 #### 2.1 EnableAuthorizationServer
 
 可以用 @EnableAuthorizationServer 注解并继承AuthorizationServerConfifigurerAdapter来配置OAuth2.0 授权服务器。
@@ -363,11 +376,11 @@ AuthorizationServerConfifigurerAdapter要求配置以下几个类，这几个类
 ```java
 public class AuthorizationServerConfigurerAdapter implements AuthorizationServerConfigurer {
 	public AuthorizationServerConfigurerAdapter() {}
-    // 用来配置令牌（token）的访问端点和令牌服务(tokenservices)。
+    // 用来配置令牌端点的安全约束
     public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {}
     // 用来配置客户端详情服务（ClientDetailsService），客户端详情信息在这里进行初始化，你能够把客户端详情信息写死在这里或者是通过数据库来存储调取详情信息
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {}
-    // 用来配置令牌端点的安全约束
+    // 用来配置令牌（token）的访问端点和令牌服务(tokenservices)
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {}
 }
 ```
@@ -394,8 +407,7 @@ public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         .secret(new BCryptPasswordEncoder().encode("secret"))
         .resourceIds("res1")
         .authorizedGrantTypes("authorization_code", "password", 
-                              "client_credentials", "implicit","refresh_token")// 该client允许的授权类型
-        authorization_code,password,refresh_token,implicit,client_credentials
+                              "client_credentials", "implicit","refresh_token")// 该client允许的授权类型authorization_code,password,refresh_token,implicit,client_credentials
         .scopes("all")// 允许的授权范围
         .autoApprove(false)
         //加上验证回调地址
@@ -415,7 +427,7 @@ AuthorizationServerTokenServices 接口定义了一些操作使得你可以对�
 
 **JwtTokenStore**：这个版本的全称是 JSON Web Token（JWT），它可以把令牌相关的数据进行编码（因此对于后端服务来说，它不需要进行存储，这将是一个重大优势），但是它有一个缺点，那就是撤销一个已经授权令牌将会非常困难，所以它通常用来处理一个生命周期较短的令牌以及撤销刷新令牌（refresh_token）。另外一个缺点就是这个令牌占用的空间会比较大，如果你加入了比较多用户凭证信息。JwtTokenStore 不会保存任何数据，但是它在转换令牌值以及授权信息方面与 DefaultTokenServices 所扮演的角色是一样的。
 
-1. 定义TokenConfifig
+1. 定义TokenConfig
 
    在confifig包下定义TokenConfig，我们暂时先使用InMemoryTokenStore，生成一个普通的令牌。
 
@@ -572,17 +584,179 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 }
 ```
 
-
-
 ### 3 授权码模式
+
+下图是授权码模式交互图：
+
+<img src="assets/image-20230904215110775.png" alt="image-20230904215110775" style="zoom:80%;" />
+
+微信，QQ等授权登录就是使用这种模式。
 
 ### 4 简化模式
 
+下面是简化模式的交互图
+
+<img src="assets/image-20230904220129240.png" alt="image-20230904220129240" style="zoom:80%;" />
+
+一般来说，简化模式用于没有服务器端的第三方单页面应用，因为没有服务器端就无法接收授权码。
+
 ### 5 密码模式
+
+下面是密码模式的交互图
+
+<img src="assets/image-20230904220220719.png" alt="image-20230904220220719" style="zoom:80%;" />
+
+1. 资源拥有者将用户名、密码发送给客户端
+2. 客户端拿着资源拥有者的用户名、密码向授权服务器请求令牌（access_token），请求如下：
+
+```
+/xxx/oauth/token?client_id=c1&client_secret=secret&grant_type=password&username=shangsan&password=123
+```
+
+参数列表如下：
+
+- client_id：客户端准入标识。 client_secret：客户端秘钥。
+
+- grant_type：授权类型，填写password表示密码模式 username：资源拥有者用户名。
+
+- password：资源拥有者密码。
+
+3.  授权服务器将令牌（access_token）发送给client
+
+请求示例：
+
+![image-20230904225708646](assets/image-20230904225708646.png)
+
+这种模式十分简单，但是却意味着直接将用户敏感信息泄漏给了client，因此这就说明这种模式只能用于client是我们自己开发的情况下。因此密码模式一般用于我们自己开发的，第一方原生App或第一方单页面应用
 
 ### 6 客户端模式
 
-### 7 授权码模式
+客户端模式的交互图如下所示：
+
+<img src="assets/image-20230904220633541.png" alt="image-20230904220633541" style="zoom:80%;" />
+
+这种模式是 方便但 不安全的模式。因此这就要求我们对client完全的信任，而client本身也是安全的。因此这种模式一般用来提供给我们完全信任的服务器端服务。比如，合作方系统对接，拉取一组用户信息。
 
 ## JWT
+
+### 1  JWT令牌
+
+当资源服务和授权服务不在一起时资源服务使用 RemoteTokenServices 远程请求授权服务验证token，如果访问量较大将会影响系统的性能 。
+
+解决上边问题：
+
+令牌采用JWT格式即可解决上边的问题，用户认证通过会得到一个JWT令牌，JWT令牌中已经包括了用户相关的信息，客户端只需要携带JWT访问资源服务，资源服务根据事先约定的算法自行完成令牌校验，无需每次都请求认证服务完成授权。
+
+**1，什么是JWT？**
+
+JSON Web Token（JWT）是一个开放的行业标准（RFC 7519），它定义了一种简介的、自包含的协议格式，用于在通信双方传递json对象，传递的信息经过数字签名可以被验证和信任。JWT可以使用HMAC算法或使用RSA的公钥/私钥对来签名，防止被篡改。
+
+官网：https://jwt.io/
+
+标准：https://tools.ietf.org/html/rfc7519
+
+JWT令牌的优点：
+
+1. jwt基于json，非常方便解析。
+
+2. 可以在令牌中自定义丰富的内容，易扩展。
+
+3. 通过非对称加密算法及数字签名技术，JWT防止篡改，安全性高。
+
+4. 资源服务使用JWT可不依赖认证服务即可完成授权。
+
+缺点：
+
+1. JWT令牌较长，占存储空间比较大。
+
+**2、JWT令牌结构**
+
+JWT令牌由三部分组成，每部分中间使用点（.）分隔，比如：xxxxx.yyyyy.zzzzz
+
+- Header
+
+  头部包括令牌的类型（即JWT）及使用的哈希算法（如HMAC SHA256或RSA）一个例子如下：
+
+  ```json
+  {
+      "alg": "HS256",
+      "typ": "JWT"
+  }
+  ```
+
+  将上边的内容使用Base64Url编码，得到一个字符串就是JWT令牌的第一部分。
+
+- Payload
+
+- 第二部分是负载，内容也是一个json对象，它是存放有效信息的地方，它可以存放jwt提供的现成字段，比如：iss（签发者）,exp（过期时间戳）, sub（面向的用户）等，也可自定义字段。
+
+  此部分不建议存放敏感信息，因为此部分可以解码还原原始内容。
+
+  将第二部分负载使用Base64Url编码，得到一个字符串就是JWT令牌的第二部分。一个例子：
+
+  ```json
+  {
+      "sub": "1234567890",
+      "name": "456",
+      "admin": true
+  }
+  ```
+
+- Signature
+
+  第三部分是签名，此部分用于防止jwt内容被篡改。
+
+  这个部分使用base64url将前两部分进行编码，编码后使用点（.）连接组成字符串，最后使用header中声明签名算法进行签名。
+
+  一个例子：
+
+  ```
+  HMACSHA256(
+      base64UrlEncode(header) + "." +
+      base64UrlEncode(payload),
+      secret)
+  ```
+
+  base64UrlEncode(header)：jwt令牌的第一部分。 base64UrlEncode(payload)：jwt令牌的第二部分。 secret：签名所使用的密钥。
+
+### 2 配置JWT令牌服务
+
+TokenConfig
+
+```java
+@Configuration
+public class TokenConfig {
+    private String SIGNING_KEY = "uaa123";
+    @Bean
+    public TokenStore tokenStore() {
+    	return new JwtTokenStore(accessTokenConverter());
+    }
+    @Bean
+    public JwtAccessTokenConverter accessTokenConverter() {
+        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
+        converter.setSigningKey(SIGNING_KEY); //对称秘钥，资源服务器使用该秘钥来验证
+        return converter;
+    }
+}
+```
+
+定义JWT令牌服务
+
+```java
+@Autowired
+private JwtAccessTokenConverter accessTokenConverter;
+@Bean
+public AuthorizationServerTokenServices tokenService() {
+    DefaultTokenServices service=new DefaultTokenServices();
+    service.setClientDetailsService(clientDetailsService);
+    service.setSupportRefreshToken(true);
+    service.setTokenStore(tokenStore); // 设置jwt存储token
+    TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
+    tokenEnhancerChain.setTokenEnhancers(Arrays.asList(accessTokenConverter));
+    service.setTokenEnhancer(tokenEnhancerChain);
+    service.setAccessTokenValiditySeconds(7200); // 令牌默认有效期2小时
+    service.setRefreshTokenValiditySeconds(259200); // 刷新令牌默认有效期3天
+    return service;
+}
+```
 
