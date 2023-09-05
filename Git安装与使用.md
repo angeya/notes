@@ -147,3 +147,52 @@ build/
 *.cmd
 ```
 
+### 7.一些使用案例
+
+### 7.1 代码已经被修改甚至被commit，这时候来了一个更紧急的任务
+
+如果代码被commit，需要取消commit，然后stash changes。
+
+这时代码被还原成了没有被修改的状态，即可进行更紧急任务的开发，开发完成push之后，stash pop可以弹出之前暂存的修改，继续操作。
+
+### 7.2 把本地项目推到 github，但是github没有对应的仓库
+
+1. 创建 Github 仓库： 在 Github 上创建一个新的仓库，用于存储本地项目的代码。你可以选择公开或私有，初始化 README 文件等选项，一般默认在main分支。
+
+2. 在本地项目中运行 Git 初始化： 进入本地项目所在的目录，在终端（或命令行）中运行 `git init` 命令，初始化 Git 仓库。
+
+3. 将本地代码提交到 Git 仓库： 使用 `git add .` 命令将所有变更添加到暂存区，使用 `git commit -m "Initial commit"` 命令将变更提交到本地 Git 仓库。
+
+4. 关联本地 Git 仓库和 Github 仓库： 通过运行 `git remote add origin https://github.com/your-username/your-repository.git` 命令，将本地 Git 仓库与 Github 仓库关联起来。
+
+5. 推送本地代码到 Github 仓库： 最后，运行 `git push -u origin main/master` 命令（一般main或者master分支），将本地代码推送到 Github 仓库中。
+
+   也可以先执行 `git pull origin master --allow-unrelated-histories` 命令，将远程 Github 仓库中的文件同步到本地仓库中，然后再执行 `git push -u origin master` 命令。
+
+### 7.3 撤销commit
+
+要撤销 Git 中的 commit，可以使用以下两种方法：
+
+1. 使用 `git revert` 命令：
+
+   - 运行 `git revert HEAD`：这将撤销最新的提交，并创建一个新的提交来还原更改。这个新的提交将取消前一个提交的变更，但保留前一个提交的历史记录。你需要输入一个提交消息来描述这个还原。
+   - 如果你想要撤销多个提交，可以指定具体的提交哈希值，如 `git revert <commit-hash>`。
+
+2. 使用 `git reset` 命令：
+
+   - 运行 `git reset HEAD~`：这将删除最新的提交，但保留更改的内容在工作目录中。此时，你可以对代码进行修改，然后重新提交。
+
+   - 如果你确定要移除多个提交，可以使用 `git reset` 命令和相应的提交哈希值，如 `git reset <commit-hash>`。
+
+     
+
+   请注意，这两种方法有不同的影响和后果。`git revert` 会创建一个新的还原提交，保留了撤销历史记录，而 `git reset` 则是删除提交并可能导致分支历史被修改。因此，在使用 `git reset` 命令之前，请确保你知道自己在做什么，并了解其潜在的风险。
+
+   另外，如果你的提交已经推送到远程仓库，撤销后还需要使用 `git push` 命令将更改推送到远程仓库以更新它。
+
+   总而言之，使用 `git revert` 可以安全地撤销提交并保留撤销历史记录，而使用 `git reset` 可以删除提交但可能会修改分支历史。
+
+   
+
+
+
