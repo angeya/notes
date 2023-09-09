@@ -90,37 +90,61 @@ git config --global --unset http.proxy
 git config --global --unset https.proxy
 ```
 
-## 6. Java项目 .gitignore 文件样例
+## 6. Java项目 .gitignore 文件示例
 
 ```
-#设置忽略文件
-node_modules/
-dist/
-package-lock.json
-
-#MAVEN打包文件忽略
+HELP.md
 target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
 
-#文件格式忽略
-*.log
-*.class
-*.war
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
 *.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+# Log file
+*.log
+/logs*
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
 *.jar
-*.nar
+*.war
 *.ear
 *.zip
 *.tar.gz
 *.rar
-
-#文件忽略
-.idea/
-.idea
-.vscode
-.project
-.classpath
-.settings
-
+*.cmd
 ```
 
 ### 7.一些使用案例
