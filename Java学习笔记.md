@@ -1305,6 +1305,7 @@ personMap.get(false).forEach(p -> System.out.println(p.getAge()));
 #### 找到最xxx的人
 
 ```java
+// 查找名字最长的人
 Stream<String> nameStream = Stream.of("Sunnyangeya", "Lily", "Tom", "Snake");
 System.out.println(nameStream.reduce((x, y) -> x.length() > y.length() ? x : y).get());
 ```
@@ -1330,6 +1331,21 @@ Set<String> nameSet = topMenuList.stream()
 ```java
 Map<String, Person> namePersonMap = persons.stream()
 				.collect(Collectors.toMap(Person::getName, person -> person));
+```
+
+#### 多字段排序
+
+```java
+personList.sort(Comparator.comparing(Person::getAge).thenComparing(Person::getName).thenComparing(Person::getIsFemale));
+```
+
+#### 使用groupingBy分类进行分类
+
+```java
+// 根据年龄进行分类
+Map<Integer, List<Person>> ageMap = personList.stream().collect(Collectors.groupingBy(Person::getAge, TreeMap::new, Collectors.toList()));
+// 根据年龄进行分类并统计数量
+Map<Integer, Long> ageMap = personList.stream().collect(Collectors.groupingBy(Person::getAge, TreeMap::new, Collectors.counting()));
 ```
 
 
