@@ -240,8 +240,14 @@ Signature signature = joinPoint.getSignature();
 
    
 
+## 3.0 版本新特性
 
-## 3.x版本变化
+1. JDK要求最低版本Java17
+2. SpringBoot3底层默认依赖Spring6
+3. 支持 Jakarta EE 10，由于 Java EE 已经变更为 Jakarta EE，包名以 javax开头的需要相应地变更为jakarta
+4. Tomcat10版本
+5. 支持 GraalVM 原生镜像 ，GraalVM 是 Oracle 在 2018 年发布的`一个全新的通用全栈虚拟机`，并具有高性能、跨语言交互等逆天特性，支持云原生，官网：https://www.graalvm.org/
+6. 改进监控功能Micrometer和Micrometer Tracing
 
 
 
@@ -261,7 +267,7 @@ SpringBoot默认的静态路径是`resources/static`。在此路径下放入媒�
 
 其实SpringMvc通过ThreadLocal实现了通过当前线程获取请求参数的方法。关键类是`org.springframework.web.context.request.RequestContextHolder`，其中的方法是`getRequestAttributes()`。
 
-`getRequestAttributes()`方法返回的是`RequestAttributes`接口的实例，需要强转为`ServletRequestAttributes`对象，才可以获取`HttpServletRequest`和`HttpServletResponse`属性。具体使用如下：
+xxxxxxxxxx Object currentProxy();java
 
 ```java
 // 请求对象
