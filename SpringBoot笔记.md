@@ -371,7 +371,18 @@ Signature signature = joinPoint.getSignature();
 
 2. @Validated参数校验
 
-   好在有`@Validated`注解，又是一个校验参数必备良药了。有了`@Validated`我们只需要在`vo`上面加一点小小的注解，便可以完成校验功能
+   好在有`@Validated`注解，又是一个校验参数必备良药了。有了`@Validated`我们只需要在`User`上面加一点小小的注解，便可以完成校验功能
+
+   字段的校验注解（具体内容可以学习`spring-boot-starter-validation`的使用）需要添加如下maven依赖：
+
+   ```xml
+   <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-validation</artifactId>
+   </dependency>
+   ```
+
+   User实体类
 
    ```java
    @Data
@@ -383,6 +394,8 @@ Signature signature = joinPoint.getSignature();
        private Integer age;
    }
    ```
+
+   controller
 
    ```java
    @PostMapping("getUser")
