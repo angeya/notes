@@ -502,8 +502,6 @@ runtime之间互相操作（或者是通信）是有域限制的，跨域不可�
 
 
 ## ES6
-## ES6学习与总结
-
 ### let与const命令
 
 `let`命令用于变量的声明，但是不同于`var`，`let`所声明的变量只在所在的代码块有效，类似`java`语言
@@ -1006,3 +1004,171 @@ y // "obj"
 1. class可以通过extends关键字显示继承，子类的构造函数中必须调用super()方法创建父类对象的this
 2. super关键字可以当做方法来使用，也可以当做对象来使用。super()方法虽然代表了父类的构造函数，但是返回的却是子类的实例，即super内部的this指向子类。如果super当做对象来使用，则super指向父类的prototype，所以定义在父类实例上的方法或者属性，是无法通过super调用的。
 3. 大多数浏览器的ES5实现中，每一个对象都有\_\_prototype\_\_属性，指向构造函数的prototype。class作为构造函数的语法糖，同时有prototype属性和\_\_prototype\_\_属性，所以同时存在两条继承链。即子类的\_\_prototype\_\_表示构造函数的继承，指向父类，子类的prototype属性的\_\_prototype\_\_属性表示方法的继承，总是指向父类的prototype属性
+
+## 开发案例
+
+### 获取本地文件内容
+
+FileReader 是 JavaScript 提供的内置对象，用于读取本地文件内容。它可以将文件内容读取为文本或二进制数据，提供了一些异步方法来处理文件的读取操作。
+
+使用 FileReader，你可以通过以下步骤来读取本地文件：
+
+1. 创建 FileReader 对象：使用 `new FileReader()` 创建一个新的 FileReader 实例。
+2. 监听文件加载事件：使用 `onload` 事件监听器来处理文件加载完成后的操作。该事件在文件加载成功后触发。
+3. 选择文件并读取内容：通过用户的操作（例如 `<input type="file">`），选择要读取的文件，并将文件传递给 FileReader 实例。
+4. 调用 FileReader 方法来读取文件内容：
+   - 对于文本文件，使用 `readAsText(file)` 方法来读取文件内容为文本。
+   - 对于二进制文件，使用 `readAsArrayBuffer(file)` 方法来读取文件内容为二进制数据。
+
+下面是一个简单的示例，演示如何使用 FileReader 读取本地文本文件的内容：
+
+```html
+<input type="file" id="file-input" onchange="handleFileSelect(event)">
+<script>
+  // JavaScript
+  function handleFileSelect(e) {
+    // 获取文件
+    let file = e.target.files[0]
+    let reader = new FileReader()
+
+    reader.onload = function(e) {
+      let fileContent = e.target.result
+      // 在控制台打印文件内容
+      console.log(fileContent)
+    }
+    // 读取文件内容为文本
+    reader.readAsText(file)
+    // readAsArrayBuffer(file) 读取二进制文件
+  }
+</script>
+```
+
+在上面的示例中，我们添加了一个文件选择框 `<input type="file">`，当用户选择文件后，触发 `change` 事件。在事件处理函数中，创建了一个 FileReader 对象，并设置其 `onload` 事件处理函数来处理文件加载完成后的操作。然后，调用 `readAsText(file)` 方法将文件内容读取为文本。
+
+需要注意的是，由于 FileReader 方法是异步执行的，因此需要在 `onload` 事件处理函数中处理文件内容或进行后续操作。
+
+### 获取静态文件内容
+
+在浏览器中直接打开静态文件的地址会变成文件预览或者下载，如果使用axios访问，获取到的文件内容被修改了，不知道是不是目前项目中做了拦截的原因（可以进一步去验证）。
+
+其实我们可以使用`fetch`api来请求静态文件地址，是可以获取到文件内容的，这里以文本文件为例：
+
+```js
+function getPlainText(link) {
+    // 在Vue项目中时开发状态下是可以走代理的
+    fetch('/ossProxy' + link)
+      .then(response => {
+        console.log(response)
+        // 将文件的请求结果转为文本，json字符串还可以转为json()
+        return response.text()
+      })
+      .then(data => {
+        console.log(data)
+      })
+      .catch(error => {
+        console.error(error)
+      })
+  }
+```
+
+### 前端使用代码编辑器
+
+可以使用开源项目Vue-Codemirror，它基于开源项目Codemirror，Codemirror支持很多种语言语法。
+Vue-Codemirror地址：<https://github.com/surmon-china/vue-codemirror>
+
+Codemirror配置参数：<https://codemirror.net/5/doc/manual.html#config>
+
+Vue-Codemirror 6版本只支持Vue3，因为项目是Vue2，所以这里的使用以Vue-Codemirror4为例：
+
+1. 安装
+
+   npm install vue-codemirror@4.x --save
+
+2. main.js引入
+
+   ```js
+   import VueCodemirror from 'vue-codemirror'
+   // require styles
+   import 'codemirror/lib/codemirror.css'
+   
+   // you can set default global options and events when use
+   Vue.use(VueCodemirror, /* {
+     options: { theme: 'base16-dark', ... },
+     events: ['scroll', ...]
+   } */)
+   ```
+
+3. 在组件中使用
+
+   ```vue
+   <template>
+       <codemirror
+         ref="cmEditor"
+         :value="content"
+         :options="cmOptions"
+         @ready="onCmReady"
+         @focus="onCmFocus"
+         @input="onCmCodeChange" />
+   </template>
+   
+   <script>
+   // import language js (java，c#等是clike)
+   import 'codemirror/mode/javascript/javascript.js'
+   import 'codemirror/mode/clike/clike.js'
+   
+   // import theme style
+   import 'codemirror/theme/base16-dark.css'
+   import 'codemirror/theme/idea.css'
+   
+   export default {
+     name: 'CodeEditor',
+     props: {
+       : {
+         type: String,
+         default: '文件预览'
+       }
+     },
+     data () {
+       return {
+         content: ''
+         cmOptions: {
+           tabSize: 4,
+           mode: 'text/javascript',
+           theme: 'idea',
+           lineNumbers: true,
+           line: true,
+           readonly: true,
+           // more CodeMirror options see https://codemirror.net/5/doc/manual.html#config
+         },
+   
+       }
+     },
+     methods: {
+       onCmReady(cm) {
+         console.log('the editor is readied!', cm)
+       },
+       onCmFocus(cm) {
+         console.log('the editor is focused!', cm)
+       },
+       onCmCodeChange(newCode) {
+         console.log('this is new code', newCode)
+         this.code = newCode
+       }
+     },
+     computed: {
+       codemirror() {
+         return this.$refs.cmEditor.codemirror
+       }
+     },
+     mounted() {
+       console.log('the current CodeMirror instance object:', this.codemirror)
+       // you can use this.codemirror to do something...
+     }
+   }
+   </script>>
+   <style scoped lang="scss">
+   </style>
+   ```
+
+   
+
