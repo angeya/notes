@@ -273,7 +273,7 @@ Signature signature = joinPoint.getSignature();
    }
    ```
 
-2. 封装ResultVo
+2. 封装ResultVO
 
    这些状态码肯定都是要预先编好的，怎么编呢？写个常量`1000`？还是直接写死`1000`？要这么写就真的书白读的了，写`状态码`当然是用枚举啦
 
@@ -307,11 +307,11 @@ Signature signature = joinPoint.getSignature();
    }
    ```
 
-   写好枚举类，就开始写`ResultVo`包装类了，我们预设了几种默认的方法，比如成功的话就默认传入`object`就可以了，我们自动包装成`success`；
+   写好枚举类，就开始写`ResultVO`包装类了，我们预设了几种默认的方法，比如成功的话就默认传入`object`就可以了，我们自动包装成`success`；
 
    ```java
    @Data
-   public class ResultVo {
+   public class ResultVO {
        // 状态码
        private int code;
    
@@ -322,28 +322,28 @@ Signature signature = joinPoint.getSignature();
        private Object data;
    
        // 手动设置返回vo
-       public ResultVo(int code, String msg, Object data) {
+       public ResultVO(int code, String msg, Object data) {
            this.code = code;
            this.msg = msg;
            this.data = data;
        }
    
        // 默认返回成功状态码，数据对象
-       public ResultVo(Object data) {
+       public ResultVO(Object data) {
            this.code = ResultCode.SUCCESS.getCode();
            this.msg = ResultCode.SUCCESS.getMsg();
            this.data = data;
        }
    
        // 返回指定状态码，数据对象
-       public ResultVo(StatusCode statusCode, Object data) {
+       public ResultVO(StatusCode statusCode, Object data) {
            this.code = statusCode.getCode();
            this.msg = statusCode.getMsg();
            this.data = data;
        }
    
        // 只返回状态码
-       public ResultVo(StatusCode statusCode) {
+       public ResultVO(StatusCode statusCode) {
            this.code = statusCode.getCode();
            this.msg = statusCode.getMsg();
            this.data = null;
@@ -351,12 +351,12 @@ Signature signature = joinPoint.getSignature();
    }
    ```
 
-   使用，现在的返回肯定就不是`return data;`这么简单了，而是需要`new ResultVo(data);`；
+   使用，现在的返回肯定就不是`return data;`这么简单了，而是需要`new ResultVO(data);`；
 
    ```java
    @PostMapping("/getUser")
-   public ResultVo getUser(@Validated @RequestBody user) {
-      return new ResultVo(user);
+   public ResultVO getUser(@Validated @RequestBody user) {
+      return new ResultVO(user);
    }
    ```
 
@@ -420,7 +420,7 @@ Signature signature = joinPoint.getSignature();
 
    `spring mvc`当然知道拉，所以给我们提供了一个`@RestControllerAdvice`来增强所有`@RestController`，然后使用`@ExceptionHandler`注解，就可以拦截到对应的异常，可以对异常处理并给接口设置新的返回值。
 
-   这里我们就拦截`MethodArgumentNotValidException.class`就好了。最后在返回之前，我们对异常信息进行包装一下，包装成`ResultVo`，当然要跟上`ResultCode.VALIDATE_ERROR`的异常状态码。这样前端看到`VALIDATE_ERROR`的状态码，就会调用数据校验异常的弹窗提示用户哪里没填好
+   这里我们就拦截`MethodArgumentNotValidException.class`就好了。最后在返回之前，我们对异常信息进行包装一下，包装成`ResultVO`，当然要跟上`ResultCode.VALIDATE_ERROR`的异常状态码。这样前端看到`VALIDATE_ERROR`的状态码，就会调用数据校验异常的弹窗提示用户哪里没填好
 
    ```java
    @RestControllerAdvice
@@ -453,305 +453,240 @@ Signature signature = joinPoint.getSignature();
    再回头看一下`controller`层的返回
 
    ```java
-   return new ResultVo(user);
+   return new ResultVO(user);
    ```
 
-   开发小哥肯定不乐意了，谁有空天天写`new ResultVo(data)`啊，我就想返回一个实体！怎么实现我不管！SpringMVC当然知道这个操作。
+   开发肯定不乐意了，谁有空天天写`new ResultVO(data)`啊，我就想返回一个实体！怎么实现我不管！SpringMVC当然知道这个操作。需要使用`@RestControllerAdvice`注解和`ResponseBodyAdvice`接口。
 
+   `ResponseBodyAdvice`接口的supports()方法可以设置支持哪些方法或者哪些类进行通知操作。beforeBodyWrite()方法则是对需要通知的方法进行设置返回值。如果supports()方法返回false，则不会执行beforeBodyWrite()方法。
+   
    ```java
-   @RestControllerAdvice(basePackages = {
-      
-        "com.bugpool.leilema"})
+   // basePackages可以指定扫描哪些包下面的controller,在Response时进行统一处理
+   @RestControllerAdvice(basePackages = {"top.angeya"})
    public class ControllerResponseAdvice implements ResponseBodyAdvice<Object> {
       
-        
        @Override
        public boolean supports(MethodParameter methodParameter, Class<? extends HttpMessageConverter<?>> aClass) {
-      
-        
-           // response是ResultVo类型，或者注释了NotControllerResponseAdvice都不进行包装
-           return !methodParameter.getParameterType().isAssignableFrom(ResultVo.class);
+           // response是ResultVO类型
+           return !methodParameter.getParameterType().isAssignableFrom(ResultVO.class);
        }
    
        @Override
        public Object beforeBodyWrite(Object data, MethodParameter returnType, MediaType mediaType, Class<? extends HttpMessageConverter<?>> aClass, ServerHttpRequest request, ServerHttpResponse response) {
-      
-        
            // String类型不能直接包装
            if (returnType.getGenericParameterType().equals(String.class)) {
-      
-        
                ObjectMapper objectMapper = new ObjectMapper();
                try {
-      
-        
-                   // 将数据包装在ResultVo里后转换为json串进行返回
-                   return objectMapper.writeValueAsString(new ResultVo(data));
+                   // 将数据包装在ResultVO里后转换为json串进行返回
+                   return objectMapper.writeValueAsString(new ResultVO(data));
                } catch (JsonProcessingException e) {
-      
-        
                    throw new APIException(ResultCode.RESPONSE_PACK_ERROR, e.getMessage());
                }
            }
-           // 否则直接包装成ResultVo返回
-           return new ResultVo(data);
+           // 否则直接包装成ResultVO返回
+           return new ResultVO(data);
+       }
+   }
+   ```
+   
+   使用过滤器过滤器的效果是一样的；
+   
+   打完收工，康康效果
+   
+   ```java
+   @PostMapping("/getUser")
+   public User getUser(@Validated @RequestBody user) {
+      return user;
+   }
+   ```
+   
+   此时就算我们返回的是`user`，接收到的返回就是标准格式了。
+   
+   ```json
+   {
+     "code": 1000,
+     "msg": "请求成功",
+     "data": {
+       "name": "sunny",
+       "age": 20
+     }
+   }
+   ```
+   
+   
+
+2. NOT统一响应
+
+   不开启统一响应原因
+
+   开发现在是开心了，可是其他系统就不开心了。举个例子：我们项目中集成了一个`健康检测`的功能，也就是这货
+
+   ```java
+   @RestController
+   public class HealthController {
+       @GetMapping("/health")
+       public String health() {
+           return "success";
        }
    }
    ```
 
+   公司部署了一套校验所有系统存活状态的工具，这工具就定时发送`get`请求给我们系统
+
+   > “兄弟，你死了吗？”
+   > “我没死，滚”
+   > “兄弟，你死了吗？”
+   > “我没死，滚”
+
    
 
-**1、** `@RestControllerAdvice(basePackages={"com.bugpool.leilema"})`自动扫描了所有指定包下的`controller`，在`Response`时进行统一处理；
-**2、** 重写`supports`方法，也就是说，当返回类型已经是`ResultVo`了，那就不需要封装了，当不等与`ResultVo`时才进行调用`beforeBodyWrite`方法，跟过滤器的效果是一样的；
-**3、** 最后重写我们的封装方法`beforeBodyWrite`，注意除了`String`的返回值有点特殊，无法直接封装成json，我们需要进行特殊处理，其他的直接`newResultVo(data);`就ok了；
+   ​	人家要的返回不是
 
-打完收工，康康效果
-
-```
-    @PostMapping("/findByVo")
-    public ProductInfo findByVo(@Validated ProductInfoVo vo) {
+   ```json
+   {
    
-     
-        ProductInfo productInfo = new ProductInfo();
-        BeanUtils.copyProperties(vo, productInfo);
-        return productInfoService.getOne(new QueryWrapper(productInfo));
-    }
-```
+     "code": 1000,
+     "msg": "请求成功",
+     "data": "success"
+   }
+   ```
 
-此时就算我们返回的是`po`，接收到的返回就是标准格式了，开发小哥露出了欣慰的笑容
+   人家要的返回只要一个`success`，人家定的标准不可能因为你一个系统改。俗话说的好，如果你改变不了环境，那你就只能我新增不进行封装注解,因为百分之99的请求还是需要包装的，只有个别不需要，写在包装的过滤器吧？又不是很好维护，那就加个注解好了。所有不需要包装的就加上这个注解。
 
-```
-{
+   ```java
+   @Target({ElementType.METHOD})
+   @Retention(RetentionPolicy.RUNTIME)
+   public @interface NotControllerResponseAdvice {}
+   ```
+
+   然后在我们的增强过滤方法上过滤包含这个注解的方法
+
+   ```java
+   // basePackages可以指定扫描哪些包下面的controller,在Response时进行统一处理
+   @RestControllerAdvice(basePackages = {"top.angeya"})
+   public class ControllerResponseAdvice implements ResponseBodyAdvice<Object> {
+      
+       @Override
+       public boolean supports(MethodParameter methodParameter, Class<? extends HttpMessageConverter<?>> aClass) {
+           // response是ResultVO类型，或者注释了NotControllerResponseAdvice都不进行包装
+           return !(methodParameter.getParameterType().isAssignableFrom(ResultVO.class)
+                   || methodParameter.hasMethodAnnotation(NotControllerResponseAdvice.class));
+       }
+       ...
+   ```
+
+   最后就在不需要包装的方法上加上注解
+
+   ```java
+   @RestController
+   public class HealthController {
+       @GetMapping("/health")
+       @NotControllerResponseAdvice
+       public String health() {
+           return "success";
+       }
+   }
+   ```
+
+   这时候就不会自动封装了，而其他没加注解的则依旧自动包装。
+
+**四、统一异常**
+
+每个系统都会有自己的`业务异常`，比如`年龄不能小于0`之类的，这种异常并非程序异常，而是业务操作引发的异常，我们也需要进行规范的编排业务`异常状态码`，并且写一个专门处理的`异常类`，最后通过刚刚学习过的`异常拦截`统一进行处理，以及打`日志`
+
+1. 异常状态码枚举，既然是状态码，那就肯定要实现我们的标准接口`StatusCode`；
+
+   ```java
+   @Getter
+   public enum  AppCode implements StatusCode {
+    
+       APP_ERROR(2000, "业务异常"),
+       AGE_ERROR(2001, "年龄异常");
    
-     
-  "code": 1000,
-  "msg": "请求成功",
-  "data": {
+       private int code;
+       private String msg;
    
-     
-    "productId": 1,
-    "productName": "泡脚",
-    "productPrice": 100.00,
-    "productDescription": "中药泡脚加按摩",
-    "productStatus": 0,
-    ...
-  }
-}
-```
+       AppCode(int code, String msg) {
+           this.code = code;
+           this.msg = msg;
+       }
+   }
+   ```
 
-## 2. NOT统一响应
+2. 异常类
 
-### 不开启统一响应原因
+   这里需要强调一下，`code`代表`AppCode`的异常状态码，也就是2000；`msg`代表`业务异常`，这只是一个大类，一般前端会放到弹窗`title`上；最后`super(message);`这才是抛出的详细信息，在前端显示在`弹窗体`中，在`ResultVO`则保存在`data`中；
 
-开发小哥是开心了，可是其他系统就不开心了。举个例子：我们项目中集成了一个`健康检测`的功能，也就是这货
-
-```
-@RestController
-public class HealthController {
+   ```java
+   @Getter
+   public class APIException extends RuntimeException {
+       private int code;
+       private String msg;
    
-     
-    @GetMapping("/health")
-    public String health() {
+       // 手动设置异常
+       public APIException(StatusCode statusCode, String message) {
+           // message用于用户设置抛出错误详情，例如：当前年龄-5，小于0
+           super(message);
+           // 状态码
+           this.code = statusCode.getCode();
+           // 状态码配套的msg
+           this.msg = statusCode.getMsg();
+       }
    
-     
-        return "success";
-    }
-}
-```
-
-公司部署了一套校验所有系统存活状态的工具，这工具就定时发送`get`请求给我们系统
-
-> “兄弟，你死了吗？”
-> “我没死，滚”
-> “兄弟，你死了吗？”
-> “我没死，滚”
-
-是的，web项目的本质就是复读机。一旦发送的请求`没响应`，就会给负责人发信息（企业微信或者短信之类的），你的`系统死啦`！赶紧回来`排查bug`吧！让大家感受一下。每次看到我都`射射发抖`，早上6点！我tm！！！！！
-![图片](https://mmbiz.qpic.cn/sz_mmbiz_png/GpcH5Yqqj0mol537AuECRPBel15sBkicGMTVAMuLvcQzuSb5GZNd8H28RTS6w5SDIqjD6OiaZxtFZlhBYoh5A3Kw/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1)
-好吧，没办法，人家是老大，人家要的返回不是
-
-```
-{
+       // 默认异常使用APP_ERROR状态码
+       public APIException(String message) {
+           super(message);
+           this.code = AppCode.APP_ERROR.getCode();
+           this.msg = AppCode.APP_ERROR.getMsg();
+       }
    
-     
-  "code": 1000,
-  "msg": "请求成功",
-  "data": "success"
-}
-```
+   }
+   ```
 
-人家要的返回只要一个`success`，人家定的标准不可能因为你一个系统改。俗话说的好，如果你改变不了环境，那你就只能我****
+3. 最后进行统一异常的拦截，这样无论在`service`层还是`controller`层，开发人员只管抛出`API异常`，不需要关系怎么返回给前端，更不需要关心`日志`的打印；
 
-插播一条：如果你近期准备面试跳槽，建议在ddkk.com在线刷题，涵盖 1万+ 道 Java 面试题，几乎覆盖了所有主流技术面试题。
-
-### 新增不进行封装注解
-
-因为百分之99的请求还是需要包装的，只有个别不需要，写在包装的过滤器吧？又不是很好维护，那就加个注解好了。所有不需要包装的就加上这个注解。
-
-```
-@Target({
+   ```java
+   @RestControllerAdvice
+   public class ControllerExceptionAdvice {
+       @ExceptionHandler({BindException.class})
+       public ResultVO MethodArgumentNotValidExceptionHandler(BindException e) {
+           // 从异常对象中拿到ObjectError对象
+           ObjectError objectError = e.getBindingResult().getAllErrors().get(0);
+           return new ResultVO(ResultCode.VALIDATE_ERROR, objectError.getDefaultMessage());
+       }
    
-     ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface NotControllerResponseAdvice {
+       @ExceptionHandler(APIException.class)
+       public ResultVO APIExceptionHandler(APIException e) {
+        	log.error(e.getMessage(), e);
+           // 封装成统一响应结构
+           return new ResultVO(e.getCode(), e.getMsg(), e.getMessage());
+       }
+   }
+   ```
+
+4. 最后使用，我们的代码只需要这么写
+
+   ```java
+   if (null == user) {
+       throw new APIException(AppCode.USER_IS_NULL, "用户为空" );
+   }
+   ```
+
+   如果参数为空，返回值如下：
+
+   ```json
+   {
+     "code": 2003,
+     "msg": "用户为空",
+     "data": "用户为空"
+   }
+   ```
+
+   就会自动抛出`AppCode.USER_IS_NULL`状态码的响应，并且带上异常详细信息`用户为空`。
+
    
-     
-}
-```
 
-然后在我们的增强过滤方法上过滤包含这个注解的方法
-
-```
-@RestControllerAdvice(basePackages = {
-   
-     "com.bugpool.leilema"})
-public class ControllerResponseAdvice implements ResponseBodyAdvice<Object> {
-   
-     
-    @Override
-    public boolean supports(MethodParameter methodParameter, Class<? extends HttpMessageConverter<?>> aClass) {
-   
-     
-        // response是ResultVo类型，或者注释了NotControllerResponseAdvice都不进行包装
-        return !(methodParameter.getParameterType().isAssignableFrom(ResultVo.class)
-                || methodParameter.hasMethodAnnotation(NotControllerResponseAdvice.class));
-    }
-    ...
-```
-
-最后就在不需要包装的方法上加上注解
-
-```
-@RestController
-public class HealthController {
-   
-     
-
-    @GetMapping("/health")
-    @NotControllerResponseAdvice
-    public String health() {
-   
-     
-        return "success";
-    }
-}
-```
-
-这时候就不会自动封装了，而其他没加注解的则依旧自动包装
-![图片](https://mmbiz.qpic.cn/sz_mmbiz_png/GpcH5Yqqj0mol537AuECRPBel15sBkicGnDrII6o5B4efA887B1e8S6rYJhia0ibzxQVjJ7Fx313GHiarWMc4MsNsQ/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1)
-
-# 五、统一异常
-
-每个系统都会有自己的`业务异常`，比如`库存不能小于0`子类的，这种异常并非程序异常，而是业务操作引发的异常，我们也需要进行规范的编排业务`异常状态码`，并且写一个专门处理的`异常类`，最后通过刚刚学习过的`异常拦截`统一进行处理，以及打`日志`
-
-**1、** 异常状态码枚举，既然是状态码，那就肯定要实现我们的标准接口`StatusCode`；
-
-```
-@Getter
-public enum  AppCode implements StatusCode {
-   
-     
-
-    APP_ERROR(2000, "业务异常"),
-    PRICE_ERROR(2001, "价格异常");
-
-    private int code;
-    private String msg;
-
-    AppCode(int code, String msg) {
-   
-     
-        this.code = code;
-        this.msg = msg;
-    }
-}
-```
-
-**2、** 异常类，这里需要强调一下，`code`代表`AppCode`的异常状态码，也就是2000；`msg`代表`业务异常`，这只是一个大类，一般前端会放到弹窗`title`上；最后`super(message);`这才是抛出的详细信息，在前端显示在`弹窗体`中，在`ResultVo`则保存在`data`中；
-
-```
-@Getter
-public class APIException extends RuntimeException {
-   
-     
-    private int code;
-    private String msg;
-
-    // 手动设置异常
-    public APIException(StatusCode statusCode, String message) {
-   
-     
-        // message用于用户设置抛出错误详情，例如：当前价格-5，小于0
-        super(message);
-        // 状态码
-        this.code = statusCode.getCode();
-        // 状态码配套的msg
-        this.msg = statusCode.getMsg();
-    }
-
-    // 默认异常使用APP_ERROR状态码
-    public APIException(String message) {
-   
-     
-        super(message);
-        this.code = AppCode.APP_ERROR.getCode();
-        this.msg = AppCode.APP_ERROR.getMsg();
-    }
-
-}
-```
-
-**3、** 最后进行统一异常的拦截，这样无论在`service`层还是`controller`层，开发人员只管抛出`API异常`，不需要关系怎么返回给前端，更不需要关心`日志`的打印；
-
-插播一条：如果你近期准备面试跳槽，建议在ddkk.com在线刷题，涵盖 1万+ 道 Java 面试题，几乎覆盖了所有主流技术面试题。
-
-```
-@RestControllerAdvice
-public class ControllerExceptionAdvice {
-   
-     
-
-    @ExceptionHandler({
-   
-     BindException.class})
-    public ResultVo MethodArgumentNotValidExceptionHandler(BindException e) {
-   
-     
-        // 从异常对象中拿到ObjectError对象
-        ObjectError objectError = e.getBindingResult().getAllErrors().get(0);
-        return new ResultVo(ResultCode.VALIDATE_ERROR, objectError.getDefaultMessage());
-    }
-
-    @ExceptionHandler(APIException.class)
-    public ResultVo APIExceptionHandler(APIException e) {
-   
-     
-     // log.error(e.getMessage(), e); 由于还没集成日志框架，暂且放着，写上TODO
-        return new ResultVo(e.getCode(), e.getMsg(), e.getMessage());
-    }
-}
-```
-
-**4、** 最后使用，我们的代码只需要这么写；
-
-```
-        if (null == orderMaster) {
-   
-     
-            throw new APIException(AppCode.ORDER_NOT_EXIST, "订单号不存在：" + orderId);
-        }
-{
-   
-     
-  "code": 2003,
-  "msg": "订单不存在",
-  "data": "订单号不存在：1998"
-}
-```
-
-就会自动抛出`AppCode.ORDER_NOT_EXIST`状态码的响应，并且带上异常详细信息`订单号不存在：xxxx`。后端小哥开发有效率，前端妹妹获取到`2003`状态码，调用对应警告弹窗，`title`写上`订单不存在`，`body`详细信息记载`"订单号不存在：1998"`。同时`日志`还自动打上去了！666！老哥们三连点个赞！
-
-## 3.0 版本新特性
+## SpringBoot3.0 版本新特性
 
 1. JDK要求最低版本Java17
 2. SpringBoot3底层默认依赖Spring6
