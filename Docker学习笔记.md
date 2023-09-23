@@ -296,7 +296,13 @@ docker version # 查看docker版本
 
 ## 4.Docker-Compose
 
-Docker Compose可以基于Compose文件帮我们快速的部署分布式应用，而无需手动一个个创建和运行容器！
+`Docker Compose`是一个用于定义和运行多个`Docker`容器的工具，他是一款强大的容器编排工具，能够简化容器化应用程序的部署和管理，提高开发效率和部署速度，其功能与特点如下：
+
+- 容器编排：`Docker Compose`可以实现容器编排，即在一个项目(如Web应用)中同时运行多个容器，并将它们组合起来以形成服务集群。
+- 灵活性：`Docker Compose`可以灵活地定义多个容器之间的关系，包括网络、数据卷等，并支持在不同的环境中进行部署，例如开发、测试和生产环境。
+- Yaml格式：`Docker Compose`使用Yaml格式来定义容器、服务、网络和存储等信息，易于理解和管理。
+- 可扩展性：`Docker Compose`可以快速扩展、添加和删除容器，使得它非常适合于部署和管理大规模的容器化应用程序。
+- 与`Docker Engine`集成：`Docker Compose`与`Docker Engine`紧密集成，在Docker官方文档中有详细的介绍，同时也支持第三方插件和工具。
 
 ### 4.1DockerCompose的安装
 
@@ -313,9 +319,56 @@ Docker Compose可以基于Compose文件帮我们快速的部署分布式应用�
    chmod +x /usr/local/bin/docker-compose
    ```
 
-### 4.2部署微服务
+3. 检查是否安装成功
 
-这里部署nacos + mysql + 2个微服务 app.jar
+   ```bash
+   docker-compose --version
+   ```
+
+### 4.2 docker-compose.ymal
+
+`docker compose`的使用依赖于`docker-compose.ymal`文件，改文件放置于我们项目文件的根目录下面，用于编排该项目容器的一下名称，挂载，网络等docker环境信息。
+
+**常用配置项**
+
+- version：指定Compose文件格式的版本号，当前最新版本为3.2。
+- services：定义应用程序中的各个服务，每个服务都有一个独立的Docker容器。
+- image：指定要使用的Docker镜像。
+- ports：将容器端口映射到主机端口，格式为"HOST:CONTAINER"。
+- volumes：将主机上的目录或文件夹挂载到容器中，格式为"HOST:CONTAINER"。
+- networks：定义应用程序中的网络，在同一个网络中的服务可以相互通信。
+- environment：设置环境变量，格式为"KEY=VALUE"。
+
+**部署一个nginx一个mysql**
+
+```yaml
+version:'3.2'
+
+services:
+  web:
+    image: nginx:latest
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./html:/usr/share/nginx/html
+      - ./logs:/var/log/nginx
+    environment: - NGINX_HOST=localhost - NGINX_PORT=80
+    networks: - webnet
+  db: 
+    image: mysql 
+    volumes: - ./db:/var/lib/mysql 
+    networks: - dbnet 
+    environment: - MYSQL_ROOT_PASSWORD=password 
+    networks: - webnet
+```
+
+
+
+**部署nacos + mysql + 2个微服务 app.jar**
 
 1. 创建一个文件夹并把各个微服务的自定义镜像文件夹（包含jar包和Dockerfile等）放入其其中
 
@@ -346,13 +399,69 @@ Docker Compose可以基于Compose文件帮我们快速的部署分布式应用�
        build: ./app2
        ports:
          - "8080:8080"
-
-3. 在当前文件夹中执行如下命令，DockerCompose会对yaml文件中声明的service下拉和创建镜像，并创建容器然后运行。
-
-   ```bash
-   docker-compose up -d # 后台运行service
-   docker-compose down # 关闭service
    ```
+
+### 4.3 DockerCompose常用命令
+
+**启动服务**
+
+`docker-compose up`：启动compose配置中定义的服务容器。
+
+举例说明：假设在`docker-compose.yml`文件中定义了一个web服务，可以使用以下命令启动：
+
+```bash
+docker-compose up -d web
+```
+
+**关闭服务**
+
+`docker-compose down`：停止并删除compose配置中定义的所有服务容器。
+
+举例说明：使用以下命令停止并删除所有服务容器：
+
+```bash
+docker-compose down
+```
+
+**列出容器**
+
+`docker-compose ps`：列出当前compose配置的所有服务容器。
+
+举例说明：使用以下命令列出当前配置的所有服务容器：
+
+```bash
+docker-compose ps
+```
+
+**查看日志**
+
+`docker-compose logs`：输出指定服务容器的日志信息。
+
+举例说明：使用以下命令输出web服务容器的日志信息：
+
+```bash
+docker-compose logs web
+```
+
+**重启服务**
+
+`docker-compose restart`：重启指定的服务容器。
+
+举例说明：使用以下命令重启web服务容器：
+
+```bash
+docker-compose restart web
+```
+
+**构建镜像**
+
+`docker-compose build`：构建指定服务容器的镜像。
+
+举例说明：使用以下命令构建web服务容器的镜像：
+
+```bash
+docker-compose build web
+```
 
 DockerCompose的详细语法参考官网：https://docs.docker.com/compose/compose-file/
 
