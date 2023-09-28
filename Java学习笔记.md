@@ -1553,6 +1553,18 @@ String s = path.evaluate("/signal/sampling/freq_bgn", document);
 
 ## 第4章 网络
 
+### Ping一下？
+
+有时候我们需要检查网络是否连接，可以使用`InetAddress`类及其相关的方法来实现。
+
+```java
+InetAddress inetAddress = InetAddress.getByName("10.3.27.49");
+// 判断是否能连通，并指定超时时间
+boolean is = inetAddress.isReachable(1500);
+// 获取主机名称
+inetAddress.getHostName()
+```
+
 ### 连接到服务器
 
 传统IO方式，在获取到socket对象之后，就可以使用套接字的输入输出流。这和普通的IO差不多。
