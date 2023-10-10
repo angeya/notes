@@ -182,6 +182,9 @@ slice(start, end) // 切片，返回下标之间的项组成的数组，不影�
 splice(start, num, newItem...) // 从下标start开始删除num项，并从start处添加newItem...
              //可以实现数组的删除，插入，替换等功能。返回值是删除掉的项组成的数组
 
+// 查找方法
+indcludes(target) // 返回true和false
+
 // 位置方法
 // 两个方法都返回要查找的项所在的位置，或者没有返回-1，参数一是查找项，参数二是从哪里开始
 indexOf() // 从头至尾
