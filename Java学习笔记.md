@@ -1271,9 +1271,154 @@ ProcessHandle.allProcesses().forEach(processHandle -> {
 });
 ````
 
+### 并发的应用案例
 
+多个线程往同一个普通List中插入数据，会有什么问题？会存在数据覆盖的问题，比如线程和A和线程B同时从内存中读取List到自己的线程空间中，A加入一个元素，然后写入到内存，B也加入一个元素并写入到内存，这样线程B的操作就覆盖了线程A的操作。
 
+#### 多线程写入问题：
 
+启用5个线程，每个线程往List中筛入100条数据，结束后主线程对List中的数据进行统计，如果不做额外的并发操作，会运行报错或者List中的数据会部分丢失。
+
+代码如下：
+
+```java
+public class Demo {
+    /**
+     * 一个普通列表
+     */
+    private static final List<String> LIST = new ArrayList<>();
+    /**
+     * 程序计数器
+     */
+    private static final CountDownLatch COUNT_DOWN_LATCH = new CountDownLatch(5);
+
+    public static void main(String[] args) throws Exception {
+        Runnable runnable = () -> {
+            for (int i = 0; i < 100; i++) {
+                String name = Thread.currentThread().getName();
+                LIST.add(name + "---" + i);
+            }
+            COUNT_DOWN_LATCH.countDown();
+        };
+        // 启用5个线程
+        for (int i = 0; i < 5; i++) {
+            new Thread(runnable).start();
+        }
+        // 主线程等待其他线程执行结束
+        COUNT_DOWN_LATCH.await();
+        LIST.forEach(System.out::println);
+        System.out.println("size is " + LIST.size());
+
+    }
+}
+```
+
+代码运行之后，很可能会报如下错，因为可能AB两个线程同时读取到了List，A线程加入了数据x，写入内存，然后又读取加入数据y，写入内存；B线程加入了数据z，还没有写入内存，线程C读取到了List，准备加入数据时候，B把List写入了内存，这时候就覆盖了A的操作，导致List数据变短了，C进行写入数据时候就会出现下标越界异常。
+
+```bash
+Exception in thread "Thread-0" java.lang.ArrayIndexOutOfBoundsException: 366
+	at java.util.ArrayList.add(ArrayList.java:463)
+	at com.springsciyon.business.spm.Demo.lambda$main$0(Demo.java:28)
+	at java.lang.Thread.run(Thread.java:748)
+```
+
+即便没有下标越界异常，最后的结果也很可能是不正确的。
+
+#### 解决方法:
+
+1. 使用线程安全的集合CopyOnWriteArrayList，或者使用包装器
+
+   ```java
+   // 只需修改List类型即可
+   private static final List<String> LIST = new CopyOnWriteArrayList<>();
+   // 使用同步包装器
+   private static final List<String> LIST = Collections.synchronizedList(new ArrayList<>());
+   ```
+
+2. synchronized 自动锁
+
+   ```java
+   public class Demo {
+   
+       /**
+        * 一个普通列表
+        */
+       private static final List<String> LIST = new ArrayList<>();
+       /**
+        * 自动锁
+        */
+       private static final Object AUTOMATIC_LOCK = new Object();
+       /**
+        * 程序计数器
+        */
+       private static final CountDownLatch COUNT_DOWN_LATCH = new CountDownLatch(5);
+   
+       public static void main(String[] args) throws Exception {
+           Runnable runnable = () -> {
+               for (int i = 0; i < 100; i++) {
+                   String name = Thread.currentThread().getName();
+                   // 上锁并会在结束时自动释放
+                   synchronized (AUTOMATIC_LOCK) {
+                       LIST.add(name + "---" + i);
+                   }
+               }
+               COUNT_DOWN_LATCH.countDown();
+           };
+           // 启用5个线程
+           for (int i = 0; i < 5; i++) {
+               new Thread(runnable).start();
+           }
+           // 主线程等待其他线程执行结束
+           COUNT_DOWN_LATCH.await();
+           LIST.forEach(System.out::println);
+           System.out.println("size is " + LIST.size());
+   
+       }
+   }
+   ```
+
+3. 手动锁Lock接口，ReentrantLock是一个常用的锁实现。
+
+   ```java
+   public class Demo {
+       /**
+        * 一个普通列表
+        */
+       private static final List<String> LIST = new ArrayList<>();
+       /**
+        * 手动锁
+        */
+       private static final Lock MANUAL_LOCK = new ReentrantLock();
+       /**
+        * 程序计数器
+        */
+       private static final CountDownLatch COUNT_DOWN_LATCH = new CountDownLatch(5);
+   
+       public static void main(String[] args) throws Exception {
+           Runnable runnable = () -> {
+               for (int i = 0; i < 100; i++) {
+                   String name = Thread.currentThread().getName();
+                   // 上锁
+                   MANUAL_LOCK.lock();
+                   LIST.add(name + "---" + i);
+                   // 手动释放，如果不释放，其他线程获取不到锁，对于本程序而言，代码不会运行结束，因为主线程在等待计数器为0
+                   MANUAL_LOCK.unlock();
+               }
+               COUNT_DOWN_LATCH.countDown();
+           };
+           // 启用5个线程
+           for (int i = 0; i < 5; i++) {
+               new Thread(runnable).start();
+           }
+           // 主线程等待其他线程执行结束
+           COUNT_DOWN_LATCH.await();
+           LIST.forEach(System.out::println);
+           System.out.println("size is " + LIST.size());
+       }
+   }
+   ```
+
+   也可以使用`ReentrantReadWriteLock`实现更精细的读写锁控制。
 
 # Java核心技术 卷二
 
