@@ -1484,6 +1484,18 @@ Map<String, Person> namePersonMap = persons.stream()
 personList.sort(Comparator.comparing(Person::getAge).thenComparing(Person::getName).thenComparing(Person::getIsFemale));
 ```
 
+#### 某个字段根据某种顺序排序
+
+```java
+// 让用户列表使用id字段根据1324的顺序排序
+List<String> orderList = Arrays.asList("1,3,2,4");
+personList.stream()
+    .sorted(Comparator.comparingInt(person -> orderList.indexOf(person.getId())))
+    .collect(Collectors.toList())
+```
+
+
+
 #### 使用groupingBy分类进行分类
 
 ```java
