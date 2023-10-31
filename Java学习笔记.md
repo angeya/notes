@@ -1468,7 +1468,7 @@ persons.stream().sorted(Comparator.comparing(Person::getFemale).reversed()).forE
 
 ```java
 Set<String> nameSet = topMenuList.stream()
-				.map(PfUserMenuOrder::getMenuId).collect(Collectors.toCollection(LinkedHashSet::new));
+				.map(Person::getName).collect(Collectors.toCollection(LinkedHashSet::new));
 ```
 
 #### 转化为Map并指定键值的来源字段
@@ -1503,6 +1503,15 @@ personList.stream()
 Map<Integer, List<Person>> ageMap = personList.stream().collect(Collectors.groupingBy(Person::getAge, TreeMap::new, Collectors.toList()));
 // 根据年龄进行分类并统计数量
 Map<Integer, Long> ageMap = personList.stream().collect(Collectors.groupingBy(Person::getAge, TreeMap::new, Collectors.counting()));
+```
+
+#### 求和
+
+```java
+// 求人的年龄之和
+long sum = personList.stream().map(Person::getAge).reduce(0, (a, b) -> a + b);
+// 或者使用方法引用
+long sum = personList.stream().map(Person::getAge).reduce(0, Long::sum);
 ```
 
 
