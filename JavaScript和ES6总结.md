@@ -1,5 +1,11 @@
 ## JavaScript
 
+### 说明
+
+JavaScript详细内容可以参考[JavaScript高级程序设计(第3版).pdf](./reference/pdf/JavaScript高级程序设计(第3版).pdf)
+
+ES6内容可以参考阮一峰的[ES6标准入门](https://es6.ruanyifeng.com/)
+
 ### 数据类型（七种）
 
 1. 5种基本数据类型：Number、String、Boolean、undefined、null
@@ -127,7 +133,6 @@ let hi = function() {
    for (let i of str) {
        ...
    }
-   
    ```
 
 ### 深拷贝和浅拷贝
@@ -1173,5 +1178,15 @@ Vue-Codemirror 6版本只支持Vue3，因为项目是Vue2，所以这里的使�
    </style>
    ```
 
-   
+
+### 获取地址栏参数
+
+```javascript
+// 创建URLSearchParams对象，并传入地址栏的search部分
+const params = new URLSearchParams(window.location.search);
+// 获取id参数
+const id = params.get('id')
+```
+
+
 
