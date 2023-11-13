@@ -1,8 +1,162 @@
-## 简介
+## Mybatis
+
+一、if：你们能判断，我也能判断！
+
+```sql
+<select id="count" resultType="java.lang.Integer">
+	select count(*) from user where <if test="id != null">id = #{id}</if> and username = 'xiaoming'
+</select>
+原文链接：https://blog.csdn.net/qq_39249094/article/details/107199696
+```
+
+如果传入的 id 不为 null， 那么才会 SQL 才会拼接 id = #{id}
+如果传入的 id 为 null，那么最终的 SQL 语句就变成了 select count(*) from user where and username = ‘xiaoming’。这语句就会有问题，这时候 where 标签就该隆重登场了
+二、where：有了我，SQL 语句拼接条件神马的都是浮云！
+
+```sql
+<select id="count" resultType="java.lang.Integer">
+	select count(*) from user
+	<where>
+		<if test="id != null">id = #{id}</if>
+		and username = 'xiaoming'
+    </where>
+ </select>
+```
+
+where 元素只会在至少有一个子元素的条件返回 SQL 子句的情况下才去插入 WHERE 子句
+若语句的开头为 AND、OR，where 元素也会将它们去除。还可以通过 trim 标签去自定义这种处理规则
+三、trim：我的地盘，我做主！
+trim 标签一般用于拼接、去除 SQL 的前缀、后缀
+trim 标签中的属性
+属性	描述
+prefix	拼接前缀
+suffix	拼接后缀
+prefixOverrides	去除前缀
+suffixOverrides	去除后缀
+
+```sql
+<select id="count" result="java.lang.Integer">
+	select count(*) from user
+	<trim prefix ="where" prefixOverrides="and | or">
+		<if test="id != null">id = #{id}</if>
+		<if test="username != null"> and username = #{username}</if>
+	</trim>
+</select>
+```
+
+
+
+如果 id 或者 username 有一个不为空，则在语句前加入 where。如果 where 后面紧随 and 或 or 就会自动会去除
+如果 id 或者 username 都为空，则不拼接任何东西
+四、set： 信我，不出错！
+
+```sql
+<update id="UPDATE" parameterType="User">
+	update user
+    <set>
+    	<if test="name != null">name = #{name},</if> 
+        <if test="password != null">password = #{password},</if> 
+        <if test="age != null">age = #{age},</if> 
+   	</set>
+</update>
+```
+
+三个 if 至少有一个不为空。会在前面加上 set，自动去除尾部多余的逗号
+五、foreach: 你有 for，我有 foreach
+foreach 标签中的属性
+属性	描述
+index	下标
+item	每个元素名称
+open	该语句以什么开始
+close	该语句以什么结尾
+separator	在每次迭代之间以什么作为分隔符
+collection	参数类型
+collection：
+如果参数类型为 List，则该值为 list
+
+```sql
+<select id="count" resultType="java.lang.Integer">
+	select count(*) from user where id in
+  	<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+        #{item}
+  	</foreach>
+</select>
+```
+
+如果参数类型为数组，则该值为 array
+
+```sql
+<select id="count" resultType="java.lang.Integer">
+	select * from user where id inarray
+  	<foreach collection="array" item="item" index="index" open="(" separator="," close=")">
+        #{item}
+  	</foreach>
+</select>
+```
+
+如果参数类型为 Map，则参数类型为 Map 的 Key
+六、choose: 我选择了你，你选择了我！
+
+```sql
+<select id="count" resultType="Blog">
+	select count(*) from user
+  	<choose>
+    	<when test="id != null">
+      		and id = #{id}
+    	</when>
+    	<when test="username != null">
+      		and username = #{username}
+    	</when>
+    	<otherwise>
+      		and age = 18
+    	</otherwise>
+  	</choose>
+</select>
+```
+
+当 id 和 username 都不为空的时候， 那么选择二选一（前者优先）
+如果都为空，那么就选择 otherwise 中的
+如果 id 和 username 只有一个不为空，那么就选择不为空的那个
+七、sql：相当于 Java 中的代码提重，需要配合 include 使用
+
+```sql
+<sql id="table"> user </sql>
+```
+
+八、include：相当于 Java 中的方法调用
+
+```sql
+<select id="count" resultType="java.lang.Integer">
+	select count(*) from <include refid=“table（sql 标签中的 id 值）” />
+</select>
+```
+
+
+
+九、bind：对数据进行再加工
+
+```sql
+<select id="count" resultType="java.lang.Integer">
+	select count(*) from user
+	<where>
+		<if test="name != null">
+			<bind name="name" value="'%' + username + '%'"
+			name = #{name}
+		</if>
+</select>
+```
+
+
+
+
+
+## Mybatis Plus
+
+### 简介
 
 [MyBatis-Plus (opens new window)](https://github.com/baomidou/mybatis-plus)（简称 MP）是一个 [MyBatis (opens new window)](https://www.mybatis.org/mybatis-3/)的增强工具，在 MyBatis 的基础上只做增强不做改变，为简化开发、提高效率而生。
 
-### 特性
+#### 特性
 
 - **无侵入**：只做增强不做改变，引入它不会对现有工程产生影响，如丝般顺滑
 - **损耗小**：启动即会自动注入基本 CURD，性能基本无损耗，直接面向对象操作
@@ -17,20 +171,20 @@
 - **内置性能分析插件**：可输出 SQL 语句以及其执行时间，建议开发测试时启用该功能，能快速揪出慢查询
 - **内置全局拦截插件**：提供全表 delete 、 update 操作智能分析阻断，也可自定义拦截规则，预防误操作
 
-### 支持数据库)支持数据库
+#### 支持数据库)支持数据库
 
 > 任何能使用 `MyBatis` 进行 CRUD, 并且支持标准 SQL 的数据库，具体支持情况如下，如果不在下列表查看分页部分教程 PR 您的支持。
 
 - MySQL，Oracle，DB2，H2，HSQL，SQLite，PostgreSQL，SQLServer，Phoenix，Gauss ，ClickHouse，Sybase，OceanBase，Firebird，Cubrid，Goldilocks，csiidb，informix，TDengine，redshift
 - 达梦数据库，虚谷数据库，人大金仓数据库，南大通用(华库)数据库，南大通用数据库，神通数据库，瀚高数据库，优炫数据库，星瑞格数据库
 
-### 框架结构
+#### 框架结构
 
 <img src="https://baomidou.com/img/mybatis-plus-framework.jpg" alt="framework" style="zoom:50%;" />
 
-## 基础项目搭建
+### 基础项目搭建
 
-### pom依赖
+#### pom依赖
 
 ```xml
 <parent>
@@ -74,7 +228,7 @@
     </dependencies>
 ```
 
-### mapperScan注解
+#### mapperScan注解
 
 ```java
 @SpringBootApplication
@@ -86,7 +240,7 @@ public class App {
 }
 ```
 
-### 实体类User
+#### 实体类User
 
 ```java
 @TableName("user")
@@ -113,7 +267,7 @@ public class User  {
 }
 ```
 
-### mapper层
+#### mapper层
 
 ```java
 @Repository
@@ -121,7 +275,7 @@ public interface UserMapper extends BaseMapper<User> {
 }
 ```
 
-### service层
+#### service层
 
 ```java
 @Service
@@ -132,7 +286,7 @@ public class UserService extends ServiceImpl<UserMapper, User> {
 
 
 
-### 单元测试类
+#### 单元测试类
 
 ```java
 import org.junit.jupiter.api.Test;
@@ -160,9 +314,7 @@ class UserServiceTest {
 }
 ```
 
-## 语法
-
-### CURD接口
+### 语法
 
 #### Service CRUD 接口
 说明:
@@ -172,7 +324,7 @@ class UserServiceTest {
 建议如果存在自定义通用 Service 方法的可能，请创建自己的 IBaseService 继承 Mybatis-Plus 提供的基类
 对象 Wrapper 为 条件构造器
 
-#### Save
+##### Save
 ```java
 // 插入一条记录（选择字段，策略插入）
 boolean save(T entity);
@@ -188,7 +340,7 @@ T	entity	实体对象
 Collection<T>	entityList	实体对象集合
 int	batchSize	插入批次数量
 
-#### SaveOrUpdate
+##### SaveOrUpdate
 
 ```java
 // TableId 注解存在更新记录，否插入一条记录
@@ -208,7 +360,7 @@ Wrapper<T>	updateWrapper	实体对象封装操作类 UpdateWrapper
 Collection<T>	entityList	实体对象集合
 int	batchSize	插入批次数量
 
-#### Remove
+##### Remove
 
 ```java
 // 根据 queryWrapper 设置的条件，删除记录
@@ -228,7 +380,7 @@ Serializable	id	主键 ID
 Map<String, Object>	columnMap	表字段 map 对象
 Collection<? extends Serializable>	idList	主键 ID 列表
 
-#### Update
+##### Update
 
 ```java
 // 根据 UpdateWrapper 条件，更新记录 需要设置sqlset
@@ -250,7 +402,7 @@ T	entity	实体对象
 Collection<T>	entityList	实体对象集合
 int	batchSize	更新批次数量
 
-#### Get
+##### Get
 
 ```java
 // 根据 ID 查询
@@ -273,7 +425,7 @@ boolean	throwEx	有多个 result 是否抛出异常
 T	entity	实体对象
 Function<? super Object, V>	mapper	转换函数
 
-#### List
+##### List
 
 ```java
 // 查询所有
@@ -305,7 +457,7 @@ Collection<? extends Serializable>	idList	主键 ID 列表
 Map<String, Object>	columnMap	表字段 map 对象
 Function<? super Object, V>	mapper	转换函数
 
-#### Page
+##### Page
 
 ```
 // 无条件分页查询
@@ -322,7 +474,7 @@ IPage<T>	page	翻页对象
 Wrapper<T>	queryWrapper	实体对象封装操作类 QueryWrapper
 ```
 
-#### Count
+##### Count
 
 ```
 // 查询总记录数
@@ -334,7 +486,7 @@ int count(Wrapper<T> queryWrapper);
 Wrapper<T>	queryWrapper	实体对象封装操作类 QueryWrapper
 ```
 
-#### Chain
+##### Chain
 ###### query
 ```
 // 链式查询 普通
@@ -360,7 +512,7 @@ update().eq("column", value).remove();
 lambdaUpdate().eq(Entity::getId, value).update(entity);
 ```
 
-#Mapper CRUD 接口
+#### Mapper CRUD 接口
 说明:
 
 通用 CRUD 封装BaseMapper (opens new window)接口，为 Mybatis-Plus 启动时自动解析实体表关系映射转换为 Mybatis 内部对象注入容器
