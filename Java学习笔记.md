@@ -1450,15 +1450,51 @@ static <T> Stream<T> generate(Supplier<T> s);
 // 创建一个无限流，元素包含seed，在seed上调用f产生的值和在前一个元素上调用f产生的值，例如产生年龄递增的User：
 // Stream.iterate(zs, user -> new User(user.getName(), user.getAge() + 1)).limit(5).forEach(System.out::println);
 static <T> Stream<T> iterate(final T seed, final UnaryOperator<T> f);
+
+/* 其他类也支持创建Stream */
 // 创建Integer类型的流
 IntStream intStream = IntStream.range(startInclusive, endExclusive);
+// Arrays类创建流
+Stream<String> strStream = Arrays.stream({"sunny", "angeya"});
 ```
-
-
 
 #### 流的中间操作
 
+```java
+// 过滤操作
+filter();
+// 映射，改变元素类型
+map();
+// 返回的多个Stream中的元素合并成一个Stream 
+// 如：strStream.map(word -> word.split("")).flatMap(Arrays::stream)
+flatMap();
+// 去除相同的元素
+distinct();
+// 跳过
+skip();
+// 限制，可以用于限制无限流，配合skip()函数实现的分页操作等
+limit();
+```
+
 #### 流的终止操作
+
+```java
+// 分别获取这个流中最大和最小元素，使用给定比较器定义的排序规则
+Optional<T> max(Comparator<? super T> comparator);
+Optional<T> min(Comparator<? super T> comparator);
+// 查找第一个满足条件的元素（需要配合filter函数），在并行流中需要做排序
+Optional<T> findFirst();
+// 查找任意一个满足条件的元素（需要配合filter），在并行流中使用只要满足就直接返回
+Optional<T> findAny();
+// 分别在这个流中任何元素、所有元素和没有任何元素匹配给定谓词时返回true
+boolean anyMatch(Predicate<? super T> predicate);
+boolean allMatch(Predicate<? super T> predicate);
+boolean nonMatch(Predicate<? super T> predicate);
+```
+
+#### Optional类型
+
+Optional对象是一种包装器对象，要么包装了类型T的对象，要么没有包装任何对象。
 
 ### Stream 的一些应用场景
 
