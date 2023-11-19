@@ -1424,6 +1424,42 @@ Exception in thread "Thread-0" java.lang.ArrayIndexOutOfBoundsException: 366
 
 ## 第1章 Java 8 的流库
 
+### Stream用法
+
+#### Stream简介
+
+Stream以“做什么而非怎么做”的方式来处理集合。
+
+Stream表面上和集合很相似，都可以让我们转换和获取数据。但是，它们之间存在着显著的区别。比如流并不存储其元素；流的做操作不会修改数据源；流的操作尽可能是惰性的，例如我们只需要过滤5个结果，那么只要过滤出5个结果之后就不会进行过滤操作了。
+
+流的操作一般分为3个阶段：
+
+1. 流的创建
+2. 流的中间操作（操作的结果仍然是一个流）
+3. 流的终止操作（终止操作后流被消费，一般在这可以获取我们想要的结果）
+
+#### 流的创建
+
+```java
+// 根据指定值创建流
+static <T> Stream<T> of(T ...value);
+// 创建空的流
+static <T> Stream<T> empty();
+// 创建一个无限流，通过调用s函数不断获取值 如：Stream.generate(System::currentTimeMillis).limit(5)
+static <T> Stream<T> generate(Supplier<T> s);
+// 创建一个无限流，元素包含seed，在seed上调用f产生的值和在前一个元素上调用f产生的值，例如产生年龄递增的User：
+// Stream.iterate(zs, user -> new User(user.getName(), user.getAge() + 1)).limit(5).forEach(System.out::println);
+static <T> Stream<T> iterate(final T seed, final UnaryOperator<T> f);
+// 创建Integer类型的流
+IntStream intStream = IntStream.range(startInclusive, endExclusive);
+```
+
+
+
+#### 流的中间操作
+
+#### 流的终止操作
+
 ### Stream 的一些应用场景
 
 通用类Person
