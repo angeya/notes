@@ -385,6 +385,169 @@ lambda 表达式能做的也只是转化为函数式接口。在上面代码中�
 
 > 不能把 lambda 表达式赋值给类型为 Object 的变量，因为 Object 不是函数式接口
 
+函数式接口练习可以参考：[函数式接口详解（Java）_函数式接口作为参数_ ](https://blog.csdn.net/hbdhaj/article/details/119564310
+
+#### 常用的函数式接口
+
+Java 8在java.util.function包下预定义了大量的函数式接口供我们使用
+
+我们重点学习下面4个接口
+
+- Supplier接口
+- Consumer接口
+- Predicate接口
+- Function接口
+
+##### Supplier接口
+
+Supplier< T >：包含一个无参的方法
+
+- T get()：获得结果
+
+该方法不需要参数，他会按照某种实现逻辑（由Lambda表达式实现）返回一个数据
+Supplier< T >接口也被称为生产型接口，如果我们指定了接口的泛型是什么类型，那么接口中的get方法就会产生什么类型的数据供我们使用。
+
+```java
+import java.util.function.Supplier;
+
+public class SupplierDemo {
+    public static void main(String[] args) {
+        String s = getString(()->"张三");
+        int i = getInteger(()->18);
+
+        System.out.println(s+","+i);
+    }
+
+    //定义一个方法，返回一个字符串数据
+    private static String getString(Supplier<String> sup){
+        return sup.get();
+    }
+
+    //定义一个方法，返回一个整数数据
+    private static Integer getInteger(Supplier<Integer> sup){
+        return sup.get();
+    }
+}
+
+```
+
+##### Consumer接口
+
+Consumer<T>：包含两个方法
+
+- void accept(T t)：对给定的参数执行此操作
+
+- default Consumer < T > andThen(Consumer after)：返回一个组合的Consumer，依次执行此操作，然后执行after操作
+  Consumer< T >接口也被称为消费型接口，它消费的数据类型由泛型指定
+
+```java
+import java.util.function.Consumer;
+public class ConsumerDemo {
+    public static void main(String[] args) {
+    operatorString("张三", (s) -> System.out.println(s));
+
+    operatorString("张三", (s) -> System.out.println(s), (s)-> System.out.println(new StringBuilder(s).reverse().toString()));
+}
+
+//定义一个方法，消费一个字符串数据
+private static void operatorString(String name, Consumer<String> con) {
+    con.accept(name);
+}
+
+//定义一个方法，用不同的方式消费同一个字符串两次
+private static void operatorString(String name, Consumer<String> con1,Consumer<String> con2) {
+//        con1.accept(name);
+//        con2.accept(name);
+        //返回一个组合的Consumer
+        con1.andThen(con2).accept(name);
+    }
+}
+```
+##### Predicate接口
+
+Predicate< T >：常用的四个方法
+
+- boolean test(T t)：对给定的参数进行判断（判断逻辑由Lambda表达式实现），返回一个布尔值
+
+- default Predicate< T > negate()：返回一个逻辑的否定，对应逻辑非
+- default Predicate< T > and()：返回一个组合判断，对应短路与
+- default Predicate< T > or()：返回一个组合判断，对应短路或
+- isEqual()：测试两个参数是否相等
+- Predicate< T >：接口通常用于判断参数是否满足指定的条件
+
+test(T t) 、negate()
+
+
+
+```java
+import java.util.function.Predicate;
+
+public class ConsumerTest {
+    public static void main(String[] args) {
+        boolean string = chenkString("张三", s -> s.equals("张三"));
+        System.out.println(string);
+
+        boolean hello = chenkString("hello", s -> s.length() > 8, s -> s.length() < 18);
+        System.out.println(hello);
+    }
+
+    //判定给定的字符串是否满足要求
+//    private static boolean chenkString(String s, Predicate<String> pre){
+//        return pre.test(s);
+//    }
+
+    private static boolean chenkString(String s, Predicate<String> pre){
+        return pre.negate().test(s);
+    }
+
+//    private static boolean chenkString(String s, Predicate<String> pre, Predicate<String> pre1){
+//        return pre.and(pre1).test(s);
+//    }
+
+    private static boolean chenkString(String s, Predicate<String> pre, Predicate<String> pre1){
+        return pre.or(pre1).test(s);
+    }
+}
+
+```
+##### Function接口
+
+Runction<T,R>：常用的两个方法
+
+- R apply(T t)：将此函数应用于给定的参数
+- default< V >：Function andThen(Function after)：返回一个组合函数，首先将该函数应用于输入，然后将after函数应用于结果
+- Function<T,R>：接口通常用于对参数进行处理，转换（处理逻辑由Lambda表达式实现），然后返回一个新值
+
+```java
+import java.util.function.Function;
+
+public class ConsumerTest {
+    public static void main(String[] args) {
+        convert("18", s -> Integer.parseInt(s));
+        convert(20, integer -> String.valueOf(integer + 18));
+        convert("245", s -> Integer.parseInt(s), integer -> String.valueOf(integer + 18));
+    }   
+    //定义一个方法，把一个字符串转换成int类型，在控制台输出
+    private static void convert(String s, Function<String, Integer> fun) {
+        int i = fun.apply(s);
+        System.out.println(i);
+    }    
+    //定义一个方法，把int类型数据加上一个整数之后，转换为字符串在控制台输出
+    private static void convert(int i, Function<Integer, String> fun) {
+        String s = fun.apply(i);
+        System.out.println(s);
+    }   
+    //定义一个方法，把一个字符串转换int类型，把int类型的数据加上一个整数后，转换成字符串在控制台输出
+    private static void convert(String s, Function<String, Integer> fun1, Function<Integer, String> fun2) {
+        String s1 = fun2.apply(fun1.apply(s));
+        System.out.println(s1);
+    }
+}
+
+```
+
+
+
 #### 闭包
 
 lambda 表达式包含3个部分：
