@@ -1195,25 +1195,135 @@ public class DemoController {
 
 ##### 1，访问权限问题
 
+如果我们自定义的事务方法（即目标方法），它的访问权限不是`public`，而是private、default或protected的话，spring则不会提供事务功能。
+
+在`AbstractFallbackTransactionAttributeSource`类的`computeTransactionAttribute`方法中有个判断，如果目标方法不是public，则`TransactionAttribute`返回null，即不支持事务。
+
+但是事务方法中调用的各个数据库操作的方法可以是private的，这些内部的方法使用同一个事务。
+
 ##### 2，方法用final修饰
+
+spring事务底层使用了aop，也就是通过jdk动态代理或者cglib，帮我们生成了代理类，在代理类中实现的事务功能。
+
+如果某个方法用final修饰了，那么在它的代理类中，就无法重写该方法，而添加事务功能。
+
+如果某个方法是static的，同样无法通过动态代理，支持事务。
 
 ##### 3，方法内部调用
 
+方法内部调用，使用的是this对象，而不是代理对象，所以无法增强事务。
+
+这时候可以把需要事务方法抽取到一个新的Bean中。
+
+或者在当前类中注入自己，然后就可以通过代理对象调用事务方法了。如下：
+
+```java
+@Servcie
+public class ServiceA {
+   @Autowired
+   prvate ServiceA serviceA;
+
+   public void save() {
+       // 这样可以用代理对象
+       serviceA.doSomeThing();
+   }
+
+   @Transactional(rollbackFor=Exception.class)
+   public void doSomeThing() {
+       // do some thing, such as save data
+    }
+ }
+```
+
+当然还可以在该Service类中使用AopContext.currentProxy()获取代理对象，这个可以参考AOP部分。
+
 ##### 4，未被spring管理
+
+使用spring事务的前提是：对象要被spring管理，需要创建bean实例。
 
 ##### 5，多线程调用
 
+虽然在事务方法内部，通过多线程来并发操作数据库，可以提高效率，但是这样就会使得事务部分失效。
+
+spring的事务是通过数据库连接来实现的。当前线程中保存了一个map，key是数据源，value是数据库连接。我们说的同一个事务，其实是指同一个数据库连接，只有拥有同一个数据库连接才能同时提交和回滚。如果在不同的线程，拿到的数据库连接肯定是不一样的，所以是不同的事务。
+
 ##### 6，表不支持事务
+
+周所周知，在mysql5之前，默认的数据库引擎是`myisam`。
+
+它的好处就不用多说了：索引文件和数据文件是分开存储的，对于查多写少的单表操作，性能比innodb更好。在创建表的时候，只需要把`ENGINE`参数设置成`MyISAM`即可。
+
+所以在实际业务场景中，myisam使用的并不多。在mysql5以后，myisam已经逐渐退出了历史的舞台，取而代之的是innodb。
+
+> 有时候我们在开发的过程中，发现某张表的事务一直都没有生效，那不一定是spring事务的锅，最好确认一下你使用的那张表，是否支持事务。
 
 ##### 7，错误的传播特性
 
 ##### 8，自己吞了异常
 
-##### 9，手动抛了别的异常
+如果想要spring事务能够正常回滚，必须抛出它能够处理的异常。如果没有抛异常，则spring认为程序是正常的。
 
-##### 10，自定义了回滚异常
+所以，可以捕获异常，但是做了一些操作之后还需要把异常抛出来，否则事务不会回滚。
 
-##### 11，嵌套事务回滚多了
+##### 9，异常类型不对
+
+默认情况下只会回滚`RuntimeException`（运行时异常）和`Error`（错误），对于普通的Exception（非运行时异常），它不会回滚。
+
+所以适当的加上`rollbackFor=Exception.class`配置，或者确认好回滚异常。也可以直接设置成`Throwable`
+
+##### 10，嵌套事务回滚多了
+
+看如下代码：
+
+```java
+public class UserService {
+    @Autowired
+    private RoleService roleService;
+
+    @Transactional
+    public void saveData() throws Exception {
+        // some DB operate
+        roleService.doOtherThing();
+    }
+}
+
+@Service
+public class RoleService {
+
+    @Transactional(propagation = Propagation.NESTED)
+    public void doOtherThing() {
+        // some DB operate
+    }
+}
+```
+
+这种情况使用了嵌套的内部事务，原本是希望调用roleService.doOtherThing方法时，如果出现了异常，只回滚doOtherThing方法里的内容，不回滚 saveData 里的内容，但事实是，saveData 也回滚了。
+
+为什么呢？因为 doOtherThing 方法出现了异常，没有手动捕获，会继续往上抛，到外层 saveData 方法的代理方法中捕获了异常。所以，这种情况是直接回滚了整个事务，不只回滚单个保存点。
+
+所以 saveData  方法应该改为如下：
+
+```java
+@Transactional
+public void saveData() throws Exception {
+    // some DB operate
+    try {
+        roleService.doOtherThing();
+    } catch (Exception e) {
+        log.error(e.getMessage(), e);
+    }
+}
+```
+
+
+
+##### 11，未开启事务
+
+如果你使用的是springboot项目，那么你很幸运。因为springboot通过`DataSourceTransactionManagerAutoConfiguration`类，已经默默的帮你开启了事务。
+
+你所要做的事情很简单，只需要配置`spring.datasource`相关参数即可。
+
+但如果你使用的还是传统的spring项目，则需要在applicationContext.xml文件中，手动配置事务相关参数。如果忘了配置，事务肯定是不会生效的。
 
 
 
