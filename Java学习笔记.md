@@ -960,7 +960,7 @@ Collections.shuffle(list);
 Collections.binarySerch(list, element);
 ```
 
-### List的一些使用使用场景
+### List 的一些使用使用场景
 
 #### 遍历List删除元素的几种方法
 
@@ -1222,7 +1222,45 @@ intrinsicCondition.signalAll();
 
 java.util.concurrent.atomic包中有很多类使用了很高级的机器级指令来保证其他操作的原子性。如AtomicInteger、AtomicBoolean等。
 
-#### 线程局部变量
+#### 线程局部变量ThreadLocal
+
+ThreadLocal是Java中的一个类，它提供了线程局部变量的功能。其原理主要涉及以下几个方面：
+
+1. 每个ThreadLocal对象实际上是一个线程本地变量，每个线程都可以设置自己的局部变量，且互不干扰。
+2. 当使用ThreadLocal的set方法设置变量时，实际上是将这个值存储到当前线程的ThreadLocalMap中。ThreadLocalMap是ThreadLocal内部的一个静态内部类，用于存储线程本地变量。
+3. 在多线程环境下，每个线程都有自己的ThreadLocalMap，可以独立地进行读取和写入操作，从而实现线程间的数据隔离。
+4. 当线程结束时，线程本地变量也会被回收，从而避免了内存泄漏的问题。
+
+Thread类的部分源码如下：
+
+```java
+public class Thread implements Runnable {
+    /* ThreadLocal values pertaining to this thread. This map is maintained
+     * by the ThreadLocal class. */
+    ThreadLocal.ThreadLocalMap threadLocals = null;
+}
+```
+
+使用案例：
+
+```java
+// 创建ThreadLocal对象，也可以通过ThreadLocal.withInitial()提供一个Supplier接口，这个接口会在每个线程第一次调用get方法的时候调用，就避免了第一次需要调用set方法
+private final static ThreadLocal<Integer> THREAD_LOCAL = new ThreadLocal<>();
+
+public static void main(String[] args) throws Exception{
+    for (int i = 0; i < 30; i++) {
+        new Thread(() -> {
+            THREAD_LOCAL.set(10);
+            // do some thing
+            // 每个线程的值是独立的
+            Integer value = THREAD_LOCAL.get();
+            System.out.println(value);
+            // 用完之后移除数据，避免内存泄漏
+            THREAD_LOCAL.remove();
+        }).start();
+    }
+}
+```
 
 
 
@@ -1472,7 +1510,6 @@ public class Demo {
         COUNT_DOWN_LATCH.await();
         LIST.forEach(System.out::println);
         System.out.println("size is " + LIST.size());
-
     }
 }
 ```
