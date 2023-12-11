@@ -1188,5 +1188,73 @@ const params = new URLSearchParams(window.location.search);
 const id = params.get('id')
 ```
 
+### 使用js渲染pdf
+
+这里使用`pdf.js`框架实现，它是基于canvas实现的，下面使用的案例是旧版本（用到了两个js文件pdf.min.js和pdf.worker.min.js，这两个文件在reference目录中），新版本尝试好像会报错。
+
+这是[pdf.js的github地址](https://github.com/mozilla/pdf.js)。下面以加载《图解算法》为例.
+
+```javascript
+<head>
+    <meta charset="UTF-8">
+    <title>图解算法</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0
+        }
+        /* 设置容器用于显示 PDF */
+        #pdfViewer {
+            width: 100%;
+            height: 500px;
+            margin: 0 auto;
+        }
+        /*居中且只有一列*/
+        #pdfViewer canvas {
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+	<!-- 引入pdf.min.js文件，其内部会依赖pdf.worker.min.js -->
+    <script src="pdf.min.js" type="application/javascript"></script>
+</head>
+<body style="height: 100%">
+<!-- 用于显示 PDF 文件的容器 -->
+<div id="pdfViewer"></div>
+
+<script>
+    // pdf路径
+    const pdfUrl = './算法图解.pdf'
+    const pdfViewer = document.getElementById('pdfViewer');
+    // 使用 PDF.js 加载 PDF 文件
+    pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
+        // 获取 PDF 文件的总页数
+        const numPages = pdf.numPages;
+
+        for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+            pdf.getPage(pageNum).then(page => {
+                // 设置缩放比例
+                const viewport = page.getViewport({scale: 1.5});
+                // 创建用于渲染的 canvas 元素
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                pdfViewer.appendChild(canvas);
+
+                // 渲染 PDF 文件至 canvas
+                page.render({
+                    canvasContext: context,
+                    viewport: viewport
+                });
+            });
+        }
+    }).catch(error => {
+        console.error('加载 PDF 文件时出现问题：', error);
+    });
+</script>
+```
+
 
 

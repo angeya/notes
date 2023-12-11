@@ -2,7 +2,27 @@
 
 ## IOC
 
+#### 一些接口
 
+#### @PostConstruct
+
+@postContruct全限定类名是javax.annotation.PostConstruct，可以看出来其本身不是Spring定义的注解，但是Spring提供了具体的实现。
+
+从@PostConstruct注解的注释上看，可以了解到以下内容：
+
+1. 在依赖加载后，对象使用前执行，并且只执行一次；
+
+2. 所有支持依赖注入的类都需要支持此方法。即使类没有请求注入任何的资源，也必须调用被@PostConstruct注解标记的方法；
+
+3. 一个类中在一个方法上使用@PostConstruct注解；
+
+4. 使用@PostConstruct注解标记的方法不能有参数，除非是拦截器，可以采用拦截器规范定义的InvocationContext对象。
+
+5. 使用@PostConstruct注解标记的方法不能有返回值，实际上如果有返回值，也不会报错，但是会忽略掉；
+
+6. 使用@PostConstruct注解标记的方法的权限，public、private、protected都可以；
+
+7. 使用@PostConstruct注解标记的方法不能被static修饰，但是final是可以的；
 
 ## AOP
 
