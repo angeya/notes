@@ -97,11 +97,49 @@ appendonly no
 
 基础命令如下：
 
-| 命令         | 说明                                          | 示例   |
-| ------------ | --------------------------------------------- | ------ |
-| keys pattern | 获取符合规则的键名列表，pattern支持glob通配符 | keys * |
-| del key      | 删除键值对                                    |        |
-| type key     | 查看键值数据类型                              |        |
+| 命令                                      | 说明                                                         | 示例                            |
+| ----------------------------------------- | ------------------------------------------------------------ | ------------------------------- |
+| keys pattern                              | 获取符合规则的键名列表，pattern支持glob通配符                | keys *                          |
+| scan cursor [MATCH pattern] [COUNT count] | 通过游标分批次获取key，游标默认值为0，返回值第一行为下一批次游标，如果下一批次游标为0，则代表已经没有更多的key了 | SCAN 0 count 100  MATCH sciyon* |
+| del key                                   | 删除键值对                                                   |                                 |
+| type key                                  | 查看键值数据类型                                             |                                 |
+
+**KEYS 和 SCAN 都是两个用于遍历键的命令，他们的区别如下：**
+
+1. KEYS 命令：
+
+   - KEYS 命令是一个全局操作，它会阻塞服务器并扫描整个数据库来匹配给定模式的键。
+   - KEYS 命令返回匹配模式的所有键，并一次性将它们全部返回给客户端。
+   - 由于 KEYS 命令需要扫描整个数据库，在数据量较大时可能导致服务器阻塞，影响 Redis 的性能。
+
+2. SCAN 命令：
+
+   - SCAN 命令是一个逐步迭代的操作，它通过游标分批次地获取与给定模式匹配的键。
+   - SCAN 命令不会阻塞服务器，它每次只返回一小部分匹配的键，并且可以在多个网络往返之间进行迭代。
+   - SCAN 命令使用游标来表示当前迭代的位置，通过多次调用 SCAN 命令并更新游标，可以逐步地获取所有匹配的键。
+   - SCAN 命令更加适合在生产环境中进行键的遍历，因为它不会对服务器产生过大的负载，并且不会阻塞其他操作。
+
+   在SpringBoot中使用scan命令获取所有的key
+
+   ```java
+   Set<String> keySet = redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
+   	// scan参数
+   	ScanOptions options = ScanOptions
+   			.scanOptions()
+   			.match(pattern)
+   			.count(100)
+   			.build();
+   	Set<String> ks = new HashSet<>();
+   	// 根据参数执行scan命令，多次获取数据
+   	connection.scan(options).forEachRemaining(bytes -> {
+   		String key = new String(bytes);
+   		ks.add(key);
+   	});
+   	return ks;
+   });
+   ```
+
+   
 
 ### 2.2字符串类型
 
