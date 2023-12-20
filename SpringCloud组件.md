@@ -1,7 +1,10 @@
 ### SpringCloudBus
 
-SpringCloudBus是微服务总线，可以实现微服务之间的通信。基于SpringBoot的事件发送和监听机制，可以基于RabbitMq或者kafka实现。
-如果使用RabbitMQ，连接上RabbitMQ之后，可以在Exchange中看到这一行：springCloudBus topic 
+SpringCloudBus是微服务总线，可以实现微服务之间的通信，如消息广播。基于SpringBoot的事件发送和监听机制，可以基于RabbitMq或者kafka实现。
+如果使用RabbitMQ，连接上RabbitMQ之后，可以在Exchange中看到这一行：springCloudBus topic 。也可以不需要消息队列工作。
+
+可以通过广播消息用来解决多个微服务使用Websocket推送消息的问题（问题：某个需要发送消息的服务可能没有被前端Websocket注册）。
+
 1，引入maven依赖
 
 ```xml
@@ -38,6 +41,9 @@ public class MyEvent extends RemoteApplicationEvent {
 4，发送事件
 
 ```java
+/**
+ * 当前微服务
+ */
 @AutoWired
 private BusProperties busProperties
 
