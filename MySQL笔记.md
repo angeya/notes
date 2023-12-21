@@ -242,5 +242,28 @@ SET SESSION TRANSACTION ISOLATION LEVEL level;
 SET TRANSACTION ISOLATION LEVEL level;
 ```
 
+## 死锁
 
+不同的数据库引擎对数据表锁的支持是不一样的。
+
+### InnoDB下发生死锁的例子：
+
+1. where条件字段没有索引
+
+   ```sql
+   -- 开启一个窗口（连接）
+   begin;
+   update user set name = '张三' where name = '张三三';
+   -- commit; -- 暂时不提交
+   
+   -- 开启另外一个窗口（连接）
+   begin;
+   update user set name = '老六六' where name = '老六';
+   commit;
+   -- 这里会死锁，事务无法提交
+   ```
+
+   
+
+   
 
