@@ -1209,6 +1209,72 @@ public class DemoController {
 </html>
 ```
 
+### 数据库连接池
+
+#### 常见连接池
+
+在Spring Boot项目中，常用的数据库连接池有以下几种：
+
+1. HikariCP：HikariCP是目前性能最好的Java连接池之一，具有快速、高效和轻量级等特点。它在处理高并发连接请求时表现出色，可以提供更快的响应时间和更低的资源占用率。
+2. Apache Commons DBCP2：Apache Commons DBCP2是一个基于Apache软件基金会的通用连接池。它提供了一些高级功能，比如自动回收空闲连接、连接泄漏检测等。同时，它也是一个轻量级的连接池，适用于小型和中型应用程序。
+3. Tomcat JDBC Pool：Tomcat JDBC Pool是Apache Tomcat Web服务器的官方JDBC连接池。它具有高性能、高可靠性、安全性和可扩展性等优点。同时，它还支持异步查询、连接泄漏检测和生命周期监听等高级功能。
+4. Druid：Druid是阿里巴巴开源的一个高性能、可扩展的JDBC连接池。它可以监控SQL执行情况、统计执行时间和频率等信息，并提供了一些可视化的监控界面。同时，它也支持连接泄漏检测、密码加密、多数据源等高级功能。
+
+其中HikariCP是SpringBoot默认数据库连接池。
+
+#### HikariCP连接池的常见配置
+
+```yaml
+# 连接池中允许的最小连接数。缺省值和maximum-pool-size一样
+spring.datasource.hikari.minimum-idle=10
+# 连接池中允许的最大连接数。缺省值：10
+spring.datasource.hikari.maximum-pool-size=100
+# 自动提交，缺省值true
+spring.datasource.hikari.auto-commit=true
+# 一个连接idle状态的最大时长（毫秒），超时则被释放（retired），缺省:10分钟
+spring.datasource.hikari.idle-timeout=30000
+# 连接池名字
+spring.datasource.hikari.pool-name=HikariCP
+# 一个连接的生命时长（毫秒），超时而且没被使用则被释放（retired），缺省:30分钟，建议设置比数据库超时时长少30秒
+spring.datasource.hikari.max-lifetime=1800000
+# 等待连接池分配连接的最大时长（毫秒），超过这个时长还没可用的连接则发生SQLException， 缺省:30秒
+spring.datasource.hikari.connection-timeout=30000
+# 数据库连接测试语句
+spring.datasource.hikari.connection-test-query=SELECT 1
+```
+
+#### 两种连接池的区别
+
+mysql服务中的数据库连接池，和SpringBoot项目中的Hikari数据库连接池的区别和联系是什么？
+
+区别：
+
+1. 层级不同：MySQL服务中的数据库连接池是在MySQL数据库服务器上实现的，用于管理和提供与MySQL数据库的连接。而Spring Boot项目中的Hikari数据库连接池是在应用程序层级上实现的，用于管理与应用程序中的数据源（如MySQL）的连接。
+2. 功能范围不同：MySQL服务中的数据库连接池主要负责管理和复用与MySQL数据库的连接，以提高性能和效率。它通常包含了一些针对MySQL数据库的特定优化和功能。而Hikari数据库连接池是一个通用的Java连接池，支持多种数据库，包括MySQL。它提供了一套通用的连接池管理功能，不局限于某个具体的数据库。
+
+联系：
+
+1. 都是用于连接管理：无论是MySQL服务中的数据库连接池还是Spring Boot项目中的Hikari数据库连接池，它们都用于管理和复用数据库连接，以提高应用程序的性能和资源利用率。
+2. 都可以配置参数：两者都可以通过配置一些参数来调整连接池的行为，比如最大连接数、最小空闲连接数、连接超时等。这些参数的设置可以根据应用程序的需求进行调整。
+
+#### 获取HikariCP连接池的使用情况
+
+```java
+@Resource
+DataSource dataSource;
+
+@GetMapping("test")
+public String test() {
+    // 确保数据连接池是hikari
+	HikariPoolMXBean hikariPoolMXBean = ((HikariDataSource) dataSource).getHikariPoolMXBean();
+	int total = hikariPoolMXBean.getTotalConnections();
+	int wait = hikariPoolMXBean.getThreadsAwaitingConnection();
+	int active = hikariPoolMXBean.getActiveConnections();
+    // 并发数大于最大连接数时候，线程无法获取连接，则需要等待，正在使用时活跃
+	return "连接池总数：" + total + " 等待："+ wait + " 活跃：" + active;
+}
+```
+
 ### Transactional 事务支持
 
 #### 事务失效的11种情况
