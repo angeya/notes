@@ -267,3 +267,31 @@ SET TRANSACTION ISOLATION LEVEL level;
 
    
 
+## Binlog日志
+
+### 清理Mysql的binlog日志文件
+
+步骤如下
+
+1. 查看当前正在使用的binlog日志文件名称，SQL语句如下：
+
+   ```sql
+   show master status;
+   ```
+
+   该SQL用于查看MySQL主服务器的二进制日志（binary log）状态信息。
+
+   在MySQL复制（replication）中，主服务器（master）将其操作记录在二进制日志中，并将这些日志传输给从服务器（slave）进行数据复制。该语句可以提供关于主服务器当前的二进制日志文件名和位置的详细信息，通常是以下几个字段：
+
+   File：当前正在写入的二进制日志文件名。
+   Position：当前二进制日志文件中的偏移量（position），表示已写入的字节数。
+   Binlog_Do_DB：指定了要复制的数据库名，如果为空，则表示复制所有数据库。
+   Binlog_Ignore_DB：指定了要忽略复制的数据库名，如果为空，则表示不忽略任何数据库。
+
+2. 清理所有的binlog日志文件，除了当前正在使用的，SQL语句如下：
+
+   ```sql
+   purge binary logs to 'binlog.xxx';
+   ```
+
+   该SQL语句的作用是删除二进制日志中指定位置之前的所有日志文件。被删除的二进制日志将无法再用于数据库的复制或恢复操作。因此，在执行该语句之前，应该确保不再需要这些日志文件，并且已经进行了适当的备份。
