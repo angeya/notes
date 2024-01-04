@@ -27,6 +27,41 @@ java.time 包包含日期、时间、时刻和持续时间的主要API。这里�
 
 ## 新API的使用示例
 
+### 时间基本概念
+
+时刻Instant是没有时区概念的，我们所说的时间戳也是。都表示的是0时区的时间。
+
+而当我们使用`Date`、`LocalDateTime`等对象的时候，是包含有时区的含义的，一般根据电脑默认时区显示。所以假设有一个时刻`Instant`或者时间戳要转换为`Date`、`LocalDateTime`等对象，一般是会加上时区差的时间的。
+
+Instant到Date
+
+```java
+Date.from(instant); // 一般会自动加上8小时
+```
+
+Instant到LocalDateTime
+
+```java
+// 设置UTC时区时间(ZonedDateTime)对象后转为Instant，instant时间和原来一样，因为都是0时区
+LocalDateTime.now().atZone(ZoneOffset.UTC).toInstant();
+// 这转为instant，时间比原来少8小时
+LocalDateTime.now().atZone(ZoneOffset.systemDefault()).toInstant();
+```
+
+为了保证时间和物理意义一样，在使用LocalDateTime转化为Instant的时候，不要使用类似如下语句
+
+```java
+// 这里指定了LocalDateTime为UTC时区，虽然得到的Instant对象和原来的LocalDateTime对象时间一样
+// 但是含义已经改变，再转成Date、LocalDateTime的时候，很难确定要不要加上时区偏移时间
+LocalDateTime.now().toInstant(ZoneOffset.UTC);
+```
+
+应该使用如下语句
+
+```java
+LocalDateTime.now().atZone(ZoneOffset.systemDefault()).toInstant();
+```
+
 ### 获取当前时刻
 
 `Instant`类有一个静态工厂方法`now()`会返回当前的时刻，如下所示：
@@ -296,7 +331,7 @@ System.out.println("比零时区快了" + offsetDateTime.getOffset().getTotalSec
 
 现在的时间信息里已经包含了时区信息了。注意：`OffSetDateTime`是对计算机友好的，`ZoneDateTime`则对人更友好。
 
-### 带时区的日期时间
+### xxxxxxxxxx Object currentProxy();java
 
 `Java8`不仅分离了日期和时间，也把时区分离出来了。现在有一系列单独的类如`ZoneId`来处理特定时区，`ZoneDateTime`类来表示某时区下的时间。这在Java8以前都是`GregorianCalendar`类来做的。下面这个例子展示了如何把本时区的时间转换成另一个时区的时间。
 
