@@ -129,6 +129,19 @@ influx write --bucket sample-bucket --url https://influx-testdata.s3.amazonaws.c
 influx write --bucket sample-bucket --file <YOUR_PATH>/air-sensor-data-annotated.csv
 ```
 
+csv的内容格式如下：
+
+```
+#group,false,false,false,false,true,true,true
+#datatype,string,long,dateTime:RFC3339,double,string,string,string
+#default,_result,,,,,,
+,result,table,_time,_value,_field,_measurement,sensor_id
+,,0,2024-01-03T23:19:57Z,0.4938242960528907,co,airSensors,TLM0100
+,,0,2024-01-03T23:20:07Z,0.503711643685156,co,airSensors,TLM0100
+,,0,2024-01-03T23:20:17Z,0.4901465934432477,co,airSensors,TLM0100
+,,0,2024-01-03T23:20:27Z,0.498262663160897,co,airSensors,TLM0100
+```
+
 ### 查询和删除数据
 
 根据目前的经验，官方给出的命令总是报错，不知道为什么。
