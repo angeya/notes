@@ -109,6 +109,30 @@ Data Explorer中可以使用Query Builder或者Script Editor进行查询。
 
 > 注意：当一个测量中包含多个字段(field)，使用图形用户界面查询以表格展示时，每一行只会显示一个字段键和值，分别在`_field`列和`_value`列。并且会以字段名称和时间归类成列表展示在左侧。因此有时候在查询的时候，返回的结果是`List<FluxTable>`。
 
+## Influx CLI的使用
+
+Influx CLI是InfluxDB的命令行客户端，支持使用命令来管理InfluxDB。
+
+Influx CLI安装及使用链接：https://docs.influxdata.com/influxdb/cloud/reference/cli/influx/。InfluxDB的Docker容器中默认已经包含了Influx CLI。
+
+### 写入数据
+
+网络CSV文件
+
+```
+influx write --bucket sample-bucket --url https://influx-testdata.s3.amazonaws.com/air-sensor-data-annotated.csv
+```
+
+本地CSV文件
+
+```
+influx write --bucket sample-bucket --file <YOUR_PATH>/air-sensor-data-annotated.csv
+```
+
+### 查询和删除数据
+
+根据目前的经验，官方给出的命令总是报错，不知道为什么。
+
 ## Java中使用InfluxDB2.x
 
 1. 引入maven依赖
@@ -127,7 +151,8 @@ Data Explorer中可以使用Query Builder或者Script Editor进行查询。
    @Data
    @Measurement(name="SystemInfo")
    public class SystemInfo {
-   
+       // name用来配置字段名，名称和实体类一样可以不写，timestamp用来指定该列是够为时间列，tag用来标注该字段是否是索引（索引列将会参与查询分组）
+       // 查询的每一条记录只包含一个字段的键和值，分别对应_field和_value列
        @Column(name="instant", timestamp = true, tag = true)
        private Instant instant;
    
@@ -148,6 +173,7 @@ Data Explorer中可以使用Query Builder或者Script Editor进行查询。
 3. 使用客户端连接
 
    ```java
+   // 创建连接
    InfluxDBClient influxDbClient = InfluxDBClientFactory.create(url, token.toCharArray(), org, bucket);
    ```
 
@@ -190,7 +216,20 @@ Data Explorer中可以使用Query Builder或者Script Editor进行查询。
    }
    ```
 
-6. 关闭连接
+6. 删除数据
+
+   ```java
+   // 获取删除API
+   DeleteApi deleteApi = influxDbClient.getDeleteApi();
+   // 删除16年到现在、测量值为demo的数据
+   deleteApi.delete(OffsetDateTime.of(LocalDateTime.of(2016, 1, 1, 0, 0), ZoneOffset.UTC),
+   	OffsetDateTime.of(LocalDateTime.now(), ZoneOffset.UTC),
+   	"_measurement=\"demo\"", bucket, org);
+   ```
+
+   
+
+7. 关闭连接
 
    ```java
    influxDbClient.close();
@@ -198,4 +237,4 @@ Data Explorer中可以使用Query Builder或者Script Editor进行查询。
 
    
 
-官方网址：[influxdata/influxdb-client-java: InfluxDB 2 JVM Based Clients (github.com)](https://github.com/influxdata/influxdb-client-java)
+InfluxDB2.x 官方文档网址：[influxdata/influxdb-client-java: InfluxDB 2 JVM Based Clients (github.com)](https://github.com/influxdata/influxdb-client-java)
