@@ -14,21 +14,49 @@ MySQL：一款免费、开源、快速的DBMS。
 
 MySQL基本特点：语句不区分大小写，SELECT 和 select一样。查询中字符串匹配也默认不区分大小写。
 
-登录：`mysql -h127.0.0.1 -P3306 -uroot -p`
+登录
 
-显示数据库/表：`show databases/tables;`
+```sql
+mysql -h127.0.0.1 -P3306 -uroot -p
+```
 
-显示数据库/表创建语句：`show create database/table xxx;`
+显示数据库/表
 
-使用数据库：`use database xxx;`
+```sql
+show databases/tables;
+```
 
-显示表的字段：`show columns;`
+显示数据库/表创建语句
 
-显示用户授权：`show grants;`
+```sql
+show create database/table xxx;
+```
 
-显示服务器错误或警告信息：`show errors/warnnings;`
+使用数据库
 
-MySQL是多用户多进程的，查看命令：`show processlist;`
+```sql
+use database xxx;
+```
+
+显示用户授权
+
+```sql
+show grants;
+```
+
+显示服务器错误或警告信息
+
+```sql
+show errors/warnnings;
+```
+
+MySQL是多用户多进程的，查看命令
+
+```sql
+show processlist;
+```
+
+
 
 #### 2，数据检索
 
@@ -96,7 +124,7 @@ MySql中支持的正则表达式只是全部正则表达式的一部分，且转
 
 文本处理函数
 
-![image-20210723102704667](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20210723102704667.png)
+
 
 新鲜：soundex()函数可以尝试对对发音处理，
 
@@ -104,7 +132,7 @@ MySql中支持的正则表达式只是全部正则表达式的一部分，且转
 
 日期处理函数
 
-![image-20210723102538531](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20210723102538531.png)
+
 
 直接使用日期字符串查询并不靠谱，如：select * from orders where order_date = '2020-06-08'，因为日期类型为datetime时，2020-06-08 00:00:00 与 2020-06-08不相等，无法匹配出结果。这时使用日期函数就显得很重要。
 
@@ -118,7 +146,7 @@ MySql中支持的正则表达式只是全部正则表达式的一部分，且转
 
 SQL的汇总函数，（MySQL还支持其他的一些），以下函数都只返回一条记录。
 
-![image-20210723110410641](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20210723110410641.png)
+
 
 `select avg(age) as avg_age from student;`获取学生的平均年龄。
 
