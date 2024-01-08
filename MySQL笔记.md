@@ -173,6 +173,66 @@ drop index indexName on tableName;
   alter table user add fulltext index (intro);
   ```
 
+判断索引是否存在，如果不存在则创建索引
+
+```sql
+DELIMITER //
+-- 创建存储过程
+CREATE PROCEDURE addIndexes()
+BEGIN
+    -- 为 pf_oss 表的 attach_id 列增加 IDX_ATTACH_ID 索引
+    IF NOT EXISTS (SELECT 1
+                   FROM information_schema.statistics
+                   -- 可以根据表名 索引名 列名等进行过滤
+                   WHERE table_name = 'table_name'
+                     AND index_name = 'idx_other_id'
+                     and column_name = 'other_id') 
+    THEN
+        select version();
+        ALTER TABLE table_name
+            ADD INDEX idx_other_id (other_id);
+    END IF;
+END //
+
+DELIMITER ;
+-- 调用存储过程
+CALL addIndexes();
+```
+
+
+
+### 索引统计信息表
+
+`INFORMATION_SCHEMA.STATISTICS` 是 MySQL 数据库中的一个系统表，用于存储每个表的索引统计信息。它包含了每个索引的详细信息，如索引名称、索引类型、索引包含的列、索引的基数（不同值的数量）等。
+
+使用 `INFORMATION_SCHEMA.STATISTICS` 可以获取表的索引信息，比如哪些列上有索引，索引类型是什么，索引的基数等等，这对于优化查询语句和调整数据库性能非常有帮助。例如，可以使用该表来查找哪些索引没有被使用，或者哪些索引的基数过低，需要重新设计或重建索引。
+
+下面是一些常用的 `INFORMATION_SCHEMA.STATISTICS` 查询示例：
+
+1. 查看某个表的所有索引信息：
+
+   ```sql
+   SELECT * FROM INFORMATION_SCHEMA.STATISTICS WHERE table_schema='database_name' AND table_name='table_name';
+   ```
+
+2. 查看某个表的某个列上的索引信息：
+
+   ```sql
+   SELECT * FROM INFORMATION_SCHEMA.STATISTICS WHERE table_schema='database_name' AND table_name='table_name' AND column_name='column_name';
+   ```
+
+3. 查看某个表的索引是否被使用：
+
+   ```sql
+   SELECT * FROM INFORMATION_SCHEMA.STATISTICS WHERE table_schema='database_name' AND table_name='table_name' AND index_name='index_name' AND seq_in_index=1 AND cardinality>0;
+   ```
+
+需要注意的是，`INFORMATION_SCHEMA.STATISTICS` 表中的数据是从表的统计信息中获取的，因此需要定期更新统计信息，以保证这些查询结果的准确性。可以使用如下语句来更新表的统计信息。
+
+```sql
+ANALYZE TABLE table_name;
+```
+
 ### 回表
 
 主键索引的B+树的叶子节点会存放一行数据的所有字段。如果通过id查找数据，可以将所有的字段返回出去。
@@ -181,7 +241,7 @@ drop index indexName on tableName;
 
 ## 外键
 
-级联删除 
+级联删除 (一般不使用)
 
 ## 事务
 
