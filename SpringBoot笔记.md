@@ -1438,6 +1438,35 @@ public void saveData() throws Exception {
 但如果你使用的还是传统的spring项目，则需要在applicationContext.xml文件中，手动配置事务相关参数。如果忘了配置，事务肯定是不会生效的。
 
 
+### 加载其他iar包中的Bean
+
+在SpringBoot项目中引入其他jar包，如果jar包中包含Spring Bean的定义，默认情况下在当前SpringBoot项目中是不能加载到这些Bean的，因为SpringBoot默认值扫描当前启动类所在的包的Bean、以及jar包中META-INF/spring.factories并配置为SpringBoot Starter的包。
+
+如果想要在当前项目中加载到到普通jar包的定义Spring Bean，需要再启动类上加入注解`@ComponentScan("com.example.test")`来指定Spring需要扫描的包，但是指定了扫描特定包之后，Spring不会扫描当前项目下的Bean了，所以需要同事指定当前项目的包。如下
+
+```java
+package com.example.demo;
+
+// import ...
+
+// 指定当前包名和jar包中需要扫描的包
+@ComponentScan({"com.example.demo", "com.example.test"})
+@SpringBootApplication
+public class DemoApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(SpmApplication.class, args);
+}
+```
+当然，你也可以选择定义SpringBoot Starter啦。
+
+
+
+
+
+
+
+
+
 
 
 
