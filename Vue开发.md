@@ -1,6 +1,10 @@
-# Vue开发准备工作
+# Vue开发
 
-## 1.准备Nodejs
+
+
+## Vue开发准备工作
+
+### 1.准备Nodejs
 
 - 进入Node官网 https://nodejs.org/zh-cn/ 下载并安装Node并加入到path，npm会随着Node被安装，通过以下命令查看Node和npm的版本。
 
@@ -35,9 +39,9 @@
   npm config set registry https://registry.npmjs.org/
   ```
 
-- 
+  
 
-## 2.准备VueCli
+### 2.准备VueCli
 
 - 安装VueCli
 
@@ -53,7 +57,7 @@
   vue create demo
   ```
 
-## 3.Vue项目开发
+### 3.Vue项目开发
 
 ### vue.config.js配置
 
@@ -200,7 +204,7 @@ let myVue = new Vue({
 })
 ```
 
-## 4.Vuex（单一状态树）
+### 4.Vuex（单一状态树）
 
 - 简介
 
@@ -309,7 +313,7 @@ let myVue = new Vue({
 
   
 
-## 5.Axios（封装原生ajax）
+### 5.Axios（封装原生ajax）
 
 - 请求示例代码
 
@@ -416,9 +420,45 @@ let myVue = new Vue({
   </script>
   ```
   
-  
-  
-  
+
+## Vue
+
+### Vue事件总线
+
+#### EventBus的简介
+
+`EventBus` 又称为事件总线。在Vue中可以使用 `EventBus` 来作为沟通桥梁的概念，就像是所有组件共用相同的事件中心，可以向该中心注册发送事件或接收事件，所以组件都可以上下平行地通知其他组件，但也就是太方便所以若使用不慎，就会造成难以维护的“灾难”，因此才需要更完善的Vuex作为状态管理中心，将通知的概念上升到共享状态层次。
+
+#### 初始化
+
+在main.js中注册
+
+```js
+// 通过将一个新的Vue实例赋值给$bus，我们创建了一个全局的事件总线
+Vue.prototype.$eventBus = new Vue()
+```
+
+#### 发送事件
+
+在组件A中发送事件，并传输数据
+
+```js
+this.$eventBus.$emit("msg", '来自A页面的消息')
+```
+
+#### 接收事件
+
+在组件B中设置监听器，并绑定处理的回调函数
+
+```js
+this.$eventBus.$on("msg", (data) => {
+    console.log('接收到数据：', data)
+})
+```
+
+
+
+## Vue 3
 
 
 
