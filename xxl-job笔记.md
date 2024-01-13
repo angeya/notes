@@ -50,9 +50,9 @@
 
 日志输出请使用xxl自带的`XxlJobLogger.log();`方法，使用和 `Slf4j` 一样，这个类是内置的，不需要手动import。
 
-需要注意的是，如果通过`XxlJobLogger.log();`输出日志，日志不会显示在运行的进程的控制台里。
+需要注意的是，如果通过`XxlJobLogger.log();`输出日志，日志不会显示在运行的进程的控制台里。而是会输出到日志文件中，日志文件的默认目录格式为：`/data/applogs/xxl-job/jobhandler/格式化日期/数据库调度日志记录的ID.log`
 
-默认目录格式为：/data/applogs/xxl-job/jobhandler/“格式化日期”/“数据库调度日志记录的主键ID.log”
+使用`System.out.println();`方法输出的方式会显示在运行的进程的控制台里，但是不会打印到日志文件中。
 
 ### GLUE脚本模式
 
