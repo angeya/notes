@@ -825,11 +825,11 @@ server:
 
    出参在`AbstractJackson2HttpMessageConverter`类的`writeInternal`方法查看，该方法中的`Object object`参数即是返回的对象。
 
-### 使用Fastjson作为序列化框架
-
-#### 对比
+### 序列化框架
 
 Jackson 和 Fastjson 都是流行的 Java JSON 库，用于在 Java 对象和 JSON 数据之间进行转换。
+
+#### Jackson 和 Fastjson 对比
 
 1. 性能：Fastjson 在性能方面通常比 Jackson 更快。它在处理大型数据集时表现良好，因为它具有更高的解析和序列化速度。但是，对于小型数据集，两者之间的性能差异可能并不明显。
 2. 功能和灵活性：Jackson 提供了丰富的功能和灵活的配置选项。它支持 JSON-B、JSON-P 和其他标准，并且有广泛的生态系统和社区支持。Jackson 可以更好地与其他库和框架集成，例如 Spring 框架。
@@ -838,7 +838,72 @@ Jackson 和 Fastjson 都是流行的 Java JSON 库，用于在 Java 对象和 JS
 
 在中国使用Fastjson框架可能会更多。
 
+#### Jackson 和 Fastjson 的使用
+
+**Jackson**
+
+Jackson 有三个核包，分别是 Streaming、Databid、Annotations，通过这些包可以方便的对 JSON 进行操作。
+
+> Streaming 在 jackson-core 模块。 定义了一些流处理相关的 API 以及特定的 JSON 实现。
+> Annotations 在 jackson-annotations 模块，包含了 Jackson 中的注解。
+> Databind 在 jackson-databind 模块， 在 Streaming 包的基础上实现了数据绑定，依赖于 Streaming 和 Annotations 包，因此大多数情况下我们只需要添加 jackson-databind 依赖项，就可以使用 Jackson 功能了
+
+maven依赖
+
+```xml
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.13.3</version>
+</dependency>
+```
+
+java示例代码
+
+```java
+// import com.fasterxml.jackson.databind.ObjectMapper;
+// 创建映射对象
+ObjectMapper objectMapper = new ObjectMapper();
+// java对象序列化为json
+String jsonStr = objectMapper.writeValueAsString(demoData);
+System.out.println(jsonStr);
+
+// json字符串解析为java对象
+DemoData demoData = objectMapper.readValue(jsonStr, DemoData.class);
+System.out.println(demoData);
+```
+
+ **Fastjson**
+
+maven依赖
+
+```xml
+<dependency>
+    <groupId>com.alibaba</groupId>
+    <artifactId>fastjson</artifactId>
+    <version>1.2.83</version>
+</dependency>
+```
+
+java示例代码
+
+```java
+// java对象序列化为json
+String jsonStr = JSONObject.toJSONString(DemoData);
+// 输出包含类型的json字符串，注意Double的数值后面会加上D，如 12.0D
+// String jsonStr = JSONObject.toJSONString(apiOperationBean, SerializerFeature.WriteClassName);
+System.out.println(jsonStr);
+
+// json字符串解析为java对象
+DemoData demoData = JSONObject.parseObject(jsonStr, DemoData.class);
+System.out.println(demoData);
+```
+
+
+
 #### SpringBoot中使用Fastjson
+
+在Spring Boot中默认使用Jackson作为JSON序列化和反序列化框架。
 
 1. 引入fastjson依赖
 
@@ -854,7 +919,7 @@ Jackson 和 Fastjson 都是流行的 Java JSON 库，用于在 Java 对象和 JS
 
 2. 自定义FastJsonHttpMessageConverter
 
-在Spring Boot中默认使用Jackson作为JSON序列化和反序列化框架，需要自己定义一个FastJsonHttpMessageConverter来替换掉Jackson，使得Spring Boot使用fastjson进行处理。代码如下：
+自己定义一个FastJsonHttpMessageConverter来替换掉Jackson，使得Spring Boot使用fastjson进行处理。代码如下：
 
 ```java
 @Configuration
@@ -875,6 +940,8 @@ public class FastJsonHttpMessageConverterConfig {
             SerializerFeature.DisableCircularReferenceDetect,
             // 日期使用格式化输出（默认输出时间戳）
             SerializerFeature.WriteDateUseDateFormat);
+        	// 可以通过设置SerializerFeature.WriteClassName特性，全局设置序列化输出类型
+        
         // 设置日期格式
         config.setDateFormat("yyyy-MM-dd HH:mm:ss");
 
