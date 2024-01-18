@@ -146,8 +146,6 @@ MySql中支持的正则表达式只是全部正则表达式的一部分，且转
 
 SQL的汇总函数，（MySQL还支持其他的一些），以下函数都只返回一条记录。
 
-
-
 `select avg(age) as avg_age from student;`获取学生的平均年龄。
 
 `select count(distinct(grade) grade_num from student;`获取年级的数量。
@@ -162,9 +160,15 @@ SQL的汇总函数，（MySQL还支持其他的一些），以下函数都只返
 
 `select grade, count(grade) from student group by grade;`统计每个年级有多少个学生。根据grade分组，相同的grade是一个组，然后通过count函数统计每个不同grade的数量。
 
+`select grade, class, count(*) as count from student group by grade, class having count > 1;` 统计有相同年级和相同班级的同学个数。
+
+`select student.name, student.grade, student.class from student left join (select grade, class, count(*) as count from student group by grade, class having count > 1) as same on student.grade = same.grade and student.class = same.class;` 查询有相同年级和相同班级的同学姓名
+
 `select grade, count(*) as grade_num from student group by grade having grade_num > 1 order by grade_num;`统计学生数超过1的各个年级的学生数，升序排序（一般不用使用默认排序）。
 
 `select grade, count(grade) as grade_num from student where grade > 1 group by grade having grade_num > 1;`统计1年级以上的，人数超过1人的各个年级的学生人数。
+
+
 
 ##### 子查询：%%可以将一个查询的结果作为一个查询的筛选条件。但是子查询嵌套太多时会影响性能。
 
