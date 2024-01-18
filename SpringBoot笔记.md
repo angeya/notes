@@ -801,7 +801,7 @@ server:
 
 1. 使用Fastjson作为序列化框架
 
-   入参可以在`FastJsonHttpMessageConverter`类的`readType`方法中打断点查看。反序列化过程会读取Http的输入流内容，然后转化为字节数组，再使用字节数组通过`JSON.parseObject()`方法进行解析成控制方法对应的类型对象。
+   入参可以在`com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter`类的`readType`方法中打断点查看。反序列化过程会读取Http的输入流内容，然后转化为字节数组，再使用字节数组通过`JSON.parseObject()`方法进行解析成控制方法对应的类型对象。
 
    可以使用如下代码查看请求参数：
 
@@ -811,9 +811,9 @@ server:
 
    出参可以在`FastJsonHttpMessageConverter`类的`writeInternal`方法打断点查看，该方法中的`Object object`参数即是返回的对象。序列化时将object转化为json字符串，然后将字符串写入到字节流`ByteArrayOutputStream`中，最后通过Http输出流输出。
 
-2. 使用默认的序列化框架
+2. 使用默认的（Jackson）序列化框架
 
-   入参可以在`AbstractJackson2HttpMessageConverter`的`readJavaType`方法中打断点拦截。拦截到`inputMesage`对象，只需要获取其内容输入流，然后执行一下代码即可：
+   入参可以在`org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter`的`readJavaType`方法中打断点拦截。拦截到`inputMesage`对象，只需要获取其内容输入流，然后执行一下代码即可：
 
    ````java
    InputStream inputStream = inputMessage.getBody();
@@ -827,6 +827,19 @@ server:
 
 ### 使用Fastjson作为序列化框架
 
+#### 对比
+
+Jackson 和 Fastjson 都是流行的 Java JSON 库，用于在 Java 对象和 JSON 数据之间进行转换。
+
+1. 性能：Fastjson 在性能方面通常比 Jackson 更快。它在处理大型数据集时表现良好，因为它具有更高的解析和序列化速度。但是，对于小型数据集，两者之间的性能差异可能并不明显。
+2. 功能和灵活性：Jackson 提供了丰富的功能和灵活的配置选项。它支持 JSON-B、JSON-P 和其他标准，并且有广泛的生态系统和社区支持。Jackson 可以更好地与其他库和框架集成，例如 Spring 框架。
+3. 文档和学习资源：Jackson 的文档和学习资源相对更多，社区活跃度也更高。这意味着你可以更容易地找到解决问题的答案，并获得更好的支持。
+4. 安全性：Jackson 相对于 Fastjson 来说，有更好的安全记录和漏洞修复历史。Jackson 更加注重安全性，并且在过去的一些版本中修复了一些安全漏洞。
+
+在中国使用Fastjson框架可能会更多。
+
+#### SpringBoot中使用Fastjson
+
 1. 引入fastjson依赖
 
 在项目的pom.xml文件中引入fastjson依赖：
@@ -835,7 +848,7 @@ server:
 <dependency>
     <groupId>com.alibaba</groupId>
     <artifactId>fastjson</artifactId>
-    <version>1.2.72</version>
+    <version>1.2.83</version>
 </dependency>
 ```
 
@@ -884,10 +897,16 @@ public class FastJsonHttpMessageConverterConfig {
 在Spring Boot的配置文件application.yml（或application.properties）中增加配置项，使得Spring Boot使用FastJson进行JSON处理而非默认的Jackson。
 
 ```yaml
+# 方法一 可能已经过时
 spring:
   http:
     converters:
       preferred-json-mapper: fastjson
+# 方法二
+spring:
+  mvc:
+    converters:
+       preferred-json-mapper: fastjson
 ```
 
 4. 测试
@@ -1461,7 +1480,6 @@ public class DemoApplication {
 
 
 当然，你也可以选择定义SpringBoot Starter啦。
-
 
 
 
