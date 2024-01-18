@@ -56,7 +56,7 @@ mysql 的配置文件在Windows操作系统系统下叫`my.ini`，在Linux下是
 
 mysql支持内连接（inner可以省略），左外连接和右外连接（outer可以省略），不支持全连接（Oracle支持）。
 
-1.  AB的交集（内连接）：
+1. AB的交集（内连接）：
 
    ```sql
    select * from a join b on a.b_id = b.id;
@@ -134,6 +134,8 @@ drop index indexName on tableName;
   ```sql
   -- 为user表email字段添加唯一索引
   alter table user add unique index(email);
+  -- 为User表的school和class列添加唯一的联合索引
+  alter table user add constraint uk_school_class unique (school, class);
   ```
 
   
