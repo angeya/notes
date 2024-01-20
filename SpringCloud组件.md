@@ -87,9 +87,75 @@ Java当中常见的Http客户端有很多，除了Feign，类似的还有Apache 
    }
    ```
 
-   
 
-5. xxx
+### 微服务中调用
+
+微服务之间使用OpenFeign，肯定是要通过注册中心来访问服务的。提供者将自己的ip+端口号注册到注册中心，然后对外提供一个服务名称，消费者根据服务名称去注册中心当中寻找ip和端口。
+
+使用方法和常规远程调用类似，只是`@FeignClient`注解中 value/name 属性配置的是微服务的名称，而不是Bean的名称了。如下
+
+```java
+@FeignClient(name = "demo-service")
+public interface IRemoteService {
+    
+    // 这里相当于请求demo-service服务的/demo接口。OpenFeign他本身就集成了ribbon，所以在客户端做请求的负载均衡。
+    @GetMapping("/demo")
+    String demo();
+}
+```
+
+消费者要想通过服务名称来调用提供者，那么就一定需要配置注册中心当中的服务发现功能。假如提供者使用的是Eureka，那么消费者就需要配置Eureka的服务发现，假如是consul就需要配置consul的服务发现。假如是nacos就需要配置nacos的服务发现。
+
+### @SpringQueryMap注解
+
+spring cloud项目使用feign的时候都会发现一个问题，就是get方式无法解析对象参数。其实feign是支持对象传递的，但是得是Map形式，而且不能为空，与spring在机制上不兼容，因此无法使用。spring cloud在2.1.x版本中提供了@SpringQueryMap注解，可以传递对象参数，框架自动解析。
+
+加入有这样一个接口：`http://example.com/api/search?term=java&page=1&sort=asc`
+
+这个接口有三个查询参数：`term`、`page`和`sort`，它们的值分别为`java`、`1`和`asc`。如果我们使用OpenFeign来调用这个API，可以将查询参数定义为方法参数，并通过`@RequestParam`注解来指定参数的名称和默认值。例如：
+
+```java
+@GetMapping("/api/search")
+SearchResult search(@RequestParam("term") String term,
+                    @RequestParam(value = "page", defaultValue = "1") int page,
+                    @RequestParam(value = "sort", defaultValue = "asc") String sort);
+```
+
+但是，如果查询参数较多且比较复杂，手动地定义每个参数可能会很麻烦。这时，可以使用`@SpringQueryMap`注解来简化这个过程。`@SpringQueryMap`注解可以将一个Java对象的属性映射到查询参数中，例如：
+
+```java
+@GetMapping("/api/search")
+SearchResult search(@SpringQueryMap SearchQuery query);
+
+public class SearchQuery {
+    private String term;
+    private int page;
+    private String sort;
+    // constructors, getters and setters
+}
+```
+
+
+
+### OpenFeign 超时控制
+
+当消费方调用提供方接口时候，OpenFeign默认等待1秒钟，超过后报错。
+
+可以在消费者添加如下配置来设置超时时间：
+
+```yaml
+#设置feign客户端超时时间(OpenFeign默认支持ribbon)
+ribbon:
+  #指的是建立连接所用的时间，适用于网络状况正常的情况下,两端连接所用的时间
+  ReadTimeout: 5000
+  #指的是建立连接后从服务器读取到可用资源所用的时间
+  ConnectTimeout: 5000
+```
+
+在openFeign高版本当中，我们可以在默认客户端和命名客户端上配置超时。OpenFeign 使用两个超时参数：
+
+- connectTimeout：防止由于服务器处理时间长而阻塞调用者。
+- readTimeout：从连接建立时开始应用，在返回响应时间过长时触发。
 
 
 
