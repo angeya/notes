@@ -2,25 +2,67 @@
 
 ### 介绍
 
-### 原理
+mybatis是一款优秀的支持自定义SQL查询、存储过程和高级映射的持久层框架。与其他ORM（如Hibernate）框架不同，Mybatis没有将Java对象与数据库表关联起来，而是将java方法与SQL语句关联。
+
+与JDBC相比，mybatis简化了相关代码，只需要定义SQL语句即可，免去了开启关闭连接等操作。
+
+mybatis提供了一个映射引擎，可以声明式地SQL执行结果与对象树映射起来(resultMap等标签)。
+
+mybatis通过内建一种类XML表达式语言，可以实现SQL语句的动态生成。
+
+mybatis支持声明式数据缓存。将一条SQL语句标记为“可缓存”后，首次执行它时从数据库获取的
+
+所有数据将被存储在告诉缓存中，后面再执行这条语句时就会从高速缓存中读取结果，而不是再次命中数据库。
+
+### XML方式的用法
+
+StudentMapper.xml文件示例：
+
+```xml
+<!-- mapper文件头 -->
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="demo.dao.StudentMapper">
+    <select id="getAll" resultType="Student">
+    select * from `student`;
+    </select>
+</mapper>
+```
+
+mapper标签namespace属性指定对应的接口类
+
+select标签id属性指定对应的接口方法，标签内部写入SQL语句即可（也可以按需加入mybatis支持的其他标签）
+
+通过select、insert、update、delete标签实现数据库的增删改查操作。
+
+**注解方式的用法**
+
+在接口方法上面使用@Select，@Insert，@Update，@Delete注解完成接口方法和SQL语句的映射，注解的value属性的值为SQL语句的内容，SQL语句与XML方式类似。
+
+但是这种方式没有XML灵活，而且容易可读性不高，一般项目不推荐使用。但在只须简单操作数据库是可以使用。
+
+### 基本原理
+
+为什么Mapper接口没有实现类却能被正常调用呢？这是因为 MyBatis 使用了动态代理技术来为 Mapper 接口生成代理对象。
+
+MyBatis 的基本原理是通过解析配置文件，创建 SqlSessionFactory 和 SqlSession，然后使用动态代理为每个 Mapper 接口创建代理对象。通过代理对象调用 Mapper 接口的方法时，实际上是触发了 MyBatis 内部的 SQL 执行逻辑，最终将 SQL 执行结果返回给调用方。这种设计使得我们可以使用简单的接口和注解来定义和配置 SQL 映射关系，大大简化了数据库操作的编码工作。
 
 ### 动态sql
 
-#### 一、if：你们能判断，我也能判断！
+#### 一、if：基础的判断
 
-```sql
+```xml
 <select id="count" resultType="java.lang.Integer">
 	select count(*) from user where <if test="id != null">id = #{id}</if> and username = 'xiaoming'
 </select>
-原文链接：https://blog.csdn.net/qq_39249094/article/details/107199696
 ```
 
 如果传入的 id 不为 null， 那么才会 SQL 才会拼接 id = #{id}
-如果传入的 id 为 null，那么最终的 SQL 语句就变成了 select count(*) from user where and username = ‘xiaoming’。这语句就会有问题，这时候 where 标签就该隆重登场了
+如果传入的 id 为 null，那么最终的 SQL 语句就变成了 `select count(*) from user where and username = ‘xiaoming’`。这语句就会有问题，这时候 where 标签就该隆重登场了
 
 #### 二、where：有了我，SQL 语句拼接条件神马的都是浮云！
 
-```sql
+```xml
 <select id="count" resultType="java.lang.Integer">
 	select count(*) from user
 	<where>
@@ -45,7 +87,7 @@ trim 标签中的属性
 | prefixOverrides | 去除前缀 |
 | suffixOverrides | 去除后缀 |
 
-```sql
+```xml
 <select id="count" result="java.lang.Integer">
 	select count(*) from user
 	<trim prefix ="where" prefixOverrides="and | or">
@@ -55,14 +97,12 @@ trim 标签中的属性
 </select>
 ```
 
-
-
 如果 id 或者 username 有一个不为空，则在语句前加入 where。如果 where 后面紧随 and 或 or 就会自动会去除
 如果 id 或者 username 都为空，则不拼接任何东西
 
 #### 四、set： 信我，不出错！
 
-```sql
+```xml
 <update id="UPDATE" parameterType="User">
 	update user
     <set>
@@ -89,7 +129,7 @@ foreach 标签中的属性
 collection：
 如果参数类型为 List，则该值为 list
 
-```sql
+```xml
 <select id="count" resultType="java.lang.Integer">
 	select count(*) from user where id in
   	<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
@@ -100,7 +140,7 @@ collection：
 
 如果参数类型为数组，则该值为 array
 
-```sql
+```xml
 <select id="count" resultType="java.lang.Integer">
 	select * from user where id inarray
   	<foreach collection="array" item="item" index="index" open="(" separator="," close=")">
@@ -113,7 +153,7 @@ collection：
 
 #### 六、choose: 我选择了你，你选择了我！
 
-```sql
+```xml
 <select id="count" resultType="Blog">
 	select count(*) from user
   	<choose>
@@ -136,23 +176,21 @@ collection：
 
 #### 七、sql：相当于 Java 中的代码提重，需要配合 include 使用
 
-```sql
+```xml
 <sql id="table"> user </sql>
 ```
 
 #### 八、include：相当于 Java 中的方法调用
 
-```sql
+```xml
 <select id="count" resultType="java.lang.Integer">
 	select count(*) from <include refid=“table（sql 标签中的 id 值）” />
 </select>
 ```
 
-
-
 #### 九、bind：对数据进行再加工
 
-```sql
+```xml
 <select id="count" resultType="java.lang.Integer">
 	select count(*) from user
 	<where>
@@ -162,8 +200,6 @@ collection：
 		</if>
 </select>
 ```
-
-
 
 
 
