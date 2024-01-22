@@ -2,7 +2,20 @@ Java Web有三大组件，分别是Servlet、Filter和Listener，以下对这三
 
 ## Servlet
 
+### 请求转发
+
+请求转发是指将一个请求从一个Servlet发送到另一个Servlet，这个过程是在服务器内部完成的。需要使用ServletContext对象的`getRequestDispatcher()`方法获取请求分发器，然后调用`forward()`方法将请求转发给另一个Servlet或JSP页面。
+
+```java
+RequestDispatcher dispatcher = request.getRequestDispatcher("targetServlet");
+dispatcher.forward(request, response);
+```
+
+使用请求转发时，浏览器地址栏的URL不会发生变化，因为请求只是在服务器内部进行转发。另外，请求转发只有一次网络请求，因此相对来说比请求重定向更加高效。
+
 ### 重定向
+
+请求重定向是指将一个请求从一个Servlet发送到另一个Servlet，并将响应返回给浏览器，浏览器再重新发起请求。需要使用HttpServletResponse对象的`sendRedirect()`方法将请求重定向到另一个Servlet或JSP页面。
 
 重定向，请求端会请求两次。
 
@@ -10,12 +23,12 @@ Java Web有三大组件，分别是Servlet、Filter和Listener，以下对这三
 @RestController
 @RequestMapping("web")
 public class IndexController {
-    @GetMapping("index")
+    @GetMapping("/index")
     public String index() {
         LocalDateTime localDateTime = LocalDateTime.now();
         return "Hello, now is " + localDateTime;
     }
-    @GetMapping("/test/redirect")
+    @GetMapping("/redirect")
     public void redirect(HttpServletRequest request, HttpServletResponse response) throws Exception {
         System.out.println("---");
         response.sendRedirect("index");
@@ -23,9 +36,13 @@ public class IndexController {
 }
 ```
 
-默认地址只能修改一级。如果前端访问："web/test/redirect"，则redirect方法会被执行，然后前端地址改为“web/text/index”，再请求一次。
+默认地址只能修改一级。如果前端访问：web/redirect，则redirect方法会被执行，然后浏览器地址栏会被改为：web/index，然后自动再请求一次。
 
 如果需要重新指定地址，应该使用`response.sendRedirect(request.getContextPath() + "web/index");`则会访问到“web/index”接口。
+
+然后对于SpringBoot的restful接口中，重定向之后，会直接返回重定向接口的结果，比如上面的例子，请求 web/redirect 接口，会返回  web/index 接口的结果。
+
+前后端分离的Spring Boot项目中，`response.sendRedirect()`方法的应用场景相对较少，因为该方法是用于实现请求重定向的，而前后端分离的项目通常使用RESTful API进行数据传输，不涉及页面的跳转和重定向。
 
 ## Filter
 
@@ -41,13 +58,11 @@ destroy 方法执行过滤器的销毁操作。
 
 ```java
 public interface Filter {
-    default void init(FilterConfig filterConfig) throws ServletException {
-    }
+    default void init(FilterConfig filterConfig) throws ServletException {}
 
     void doFilter(ServletRequest var1, ServletResponse var2, FilterChain var3) throws IOException, ServletException;
 
-    default void destroy() {
-    }
+    default void destroy() {}
 }
 ```
 
