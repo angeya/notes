@@ -1,8 +1,6 @@
 # SpringBoot
 
-## IOC
-
-#### 一些接口
+## 常用注解
 
 #### @PostConstruct
 
@@ -23,6 +21,8 @@
 6. 使用@PostConstruct注解标记的方法的权限，public、private、protected都可以；
 
 7. 使用@PostConstruct注解标记的方法不能被static修饰，但是final是可以的；
+
+## IOC
 
 ## AOP
 
@@ -262,12 +262,13 @@ Signature signature = joinPoint.getSignature();
    ((AClass)AopContext.currentProxy()).B();
    ```
 
+## 扩展接口
 
 ## Spring MVC
 
 ### controller最佳实践
 
-**一、统一状态码**
+#### 统一状态码
 
 1. 返回格式
 
@@ -383,7 +384,7 @@ Signature signature = joinPoint.getSignature();
 
    最后返回就会是上面带了状态码的数据了
 
-**统一校验**
+#### 统一校验
 
 1. 原始做法
 
@@ -479,7 +480,7 @@ Signature signature = joinPoint.getSignature();
    }
    ```
 
-**三、统一响应**
+#### 统一响应
 
 1. 统一包装响应
 
@@ -730,7 +731,7 @@ Signature signature = joinPoint.getSignature();
 
 
 
-## 扩展
+## 延伸
 
 ### SpringBoot静态路径
 
