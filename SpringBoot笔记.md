@@ -264,6 +264,104 @@ Signature signature = joinPoint.getSignature();
 
 ## 扩展接口
 
+### Spring事件机制
+
+#### 介绍
+
+Spring的事件机制是Spring框架中的一个重要特性，基于观察者模式实现，它可以实现应用程序中的解耦，提高代码的可维护性和可扩展性。Spring的事件机制包括事件、事件发布、事件监听器等几个基本概念。
+
+事件有其便利的一面，但是用多了也容易导致混乱，所以在实际项目中，我们还是要谨慎选择是否使用 Spring 事件。
+
+事件发布流程中，有三个核心概念：
+
+- 事件源（ApplicationEvent）：这个就是你要发布的事件对象。
+- 事件发布器（ApplicationEventPublisher）：这是事件的发布工具。
+- 事件监听器（ApplicationListener）：这个相当于是事件的消费者。
+
+以上三个要素，事件源和事件监听器都可以有多个，事件发布器（通常是由容器来扮演）一般来说只有一个。
+
+#### 使用
+
+1. 定义事件
+
+   ```java
+   public class MyEvent extends ApplicationEvent {
+       private String name;
+       public MyEvent(Object source, String name) {
+           super(source);
+           this.name = name;
+       }
+   
+       @Override
+       public String toString() {
+           return "MyEvent{" +
+                   "name='" + name + '\'' +
+                   "} " + super.toString();
+       }
+   }
+   ```
+
+   在具体实践中，事件源并非一定要继承自 ApplicationEvent，事件源也可以是一个普通的 Java 类，如果是普通的 Java 类，系统会自动将之封装为一个 PayloadApplicationEvent 对象去发送。
+
+2. 发布事件
+
+   接下来通过事件发布器将事件发布出去。Spring 中事件发布器有专门的接口 ApplicationEventPublisher：
+
+   ```java
+   @FunctionalInterface
+   public interface ApplicationEventPublisher {
+       // 继承自ApplicationEvent的事件
+       default void publishEvent(ApplicationEvent event) {
+       	publishEvent((Object) event);
+       }
+       // 所有事件
+       void publishEvent(Object event);
+   }
+   ```
+
+   AbstractApplicationContext 实现了该接口并重写了接口中的方法，所以我们平时使用的 AnnotationConfigApplicationContext 或者 ClassPathXmlApplicationContext，里边都是可以直接调用事件发布方法的。
+
+   ```java
+   @Autowired
+   ApplicationContext context;
+   
+   public void sendEvent() {
+       this.context.publishEvent(new MyEvent(this, "hello"));
+   }
+   ```
+
+3. 事件监听
+
+   事件发布之后，我们还需要事件监听器去监听并处理事件。事件监听器有两种定义方式。
+
+   第一种是自定义类实现 ApplicationListener 接口：
+
+   ```java
+   @Component
+   public class MyEventListener implements ApplicationListener<MyEvent> {
+       @Override
+       public void onApplicationEvent(MyEvent event) {
+           System.out.println("event = " + event);
+       }
+   }
+   ```
+
+   第二种方式则是通过注解去标记事件消费方法：
+
+   ```java
+   @Component
+   public class MyService {
+       @EventListener(value = MyEvent.class)
+       public void hello(MyEvent event) {
+           System.out.println("event = " + event);
+       }
+   }
+   ```
+
+#### 异步事件处理
+
+默认事件的发布与处理是同步的，如果想要一步处理事件，只需要在监听器处理方法上面添加`@Async`注解即可。同时别忘记了在启动类上增加`@EnableAsync`注解。
+
 ## Spring MVC
 
 ### controller最佳实践
