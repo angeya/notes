@@ -1,6 +1,6 @@
 # Nginx常用配置
 
-## 简介
+### 简介
 
 - 常用命令
 
@@ -18,7 +18,7 @@ nginx -V 显示      nginx 的版本，编译器版本和配置参数
 
 
 
-## 基本配置项
+### 基本配置项
 
 ```nginx
 #user administrator administrators;  #配置用户或者组，默认为nobody nobody。
@@ -63,7 +63,7 @@ http {
 }
 ```
 
-## 静态资源
+### 静态资源
 
 ```nginx
 server {
@@ -87,7 +87,7 @@ server {
 }
 ```
 
-## 正向代理
+### 正向代理
 
 ```nginx
 http{
@@ -105,7 +105,7 @@ http{
 
 
 
-## 反向代理
+### 反向代理
 
 ```nginx
 http{
@@ -130,7 +130,7 @@ http{
 }
 ```
 
-## 负载均衡
+### 负载均衡
 
 ```nginx
 http {
@@ -159,4 +159,13 @@ http {
     }
 }
 ```
+### 支持WebSocket
 
+```nginx
+location /index/ {
+	proxy_http_version 1.1;
+	proxy_set_header Upgrade $http_upgrade;
+	proxy_set_header Connection 'upgrade';
+	proxy_pass http://127.0.0.1:80/home.html;
+}
+```
