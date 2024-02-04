@@ -1780,7 +1780,7 @@ JAR文件只是带有一个特殊项的ZIP文件，这个项称作清单。可�
 
 ### 对象输出输出流与序列化
 
-我们可以使用ObjectInputputStream和ObjectOutputStream来加载和保存序列化对象（从文件或网络中）。
+我们可以使用 ObjectInputputStream 和 ObjectOutputStream 来加载和保存序列化对象（从文件或网络中）。
 
 如果被序列化的两个对象共同包含了同一个对象，那么反序列化的时候，被共同拥有的对象还是同一个吗？
 
@@ -1791,6 +1791,65 @@ JAR文件只是带有一个特殊项的ZIP文件，这个项称作清单。可�
 如果旧文件对象比程序中的对象具有更多或者更少的数据域，或者数据域的类型有所不同，那么对象输入流将尽力把流对象转换为当前类的版本。
 
 将对象序列化再反序列化，即可简单的实现对象深拷贝。不过这种方式效率较低，没有显式地构建新对象并复制数据域的克隆方式快。
+
+下面是序列化和反序列化的代码示例：
+
+```java
+public class Demo {
+    public static void main(String[] args) throws Exception {
+        User user = new User();
+        user.setName("sunny");
+        user.setPassword("123456");
+
+        // 指定输出文件
+        FileOutputStream fileOut = new FileOutputStream("filename.ser");
+        // 创建 ObjectOutputStream
+        ObjectOutputStream out = new ObjectOutputStream(fileOut);
+        // 序列化输出
+        out.writeObject(user);
+        out.close();
+
+        // 指定输入文件
+        FileInputStream fileIn = new FileInputStream("filename.ser");
+        // 创建 ObjectInputStream
+        ObjectInputStream in = new ObjectInputStream(fileIn);
+        // 反序列化读入
+        User user1 = (User)in.readObject();
+        in.close();
+        System.out.println(user1);
+    }
+
+    // 没有实现Serializable接口，不允许序列化和反序列化
+    @Data
+    static class User implements Serializable {
+
+        private String name;
+
+        private String password;
+    }
+}
+```
+
+有时候因为一些类有敏感数据，不允许其对象进行序列化，就可以在该对象中定义 `final` 的 `writeObject()` 方法，并在该方法中抛出异常。
+
+修改后的User类如下，如果进行序列化将会抛出异常。因为`writeObject()` 是 Java 序列化 API 中的一个方法，用于将一个对象转换成字节流（也就是序列化）
+
+```java
+// 没有实现Serializable接口，不允许序列化和反序列化
+@Data
+static class User implements Serializable {
+
+    private String name;
+
+    private String password;
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        throw new NotSerializableException("Password should not be serialized");
+    }
+}
+```
+
+
 
 ### 操作文件
 
