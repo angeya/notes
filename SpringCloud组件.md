@@ -1,3 +1,238 @@
+## 注册配置中心Nacos
+
+### 简介
+
+[Nacos](https://nacos.io/zh-cn/) /nɑ:kəʊs/ 是 Dynamic Naming and Configuration Service 的首字母简称，一个更易于构建云原生应用的动态服务发现、配置管理和服务管理平台。
+
+Nacos 致力于帮助您发现、配置和管理微服务。Nacos 提供了一组简单易用的特性集，帮助您快速实现动态服务发现、服务配置、服务元数据及流量管理。
+
+Nacos 帮助您更敏捷和容易地构建、交付和管理微服务平台。Nacos 是构建以“服务”为中心的现代应用架构 (例如微服务范式、云原生范式) 的服务基础设施。
+
+Nacos的注册中心、服务提供者和服务消费者的工作机制如下图：
+
+<img src="SpringCloud组件.assets/image-20240207150203320.png" alt="image-20240207150203320" style="zoom:67%;" />
+
+### 启动Nacos Server
+
+1. 首先下载 [Nacos Server](https://github.com/alibaba/nacos/releases) 到本地并解压。
+
+2. 进入bin目录执行对应系统的脚本，默认是集群模式，如果是单机模式需要增加配置项，如 windows `startup.cmd -m standalone`。
+
+3. 启动完成后，浏览器打开`http://127.0.0.1:8848/nacos`即可进入nacos服务的控制台页面。默认是不需要鉴权的，需要配置鉴权信息。
+
+### Nacos 服务注册与发现
+
+#### 使用
+
+1. 引入依赖 SpringBoot 和 spring-cloud-starter-alibaba-nacos-discovery 依赖
+
+   ```xml
+   <parent>
+   	<groupId>org.springframework.boot</groupId>
+   	<artifactId>spring-boot-starter-parent</artifactId>
+   	<version>2.3.12.RELEASE</version>
+   </parent>
+   
+   <dependencies>
+   	<dependency>
+   		<groupId>org.springframework.boot</groupId>
+   		<artifactId>spring-boot-starter-web</artifactId>
+   	</dependency>
+       <!-- nacos服务注册发现依赖 -->
+   	<dependency>
+   		<groupId>com.alibaba.cloud</groupId>
+   		<artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+   		<version>2.2.5.RELEASE</version>
+   	</dependency>
+   </dependencies>
+   ```
+
+   当然，也可以在一个父pom中的`<dependencyManagement>`中引入SpringCloudAlibaba的依赖，这样子pom就不需要指定具体的版本号了。
+
+   ```xml
+   <dependencyManagement>
+       <dependency>
+           <groupId>com.alibaba.cloud</groupId>
+           <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+           <version>2.2.5.RELEASE</version>
+           <type>pom</type>
+           <scope>import</scope>
+       </dependency>
+   </dependencyManagement>
+   ```
+
+2. 在配置文件中配置Nacos Server 地址
+
+   ```yaml
+   spring:
+     application:
+       # 要配置应用名称作为微服务名，否则会启动报错
+       name: user-service
+     cloud:
+       nacos:
+         discovery:
+           # 如果需要鉴权请配置鉴权信息
+           server-addr: 127.0.0.1:8848
+   ```
+
+   
+
+3. 启动类添加 @EnableDiscoveryClient 开启服务注册与发现功能
+
+   ```java
+   @EnableDiscoveryClient
+   @SpringBootApplication
+   public class UserServiceApp {
+       public static void main(String[] args) {
+           SpringApplication.run(UserServiceApp.class, args);
+       }
+   }
+   ```
+
+   正常启动项目之后就能在Nacos Server中看到了对应的服务了。
+
+#### 服务集群
+
+**集群**
+
+我们一般将同一机房内的服务实例，划分为一个集群。也就是说，user-service是服务，一个服务可以包含多个集群，如杭州、上海，每个集群下可以有多个实例，形成分级模型，如图：
+
+<img src="SpringCloud组件.assets/image-20240207144939642.png" alt="image-20240207144939642" style="zoom: 50%;" />
+
+理论上，微服务互相访问时，应该尽可能访问同集群实例，因为本地访问速度更快。当本集群内不可用时，才访问其它集群。例如：
+
+<img src="SpringCloud组件.assets/image-20240207145031712.png" alt="image-20240207145031712" style="zoom:50%;" />
+
+杭州机房内的order-service应该优先访问同机房的user-service。
+
+**给user-service配置集群**
+
+修改user-service的application.yml文件，添加集群配置：
+
+```yaml
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        cluster-name: HZ # 集群名称
+```
+
+启动后我们可以在 Nacos Server 中看到服务的集群信息了。默认的集群是 DEFAULT。
+
+默认的`ZoneAvoidanceRule`并不能实现根据同集群优先来实现负载均衡。因此Nacos中提供了一个`NacosRule`的实现，可以优先从同集群中挑选实例。
+
+#### 命名空间
+
+Nacos提供了命名空间 namespace来实现环境隔离功能。不同namespace之间相互隔离，例如不同namespace的服务互相不可见。比如我们开发环境就可以使用dev命名空间，测试环境使用test命名空间，这样就可以使用同一个Nacos了。默认的命名空间是 public。
+
+命名空间的配置如下：
+
+```yaml
+spring:
+  cloud:
+    nacos:
+      server-addr: localhost:8848
+      discovery:
+        cluster-name: HZ
+        namespace: 492a7d5d-237b-46a1-a99a-fa8e98e4b0f9 # 命名空间，填Nacose Server上的ID
+```
+
+### Nacos 配置中心
+
+#### 介绍
+
+当微服务部署的实例越来越多，达到数十、数百时，逐个修改微服务配置就会让人抓狂，而且很容易出错。我们需要一种统一配置管理方案，可以集中管理所有实例的配置。
+
+Nacos除了可以做注册中心，同样可以做配置管理来使用。
+
+因为服务注册到Nacos时需要拉取配置，并与 `application.yml`中的配置进行合并，然后才启动项目。所以Nacos Server的信息肯定不能放在`application.yml`中，而是应该放在`bootstrap.yml`中，因为项目刚开始启动的时候会先加载`bootstrap.yml`中的配置，然后才到`application.yml`。
+
+#### Nacos Server中添加配置
+
+在配置列表中，新增一条配置，填写 Data ID、Group、配置格式、配置内容。
+
+其中 Data ID 为微服务名称\[-profile\]\[\.后缀名\]。如`user-service`、`user-service-dev`、`user-service-dev.yaml`。Nacos Server中的配置文件与SpringBoot中类似，环境为dev的user-service服务会读取`user-service`、`user-service-dev`的配置，但是会优先使用`1user-service-dev`。
+
+Group默认即可。
+
+一个简单的配置内容如下：
+
+```yaml
+server:
+  port: 8888 # 端口号
+```
+
+
+
+#### 微服务项目配置
+
+1. 首先应该先引入 nacos-config 的客户端maven依赖
+
+   ```xml
+   <!--nacos配置管理依赖-->
+   <dependency>
+       <groupId>com.alibaba.cloud</groupId>
+       <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+   </dependency>
+   ```
+
+2. 创建`bootstrap.yaml`配置文件，并填写 Nacos Server 连接的信息和获取配置文件的信息。
+
+   ```yaml
+   spring:
+     application:
+       name: user-service # 服务名称
+     profiles:
+       active: dev #开发环境，这里是dev 
+     cloud:
+       nacos:
+         server-addr: localhost:8848 # Nacos地址
+         config:
+           file-extension: yaml # 要拉取的配置文件的后缀
+   ```
+
+   这里会根据spring.cloud.nacos.server-addr获取nacos地址，再根据
+
+   `${spring.application.name}-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}`作为Data ID，来读取Nacos Server中的配置。
+
+   本例中，就是去读取`user-service-dev.yaml`
+
+3. 启动项目之后，发现端口号和 Nacos Server中的配置一样，说明配置生效了。
+
+#### 配置热更新
+
+我们最终的目的，是修改nacos中的配置后，微服务中无需重启即可让配置生效，也就是**配置热更新**。
+
+要实现配置热更新，可以使用两种方式，这里以加载`app.name`配置为例：
+
+1. 在@Value注入的变量所在类上添加注解@RefreshScope：
+
+   ```java
+   @RefreshScope
+   @RestController
+   public class IndexController {
+       @Value("${app.name}")
+       private String appName;
+   }
+   ```
+
+2. 使用@ConfigurationProperties注解代替@Value注解。
+
+   ```java
+   @Data
+   @ConfigurationProperties(prefix = "app")
+   public class AppNameProperties {
+       private String name;
+   }
+   ```
+
+#### 配置的使用顺序
+
+优先使用Nacos服务上的配置，带profile的优先。
+
+后使用本地的配置，bootstrap优先。
+
 ## OpenFeign
 
 ### 概述
