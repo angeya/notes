@@ -138,6 +138,43 @@ spring:
         namespace: 492a7d5d-237b-46a1-a99a-fa8e98e4b0f9 # 命名空间，填Nacose Server上的ID
 ```
 
+#### 案例-获取实例列表
+
+```java
+// 创建 Properties 对象，配置认证信息
+Properties properties = new Properties();
+properties.setProperty("serverAddr", "127.0.0.1");
+properties.setProperty("username", "nacos");
+properties.setProperty("password", "nacos");
+
+// 创建 NamingService 实例，连接到 Nacos 服务器
+NamingService namingService = NamingFactory.createNamingService(properties);
+
+// 获取指定服务的实例列表
+List<Instance> instances = namingService.getAllInstances("syncplant-system-pf");
+
+// 处理服务实例列表
+for (Instance instance : instances) {
+	String ip = instance.getIp();
+	int port = instance.getPort();
+	String name = instance.getServiceName();
+	// 可以根据实际需要进行进一步处理
+	System.out.println("Instance: " + name + ":" + ip + ":" + port);
+}
+```
+
+当然了，因为在微服务中，我们已经连接过Nacos Server了，重新获取地址和用户名密码会比较麻烦，不好维护。这时候可以通过注入NacosConfigProperties获取连接信息。代码优化如下：
+
+```java
+@Resource
+NacosConfigProperties nacosConfigProperties;
+
+// ...
+
+// 通过nacos配置属性转为普通配置
+NamingService namingService = NamingFactory.createNamingService(nacosConfigProperties.assembleConfigServiceProperties());
+```
+
 ### Nacos 配置中心
 
 #### 介绍
@@ -231,7 +268,37 @@ server:
 
 优先使用Nacos服务上的配置，带profile的优先。
 
-后使用本地的配置，bootstrap优先。
+后使用本地的配置，bootstrap优先，application配置中带profile的优先。
+
+#### 案例-根据DataID获取Nacos Server中的配置
+
+```java
+// 创建 Properties 对象，配置认证信息
+Properties properties = new Properties();
+properties.setProperty("serverAddr", "127.0.0.1");
+properties.setProperty("username", "nacos");
+properties.setProperty("password", "nacos");
+
+
+ConfigService configService = NacosFactory.createConfigService(properties);
+String content = configService.getConfig("user-service.yaml", "DEFAULT_GROUP", 5000);
+System.out.println(content);
+```
+
+当然了，因为在微服务中，我们已经连接过Nacos Server了，重新获取地址和用户名密码会比较麻烦，不好维护。这时候可以通过注入NacosConfigProperties获取连接信息。代码优化如下：
+
+```java
+@Resource
+NacosConfigProperties nacosConfigProperties;
+
+// ...
+
+// 通过nacos配置属性转为普通配置
+ConfigService configService = NacosFactory.createConfigService(nacosConfigProperties.assembleConfigServiceProperties());
+String content = configService.getConfig("user-service.yaml", "DEFAULT_GROUP", 5000);
+```
+
+### 
 
 ## OpenFeign
 
