@@ -357,3 +357,44 @@ SET TRANSACTION ISOLATION LEVEL level;
    ```
 
    该SQL语句的作用是删除二进制日志中指定位置之前的所有日志文件。被删除的二进制日志将无法再用于数据库的复制或恢复操作。因此，在执行该语句之前，应该确保不再需要这些日志文件，并且已经进行了适当的备份。
+
+## 案例
+
+### 递归查询父子结构数据
+
+在 MySQL 8.0 版本及以上，可以使用 `WITH RECURSIVE` 关键字来实现递归查询。这个功能允许你在查询中定义一个递归公共表表达式（CTE），从而实现对层次数据结构（如树形结构）的递归查询。
+
+下面是一个简单的示例，演示如何在 MySQL 中使用 `WITH RECURSIVE` 来查询树形结构的数据：
+
+假设有一个名为 `employees` 的表，结构如下：
+
+```sql
+CREATE TABLE employee (
+    id varcar(32),
+    name varcar(32),
+    pid varcar(32) # 父级节点id
+);
+```
+
+现在我们要查询员工及其直接下属的信息，可以使用 `WITH RECURSIVE` 关键字如下：
+
+```sql
+WITH RECURSIVE employee_hierarchy AS (
+    # 这里是起始条件
+    SELECT id, name, pid
+    FROM employee parent
+    WHERE name = 'CEO'
+    
+    UNION ALL
+    
+    # 下面这里的是通用的递归条件
+    SELECT e.id, e.name, e.pid
+    FROM employees e
+    JOIN employee_hierarchy eh ON e.pid = eh.id
+)
+SELECT * FROM employee_hierarchy;
+```
+
+在上面的示例中，首先选择 CEO 这个员工作为起始节点，然后通过递归查询找出其直接下属，然后不断向下递归查询，直到所有子孙节点都被找出。
+
+需要注意的是，使用 `WITH RECURSIVE` 进行递归查询时，必须遵循一些规则，比如递归查询语句中必须包含一个初始查询（非递归查询部分）和一个递归部分，并且递归部分必须引用递归公共表表达式本身。另外，递归查询语句中应该存在终止条件，以避免无限递归。
