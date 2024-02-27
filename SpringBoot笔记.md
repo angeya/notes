@@ -6,6 +6,10 @@
 
 @postContruct全限定类名是javax.annotation.PostConstruct，可以看出来其本身不是Spring定义的注解，但是Spring提供了具体的实现。
 
+**作用**：@PostConstruct修饰的方法只会被调用一次，因为它只会在Bean初始化时执行一次。通常情况下，@PostConstruct方法被用于执行一些初始化操作，例如资源初始化、数据加载、连接建立等。
+
+**执行时机**：@PostConstruct修饰的方法会在依赖注入完成后立即被调用。
+
 从@PostConstruct注解的注释上看，可以了解到以下内容：
 
 1. 在依赖加载后，对象使用前执行，并且只执行一次；
