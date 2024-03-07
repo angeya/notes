@@ -1132,6 +1132,39 @@ public class UserController {
    InputStream inputStream = classPathResource.getInputStream();
    ```
 
+### SpringBoot启动完成监听器
+
+如果需要在SpringApplication启动后运行某些特定代码，可以实现`ApplicationRunner`或`CommandLineRunner`接口。两个接口以相同的方式工作。
+
+**实现ApplicationRunner接口**
+
+```java
+@Component
+public class AppLaunchListener implements ApplicationRunner {
+
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        // do some thing
+    }
+}
+```
+
+**实现CommandLineRunner接口**
+
+```java
+@Component
+public class AppLaunchListener implements CommandLineRunner {
+
+    @Override
+    public void run(String... args) throws Exception {
+        // do some thing
+    }
+}
+```
+
+
+
+
 
 ### SpringBoot自定义Starter
 
