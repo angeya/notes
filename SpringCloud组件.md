@@ -437,6 +437,59 @@ public class SearchQuery {
 }
 ```
 
+### OpenFeign 添加Header
+
+主要有下面几种方式
+
+1. 在@RequestMapping中添加，如下：
+
+   ```java
+   
+   @FeignClient(name="custorm", fallback=Hysitx.class)
+   public interface IRemoteCallService {
+       @RequestMapping(value="/custorm/getTest",method = RequestMethod.POST,
+                       headers = {"Content-Type=application/json;charset=UTF-8"})
+       List<String> test(@RequestParam("name") String name);
+   }
+   ```
+
+2. 在方法参数前面添加@RequestHeader注解，如下：
+
+   ```java
+   @FeignClient(name="custorm",fallback=Hysitx.class)
+   public interface IRemoteCallService {
+       @RequestMapping(value="/custorm/getTest",method = RequestMethod.POST)
+       List<String> test(@RequestParam("name") String name, @RequestHeader("Authorization") String name);
+   }
+   ```
+
+   设置多个属性时，可以使用Map，如下：
+
+   ```java
+   @FeignClient(name="custorm",fallback=Hysitx.class)
+   public interface IRemoteCallService {
+       @RequestMapping(value="/custorm/getTest",method = RequestMethod.POST)
+       List<String> test(@RequestParam("name") String name, @RequestHeader Map<String, String> headers);
+   }
+   ```
+
+   
+
+3. 实现RequestInterceptor接口（拦截器），如下
+
+   ```java
+   
+   @Configuration
+   public class FeignRequestInterceptor implements RequestInterceptor {
+       @Override
+       public void apply(RequestTemplate temp) {
+           temp.header(HttpHeaders.AUTHORIZATION, "XXXXX");
+       }
+   }
+   ```
+
+   > 只要通过FeignClient访问的接口都会走这个地方，所以使用的时候要注意一下。
+
 
 
 ### OpenFeign 超时控制
