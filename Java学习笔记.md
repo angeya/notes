@@ -337,6 +337,17 @@ System.arraycopy(strs, 0, newArray, 0, strs.length); // 调用本地方法实现
 
 Cloneable 是 Java 提供的少数标记接口之一。标记接口不包含任何方法，它唯一的作用就是允许在类型查询中使用 instanceof 。
 
+#### 空接口
+
+在 Java 中，空接口是指没有任何方法声明的接口。这样的接口通常被用作标记接口（Marker Interface）或标识接口（Tag Interface），用于表示该类具有某种特定的属性或能力。以下是一些常见的空接口示例：
+
+1. Serializable（可序列化接口）: `java.io.Serializable` 是 Java 标准库中的一个空接口，用于标识类的实例可以被序列化。实现了 Serializable 接口的类的对象可以在网络上传输或者被保存到文件中。
+2. Cloneable（可克隆接口）: `java.lang.Cloneable` 是另一个空接口，用于标识类的实例可以被克隆。然而，在实践中，实现 Cloneable 接口并不会自动提供克隆能力，因为它只是一个标记接口，而不包含任何方法。
+3. SingleThreadModel（单线程模型接口）: `javax.servlet.SingleThreadModel` 是用于标记 servlet 类支持单线程模型的空接口。然而，这个接口自从 Servlet 2.4 规范以后就已经被废弃了，不再推荐使用。
+4. Event Listener 接口: 有些事件监听器接口是空接口，如 `java.util.EventListener`。这些接口用于标记类可以作为某种事件监听器的实现。
+
+这些空接口的作用在于为实现类提供了一种标记，表明这些类具有特定的能力或属性。值得注意的是，随着 Java 8 引入默认方法（Default Methods），接口已经不再完全是“空”的概念了，即使没有抽象方法的接口也可以包含默认方法或静态方法。
+
 ### lambda表达式
 
 在 Java 中，传递一个代码片段并不容易，我们不能直接传递代码段。Java 是面向对象语言，因此必须构造一个对象，这个对象的类需要有一个方法包含所需要的代码。
