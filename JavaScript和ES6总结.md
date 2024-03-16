@@ -1256,5 +1256,70 @@ const id = params.get('id')
 </script>
 ```
 
+### Iframe之间通过postMessage传递消息
+
+理解 `postMessage()` 方法的使用方法是很重要的，下面我将为你提供一个简单的示例来说明如何在父窗口和嵌套的 `<iframe>` 之间进行消息传递。
+
+首先，我们创建一个包含 `<iframe>` 的 HTML 页面，并在其中嵌入另一个页面。然后，在这两个页面之间实现消息传递。
+
+父窗口页面（parent.html）：
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Parent Window</title>
+    </head>
+    <body>
+        <iframe id="myFrame" src="child.html"></iframe>
+
+        <script>
+            const iframe = document.getElementById('myFrame');
+            // 发送消息给嵌套的iframe
+            function sendMessageToChild() {
+                const message = 'Hello from parent window!';
+                const targetOrigin = '*'; // 可以指定具体的域名
+
+                iframe.contentWindow.postMessage(message, targetOrigin);
+            }
+
+            // 监听来自嵌套iframe的消息
+            window.addEventListener('message', function(event) {
+                console.log('Message received in parent window: ' + event.data);
+            });
+        </script>
+    </body>
+</html>
+
+```
+
+嵌套的 `<iframe>` 页面（child.html）
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Child Window</title>
+    </head>
+    <body>
+        <script>
+            // 监听来自父窗口的消息
+            window.addEventListener('message', function(event) {
+                console.log('Message received in child window: ' + event.data);
+
+                // 给父窗口发送消息
+                const message = 'Hello from child window!';
+                const targetOrigin = event.origin;
+                // postMessage的第二个参数是源，可以写'*'表示
+                window.parent.postMessage(message, targetOrigin);
+            });
+        </script>
+    </body>
+</html>
+
+```
+
 
 
