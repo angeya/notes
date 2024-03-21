@@ -1684,7 +1684,19 @@ public class DemoApplication {
 
 当然，你也可以选择定义SpringBoot Starter啦。
 
+### jar包使用外部配置文件
 
+每次打完jar包部署到服务器的时候，都要进去改配置文件application.yaml，很麻烦而且容易出错，如果可以统一读取外部配置文件，就不用每次都去修改了（如果配置项没有调整的话）。
+
+其实Spring Boot 允许你在运行应用程序时通过指定 `--spring.config.location` 选项来指定外部配置文件的路径。比如，我们可以将 `application.yml` 放置在应用程序 Jar 包所在的目录，然后在启动命令中指定 `--spring.config.location=file:./` 来加载外部的配置文件，当然也可以使用完整路径来指定文件。
+
+完整启动命令示例：
+
+```shell
+java -jar --spring.config.location=file:application.yml xxx.jar
+```
+
+> 理论上，在SpringBoot的配置文件中指定 `spring.config.location`配置项也是可以的，但是目前实践并没有生效。
 
 
 
