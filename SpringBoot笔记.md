@@ -1162,7 +1162,7 @@ public class AppLaunchListener implements CommandLineRunner {
 }
 ```
 
-
+但是要注意，上面的这两个`run`方法执行的时候，SpringBoot项目已经启动成功了，可以对外提供服务了（比如接口可以接收请求了）。是在由于`run`方法是在主线程中运行的，一旦抛出异常没有处理，将会导致主线程崩溃，进而导致整个SpringBoot应用崩溃，所以应该在`run`方法中捕获异常，除非是必要的步骤执行失败了。
 
 
 
