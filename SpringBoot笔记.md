@@ -835,13 +835,13 @@ Spring的事件机制是Spring框架中的一个重要特性，基于观察者�
 
 ## 延伸
 
-### SpringBoot静态路径
+### 一、SpringBoot静态路径
 
 SpringBoot默认的静态路径是`resources/static`。在此路径下放入媒体文件是可以直接访问的。
 
 
 
-### 获取当前请求的相关参数
+### 二、获取当前请求的相关参数
 
 当前请求的参数存放在`HttpServletRequest`中，当我们需要使用请求参数或者响应对象的时候，需要在controller中的方法携带参数过来。
 
@@ -860,7 +860,7 @@ HttpServletResponse request = ((ServletRequestAttributes)RequestContextHolder.ge
 
 
 
-### SpringBoot 支持 https
+### 三、SpringBoot 支持 https
 
 想要支持https，首先需要获取证书，证书的颁发机构（AC）越权威越好，安全性也越高（访问https网站，可以点击地址栏的锁查看证书相关的信息）。
 
@@ -900,7 +900,7 @@ server:
 
 
 
-### 拦截controller方法入参和出参
+### 四、拦截controller方法入参和出参
 
 1. 使用Fastjson作为序列化框架
 
@@ -928,7 +928,7 @@ server:
 
    出参在`AbstractJackson2HttpMessageConverter`类的`writeInternal`方法查看，该方法中的`Object object`参数即是返回的对象。
 
-### 序列化框架
+### 五、序列化框架
 
 Jackson 和 Fastjson 都是流行的 Java JSON 库，用于在 Java 对象和 JSON 数据之间进行转换。
 
@@ -1105,7 +1105,7 @@ public class UserController {
 
 
 
-### 读取resources目录下的文件
+### 六、读取resources目录下的文件
 
 1. 方式1（项目打成 jar 包后，路径有问题，导致读取不到文件内容，因此只能在开发环境使用）
 
@@ -1132,7 +1132,7 @@ public class UserController {
    InputStream inputStream = classPathResource.getInputStream();
    ```
 
-### SpringBoot启动完成监听器
+### 七、SpringBoot启动完成监听器
 
 如果需要在SpringApplication启动后运行某些特定代码，可以实现`ApplicationRunner`或`CommandLineRunner`接口。两个接口以相同的方式工作。
 
@@ -1166,7 +1166,7 @@ public class AppLaunchListener implements CommandLineRunner {
 
 
 
-### SpringBoot自定义Starter
+### 八、SpringBoot自定义Starter
 
 #### 1 编写自己的Starter
 
@@ -1307,7 +1307,7 @@ public class AppLaunchListener implements CommandLineRunner {
 Hello sunny, I am July
 ```
 
-### SSE服务端推送
+### 九、SSE服务端推送
 服务器向浏览器推送信息，除了 WebSocket，还有一种方法：Server-Sent Events（以下简称 SSE）。
 
 **SSE的本质**
@@ -1431,7 +1431,7 @@ public class DemoController {
 </html>
 ```
 
-### 数据库连接池
+### 十、数据库连接池
 
 #### 常见连接池
 
@@ -1499,11 +1499,11 @@ public String test() {
 
 > 注意：DataSource 是 javax.sql 包下面的，一般容易导错类。
 
-### Transactional 事务支持
+### 十一、Transactional 事务支持
 
 #### 事务失效的11种情况
 
-##### 1，访问权限问题
+**1，访问权限问题**
 
 如果我们自定义的事务方法（即目标方法），它的访问权限不是`public`，而是private、default或protected的话，spring则不会提供事务功能。
 
@@ -1511,7 +1511,7 @@ public String test() {
 
 但是事务方法中调用的各个数据库操作的方法可以是private的，这些内部的方法使用同一个事务。
 
-##### 2，方法用final修饰
+**2，方法用final修饰**
 
 spring事务底层使用了aop，也就是通过jdk动态代理或者cglib，帮我们生成了代理类，在代理类中实现的事务功能。
 
@@ -1519,7 +1519,7 @@ spring事务底层使用了aop，也就是通过jdk动态代理或者cglib，帮
 
 如果某个方法是static的，同样无法通过动态代理，支持事务。
 
-##### 3，方法内部调用
+**3，方法内部调用**
 
 方法内部调用，使用的是this对象，而不是代理对象，所以无法增强事务。
 
@@ -1547,17 +1547,17 @@ public class ServiceA {
 
 当然还可以在该Service类中使用AopContext.currentProxy()获取代理对象，这个可以参考AOP部分。
 
-##### 4，未被spring管理
+**4，未被spring管理**
 
 使用spring事务的前提是：对象要被spring管理，需要创建bean实例。
 
-##### 5，多线程调用
+**5，多线程调用**
 
 虽然在事务方法内部，通过多线程来并发操作数据库，可以提高效率，但是这样就会使得事务部分失效。
 
 spring的事务是通过数据库连接来实现的。当前线程中保存了一个map，key是数据源，value是数据库连接。我们说的同一个事务，其实是指同一个数据库连接，只有拥有同一个数据库连接才能同时提交和回滚。如果在不同的线程，拿到的数据库连接肯定是不一样的，所以是不同的事务。
 
-##### 6，表不支持事务
+**6，表不支持事务**
 
 周所周知，在mysql5之前，默认的数据库引擎是`myisam`。
 
@@ -1567,7 +1567,7 @@ spring的事务是通过数据库连接来实现的。当前线程中保存了�
 
 > 有时候我们在开发的过程中，发现某张表的事务一直都没有生效，那不一定是spring事务的锅，最好确认一下你使用的那张表，是否支持事务。
 
-##### 7，错误的传播特性
+**7，错误的传播特性**
 
 我们在使用`@Transactional`注解时，是可以指定`propagation`参数的。
 
@@ -1595,19 +1595,19 @@ public void add(UserModel userModel) {
 
 目前只有这三种传播特性才会创建新事务：REQUIRED，REQUIRES_NEW，NESTED。
 
-##### 8，自己吞了异常
+**8，自己吞了异常**
 
 如果想要spring事务能够正常回滚，必须抛出它能够处理的异常。如果没有抛异常，则spring认为程序是正常的。
 
 所以，可以捕获异常，但是做了一些操作之后还需要把异常抛出来，否则事务不会回滚。
 
-##### 9，异常类型不对
+**9，异常类型不对**
 
 默认情况下只会回滚`RuntimeException`（运行时异常）和`Error`（错误），对于普通的Exception（非运行时异常），它不会回滚。
 
 所以适当的加上`rollbackFor=Exception.class`配置，或者确认好回滚异常。也可以直接设置成`Throwable`
 
-##### 10，嵌套事务回滚多了
+**10，嵌套事务回滚多了**
 
 看如下代码：
 
@@ -1651,9 +1651,7 @@ public void saveData() throws Exception {
 }
 ```
 
-
-
-##### 11，未开启事务
+**11，未开启事务**
 
 如果你使用的是springboot项目，那么你很幸运。因为springboot通过`DataSourceTransactionManagerAutoConfiguration`类，已经默默的帮你开启了事务。
 
@@ -1661,7 +1659,7 @@ public void saveData() throws Exception {
 
 但如果你使用的还是传统的spring项目，则需要在applicationContext.xml文件中，手动配置事务相关参数。如果忘了配置，事务肯定是不会生效的。
 
-### 加载其他jar包中的Bean
+### 十二、加载其他jar包中的Bean
 
 在SpringBoot项目中引入其他jar包，如果jar包中包含Spring Bean的定义，默认情况下在当前SpringBoot项目中是不能加载到这些Bean的，因为SpringBoot默认值扫描当前启动类所在的包的Bean、以及jar包中META-INF/spring.factories并配置为SpringBoot Starter的包。
 
@@ -1684,7 +1682,7 @@ public class DemoApplication {
 
 当然，你也可以选择定义SpringBoot Starter啦。
 
-### jar包使用外部配置文件
+### 十三、jar包使用外部配置文件
 
 每次打完jar包部署到服务器的时候，都要进去改配置文件application.yaml，很麻烦而且容易出错，如果可以统一读取外部配置文件，就不用每次都去修改了（如果配置项没有调整的话）。
 
