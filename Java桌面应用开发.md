@@ -18,12 +18,12 @@ JNativeHook 为 Java 程序提供全局的键盘和鼠标事件侦听功能。�
 
 1. 引入maven依赖
 
-   ```java
-       <dependency>
-           <groupId>com.1stleg</groupId>
-           <artifactId>jnativehook</artifactId>
-           <version>2.1.0</version>
-       </dependency>
+   ```xml
+   <dependency>
+       <groupId>com.1stleg</groupId>
+       <artifactId>jnativehook</artifactId>
+       <version>2.1.0</version>
+   </dependency>
    ```
 
 2. 应用

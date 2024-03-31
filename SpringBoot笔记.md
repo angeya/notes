@@ -268,107 +268,96 @@ Signature signature = joinPoint.getSignature();
 
 ## 扩展接口
 
-### Spring事件机制
+### ApplicationContextAware
 
-#### 介绍
+`ApplicationContextAware` 接口是 Spring 框架提供的一个接口，用于获取 Spring 应用上下文（ApplicationContext）。通过实现 `ApplicationContextAware` 接口，可以在 Spring 容器启动时获取到应用的上下文，并对其进行操作。
 
-Spring的事件机制是Spring框架中的一个重要特性，基于观察者模式实现，它可以实现应用程序中的解耦，提高代码的可维护性和可扩展性。Spring的事件机制包括事件、事件发布、事件监听器等几个基本概念。
+要实现 `ApplicationContextAware` 接口，需要重写其中的 `setApplicationContext` 方法，该方法会在 Spring 容器初始化时被调用，传入应用的上下文对象。
 
-事件有其便利的一面，但是用多了也容易导致混乱，所以在实际项目中，我们还是要谨慎选择是否使用 Spring 事件。
+示例代码如下：
 
-事件发布流程中，有三个核心概念：
+```java
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 
-- 事件源（ApplicationEvent）：这个就是你要发布的事件对象。
-- 事件发布器（ApplicationEventPublisher）：这是事件的发布工具。
-- 事件监听器（ApplicationListener）：这个相当于是事件的消费者。
+@Component
+public class MyBean implements ApplicationContextAware {
 
-以上三个要素，事件源和事件监听器都可以有多个，事件发布器（通常是由容器来扮演）一般来说只有一个。
+    private ApplicationContext applicationContext;
 
-#### 使用
+    // Spring 容器初始化时被调用
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+        // 这里可以使用 applicationContext 对象来获取 Spring 容器中的 Bean
+        // 或者把 applicationContext 赋值给到其他类的静态属性中
+    }
+}
 
-1. 定义事件
+```
 
-   ```java
-   public class MyEvent extends ApplicationEvent {
-       private String name;
-       public MyEvent(Object source, String name) {
-           super(source);
-           this.name = name;
-       }
-   
-       @Override
-       public String toString() {
-           return "MyEvent{" +
-                   "name='" + name + '\'' +
-                   "} " + super.toString();
-       }
-   }
-   ```
+### SmartInitializingSingleton
 
-   在具体实践中，事件源并非一定要继承自 ApplicationEvent，事件源也可以是一个普通的 Java 类，如果是普通的 Java 类，系统会自动将之封装为一个 PayloadApplicationEvent 对象去发送。
+`SmartInitializingSingleton` 接口是 Spring 框架提供的一个特殊的初始化接口，用于在所有单例 Bean 初始化完成之后执行自定义的初始化逻辑。它允许在 Spring 容器初始化阶段结束后执行一些操作。
 
-2. 发布事件
+要使用 `SmartInitializingSingleton` 接口，需要实现其中的 `afterSingletonsInstantiated` 方法。这个方法会在 Spring 容器中的所有单例 Bean 实例化完成后被调用。
 
-   接下来通过事件发布器将事件发布出去。Spring 中事件发布器有专门的接口 ApplicationEventPublisher：
+示例代码如下：
 
-   ```java
-   @FunctionalInterface
-   public interface ApplicationEventPublisher {
-       // 继承自ApplicationEvent的事件
-       default void publishEvent(ApplicationEvent event) {
-       	publishEvent((Object) event);
-       }
-       // 所有事件
-       void publishEvent(Object event);
-   }
-   ```
+```java
+import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.stereotype.Component;
 
-   AbstractApplicationContext 实现了该接口并重写了接口中的方法，所以我们平时使用的 AnnotationConfigApplicationContext 或者 ClassPathXmlApplicationContext，里边都是可以直接调用事件发布方法的。
+@Component
+public class MyBeen implements SmartInitializingSingleton {
 
-   ```java
-   @Autowired
-   ApplicationContext context;
-   
-   public void sendEvent() {
-       this.context.publishEvent(new MyEvent(this, "hello"));
-   }
-   ```
+    @Override
+    public void afterSingletonsInstantiated() {
+        // 所有单例 Bean 初始化完成后执行的逻辑
+        System.out.println("All singletons have been instantiated.");
+        // 可以在这里进行额外的初始化操作
+    }
+}
+```
 
-3. 事件监听
+通过实现 `SmartInitializingSingleton` 接口，可以在 Spring 容器初始化阶段结束后执行一些定制化的初始化操作，例如对 Bean 进行进一步的配置、数据加载、缓存预热等。这个接口提供了一种方便的扩展点，可以在应用启动时执行额外的初始化逻辑。
 
-   事件发布之后，我们还需要事件监听器去监听并处理事件。事件监听器有两种定义方式。
 
-   第一种是自定义类实现 ApplicationListener 接口：
 
-   ```java
-   @Component
-   public class MyEventListener implements ApplicationListener<MyEvent> {
-       @Override
-       public void onApplicationEvent(MyEvent event) {
-           System.out.println("event = " + event);
-       }
-   }
-   ```
+### DisposableBean
 
-   第二种方式则是通过注解去标记事件消费方法：
+`DisposableBean` 是 Spring 框架提供的一个接口，用于定义 bean 销毁之前的回调逻辑。实现了 `DisposableBean` 接口的类可以在 Spring 容器关闭时，或者具体的 bean 被销毁前执行自定义的清理逻辑。
 
-   ```java
-   @Component
-   public class MyService {
-       @EventListener(value = MyEvent.class)
-       public void hello(MyEvent event) {
-           System.out.println("event = " + event);
-       }
-   }
-   ```
+要使用 `DisposableBean` 接口，需要实现其中的 `destroy` 方法。这个方法会在 bean 销毁之前被 Spring 容器调用，从而允许开发者执行如资源释放、连接关闭等清理操作。
 
-#### 异步事件处理
+示例代码如下：
 
-默认事件的发布与处理是同步的，如果想要一步处理事件，只需要在监听器处理方法上面添加`@Async`注解即可。同时别忘记了在启动类上增加`@EnableAsync`注解。
+```java
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.stereotype.Component;
+
+@Component
+public class MyResourceHandler implements DisposableBean {
+
+    @Override
+    public void destroy() throws Exception {
+        // 在这里实现清理逻辑
+        System.out.println("Cleaning up resources...");
+        // 例如，关闭文件流、数据库连接等
+    }
+}
+```
+
+在这个示例中，`MyResourceHandler` 类实现了 `DisposableBean` 接口，并在 `destroy` 方法中定义了资源清理的逻辑。当应用停止或者容器中的 `MyResourceHandler` bean 被销毁时，`destroy` 方法会被自动调用。
+
+`DisposableBean` 接口提供了一种标准的方式来进行资源清理，有助于防止资源泄漏。在实际开发中，除了直接实现 `DisposableBean` 接口之外，也可以使用 `@PreDestroy` 注解或者在 bean 的定义中指定 `destroy-method` 属性来指定销毁回调，这些方法也都可以用于定义销毁前的清理逻辑。选择哪种方式取决于具体的场景和个人偏好。
+
+
 
 ## Spring MVC
 
-### controller最佳实践
+### Controller最佳实践
 
 #### 统一状态码
 
@@ -1696,7 +1685,103 @@ java -jar --spring.config.location=file:application.yml xxx.jar
 
 > 理论上，在SpringBoot的配置文件中指定 `spring.config.location`配置项也是可以的，但是目前实践并没有生效。
 
+### 十四、Spring事件机制
 
+#### 介绍
+
+Spring的事件机制是Spring框架中的一个重要特性，基于观察者模式实现，它可以实现应用程序中的解耦，提高代码的可维护性和可扩展性。Spring的事件机制包括事件、事件发布、事件监听器等几个基本概念。
+
+事件有其便利的一面，但是用多了也容易导致混乱，所以在实际项目中，我们还是要谨慎选择是否使用 Spring 事件。
+
+事件发布流程中，有三个核心概念：
+
+- 事件源（ApplicationEvent）：这个就是你要发布的事件对象。
+- 事件发布器（ApplicationEventPublisher）：这是事件的发布工具。
+- 事件监听器（ApplicationListener）：这个相当于是事件的消费者。
+
+以上三个要素，事件源和事件监听器都可以有多个，事件发布器（通常是由容器来扮演）一般来说只有一个。
+
+#### 使用
+
+1. 定义事件
+
+   ```java
+   public class MyEvent extends ApplicationEvent {
+       private String name;
+       public MyEvent(Object source, String name) {
+           super(source);
+           this.name = name;
+       }
+   
+       @Override
+       public String toString() {
+           return "MyEvent{" +
+                   "name='" + name + '\'' +
+                   "} " + super.toString();
+       }
+   }
+   ```
+
+   在具体实践中，事件源并非一定要继承自 ApplicationEvent，事件源也可以是一个普通的 Java 类，如果是普通的 Java 类，系统会自动将之封装为一个 PayloadApplicationEvent 对象去发送。
+
+2. 发布事件
+
+   接下来通过事件发布器将事件发布出去。Spring 中事件发布器有专门的接口 ApplicationEventPublisher：
+
+   ```java
+   @FunctionalInterface
+   public interface ApplicationEventPublisher {
+       // 继承自ApplicationEvent的事件
+       default void publishEvent(ApplicationEvent event) {
+       	publishEvent((Object) event);
+       }
+       // 所有事件
+       void publishEvent(Object event);
+   }
+   ```
+
+   AbstractApplicationContext 实现了该接口并重写了接口中的方法，所以我们平时使用的 AnnotationConfigApplicationContext 或者 ClassPathXmlApplicationContext，里边都是可以直接调用事件发布方法的。
+
+   ```java
+   @Autowired
+   ApplicationContext context;
+   
+   public void sendEvent() {
+       this.context.publishEvent(new MyEvent(this, "hello"));
+   }
+   ```
+
+3. 事件监听
+
+   事件发布之后，我们还需要事件监听器去监听并处理事件。事件监听器有两种定义方式。
+
+   第一种是自定义类实现 ApplicationListener 接口：
+
+   ```java
+   @Component
+   public class MyEventListener implements ApplicationListener<MyEvent> {
+       @Override
+       public void onApplicationEvent(MyEvent event) {
+           System.out.println("event = " + event);
+       }
+   }
+   ```
+
+   第二种方式则是通过注解去标记事件消费方法：
+
+   ```java
+   @Component
+   public class MyService {
+       @EventListener(value = MyEvent.class)
+       public void hello(MyEvent event) {
+           System.out.println("event = " + event);
+       }
+   }
+   ```
+
+#### 异步事件处理
+
+默认事件的发布与处理是同步的，如果想要一步处理事件，只需要在监听器处理方法上面添加`@Async`注解即可。同时别忘记了在启动类上增加`@EnableAsync`注解。
 
 
 
