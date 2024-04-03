@@ -14,7 +14,7 @@ settings - Editor - File And Code Templates - includes，找到（或者新建�
  */
 ```
 
-
+### 设置多行文件tab
 
 ## 常用插件
 
@@ -29,3 +29,23 @@ settings - Editor - File And Code Templates - includes，找到（或者新建�
 ### 配置
 
 ### 常用方法
+
+## Java打包
+
+### IDEA Build
+
+进入`Project Structure`，然后按照如下操作：
+
+<img src="IDEA使用.assets/image-20240403100123315.png" alt="image-20240403100123315" style="zoom:80%;" />
+
+如果这样配置不生效，`META-INFO`可以的路径可以修改为到`src`即可。
+
+保存后结果如下
+
+<img src="IDEA使用.assets/image-20240403095951291.png" alt="image-20240403095951291" style="zoom:80%;" />
+
+在 `IDEA` 导航栏中找到 `Build` -> `build Artifacts`，然后选中需要打包的模块，进行`build`。
+
+![image-20240403100412397](IDEA使用.assets/image-20240403100412397.png)
+
+成功之后，就会在out目录下生成jar包了。
