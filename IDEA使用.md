@@ -36,9 +36,7 @@ settings - Editor - File And Code Templates - includes，找到（或者新建�
 
 进入`Project Structure`，然后按照如下操作：
 
-<img src="IDEA使用.assets/image-20240403100123315.png" alt="image-20240403100123315" style="zoom:80%;" />
-
-如果这样配置不生效，`META-INFO`可以的路径可以修改为到`src`即可。
+<img src="IDEA使用.assets/image-20240403102420464.png" alt="image-20240403102420464" style="zoom:80%;" />
 
 保存后结果如下
 
