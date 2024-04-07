@@ -586,3 +586,4 @@ public class MyListener {
 }
 ```
 
+如果监听不到远程事件，可以尝试在监听器方法加上`@Async注解`试一试。
