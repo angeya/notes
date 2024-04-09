@@ -68,7 +68,44 @@ public static void compressPngImage(InputStream inputStream, OutputStream output
 
 不过可惜就是`Thumbnail`无法压缩png格式，并且可能越压缩图片文件越大。
 
+
+
 ### MultipartFile的转换
+
+Spring 中的 MultipartFile 是用于处理上传文件的接口，通常用于处理 HTTP 请求中包含的文件上传。它是 Spring MVC 框架提供的一种文件上传解决方案，可以方便地处理客户端上传的文件数据。
+
+MultipartFile 接口提供了一些常用的方法来操作上传的文件，包括获取文件名、获取文件类型、获取文件大小、获取文件输入流等。在 Spring MVC 的控制器中，可以通过方法参数直接接收 MultipartFile 对象，Spring 框架会自动将客户端上传的文件数据封装成 MultipartFile 对象，从而方便地进行文件上传的处理。
+
+MultipartFile 接口源码如下：
+
+```java
+public interface MultipartFile extends InputStreamSource {
+    // 获取文件参数的名称
+    String getName();
+
+    // 获取上传文件的原始文件名
+    @Nullable
+    String getOriginalFilename();
+
+    // 获取上传文件的类型
+    @Nullable
+    String getContentType();
+	// 判断文件是否为空
+    boolean isEmpty();
+	// 获取上传文件的大小，以字节为单位
+    long getSize();
+	// 将文件内容读取为字节数组获取上传文件的输入流，可以用于读取文件内容
+    byte[] getBytes() throws IOException;
+	// 获取上传文件的输入流，可以用于读取文件内容
+    InputStream getInputStream() throws IOException;
+}
+```
+
+当我们需要对 MultipartFile  文件做一些其他的转换操作，只需要获取到它的输入流就可以了。
+
+当然，如果一个接口它需要的参数是 MultipartFile 类型，我们可以实现自己的 MultipartFile 类。然后只需要保存 content 和 filename 两个核心信息就可以了，其他的信息都可以通过这两个数据得到。
+
+MultipartFile  有很多实现类，对于controller中的文件上传，实现类是 `org.springframework.web.multipart.support`包下面的内部类`StandardMultipartHttpServletRequest.StandardMultipartFile`。
 
 
 
