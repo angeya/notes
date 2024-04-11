@@ -25,7 +25,7 @@ InfluxDB 数据模型将时间序列数据组织到存储桶和度量中。 一�
   - **度量(Measurement)**：时间序列数据的逻辑分组。 给定测量中的所有*点*都应具有相同的*标签*。 测量包含多个*标签*和*字段*。
     - **标签(tag)**：值不同但不经常更改的键值对。 标签用于存储每个点的元数据，例如， 用于识别数据源的东西，例如主机、位置、站点等。有索引。
     - **字段(field)**：键值对，其值随时间变化，例如：温度、压力、股票价格等。
-    - **时间戳(timestamp)**：与数据关联的**时间戳**。 当存储在磁盘上并进行查询时，所有数据都按时间排序。
+    - **时间戳(timestamp)**：与数据关联的时间戳。 当存储在磁盘上并进行查询时，所有数据都按时间排序。
 
 *有关 InfluxDB 数据模型的详细信息和示例，请参阅[数据元素](https://docs.influxdata.com/influxdb/v2/reference/key-concepts/data-elements/)。*
 
@@ -36,7 +36,7 @@ InfluxDB 数据模型将时间序列数据组织到存储桶和度量中。 一�
 - **点**：由测量值、标签键、*标签值、字段键和时间戳*标识的单个数据记录。
 - **系列**：具有相同*测量值、标签键和标签值*的一组点。
 
-**InfluxDB 查询结果示例**
+**InfluxDB 查询结果示例，下面测量值为天气，标签键为城市和国家**
 
 ![image-20240103162258133](InFluxDB学习笔记.assets\image-20240103162258133.png)
 
@@ -52,23 +52,23 @@ Load Data -> Buckets -> 选择需要的桶 ADD DATA -> Line Protocol -> ENTER MA
 
 然后通过输入行协议的数据，点击 **WRITE DATA** 按钮即可。
 
-行协议元素：
+**行协议元素：**
 
 每行线路协议都包含以下元素：
 
 **必填*
 
-- ** **measurement**：标识要在其中存储数据的[度量值的](https://docs.influxdata.com/influxdb/v2/get-started/write/)字符串。
+- **measurement**：标识要在其中存储数据的度量值的字符串。
 - **tag set**：以逗号分隔的键值对列表，每个键值对代表一个标签。 标签键和值是不带引号的字符串。*空格、逗号和相等字符必须转义。*
-- *** 字段集**：逗号分隔的列表键值对，每个键值对代表一个**字段**。 字段键是不带引号的字符串。*空格和逗号必须转义。*字段值可以是[字符串](https://docs.influxdata.com/influxdb/v2/reference/syntax/line-protocol/#string)（带引号）、[浮点](https://docs.influxdata.com/influxdb/v2/reference/syntax/line-protocol/#float)数、整数、无符号整数、 或布尔值。
-- **timestamp**：与数据关联的 [Unix 时间戳](https://docs.influxdata.com/influxdb/v2/reference/syntax/line-protocol/#unix-timestamp)。InfluxDB 支持高达纳秒级的精度。*如果时间戳的精度不是以纳秒为单位，则必须指定 将数据写入 InfluxDB 时的精度。*
+- **字段集**：逗号分隔的列表键值对，每个键值对代表一个字段。 字段键是不带引号的字符串。*空格和逗号必须转义。*字段值可以是字符串（带引号）、浮点数、整数、无符号整数、 或布尔值。
+- **timestamp**：与数据关联的 [Unix 时间戳](https://docs.influxdata.com/influxdb/v2/reference/syntax/line-protocol/#unix-timestamp)。InfluxDB 支持高达纳秒级的精度。如果时间戳的精度不是以纳秒为单位，则必须指定 将数据写入 InfluxDB 时的精度。
 
 #### [行协议元素解析](https://docs.influxdata.com/influxdb/v2/get-started/write/#line-protocol-element-parsing)
 
-- **measurement**：第一个*空格之前第一个未转义逗号之前*的所有内容。
-- **tag set**：第一个*未转义逗号和第一个未转义**空格*之间的键值对。
-- **字段集**：*第一个和第二个未转义空格*之间的键值对。
-- **timestamp**：*第二个未转义空格*之后的整数值。
+- **measurement**：第一个空格之前第一个未转义逗号之前的所有内容。
+- **tag set**：第一个未转义逗号和第一个未转义空格之间的键值对。
+- **字段集**：第一个和第二个未转义空格之间的键值对。
+- **timestamp**：第二个未转义空格之后的整数值。
 - 行之间用换行符 `\n` 分隔。 线路协议区分空格。
 
 Syntax:
