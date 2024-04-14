@@ -168,7 +168,7 @@ public class Test{}
 
 Java的归档（JAR）文件可以将java文件其他文件打包成一个压缩文件。这样既便于存储，也便于交付。JAR文件可以通过使用jar工具（位于 jdk/bin 目录下）生成。
 
-除了类文件、图像和其他资源外，每个JAR文件还包含一个清单文佳（menifest），用于扫描归档文件的特殊性。该清单文件被命名为 MANIFEST.MF ，它位于JAR文件的特殊目录META-INF目录中。
+除了类文件、图像和其他资源外，每个JAR文件还包含一个清单文件（menifest），用于扫描归档文件的特殊性。该清单文件被命名为 MANIFEST.MF ，它位于JAR文件的特殊目录META-INF目录中。
 
 可以通过 jar 命令 在MANIFEST.MF中指定程序入口点。
 
@@ -225,6 +225,64 @@ javadoc -encoding UTF-8 -d C:\Users\temp xxxpackage
 7. 优先使用不可变类
 
    类似String类，调用改变方法后会返回一个新的对象
+
+### 方法重载和重写
+
+Java中的方法重载（Overloading）和方法重写（Overriding）是面向对象编程中常用的两种概念，它们虽然都涉及方法的使用，但其含义和用途有所不同。
+
+#### 方法重载
+
+- 方法重载指的是在同一个类中可以定义多个方法，它们具有相同的方法名，但是参数列表不同（参数类型、参数个数或参数顺序不同）。
+- 在调用重载的方法时，编译器会根据传递的参数类型和数量来决定调用哪个重载的方法。
+- 方法重载的目的是为了提高代码的可读性和灵活性，让方法可以根据不同的参数进行不同的处理。
+
+示例代码
+
+```java
+class Calculator {
+    // 重载的方法
+    int add(int a, int b) {
+        return a + b;
+    }
+
+    double add(double a, double b) {
+        return a + b;
+    }
+}
+```
+
+> 重载只看参数类型和参数顺序。方法返回值的不同，不是重载的参考部分。
+>
+> 泛型的不同参与判定方法重载，比如方法声明`public void addUser(List<User>)`和`public void addUser(List<UserInfo>)`是一样的，参数类型都是`List`，如果出现在同一个类中会编译报错。
+
+#### 方法重写
+
+- 方法重写指的是子类重新定义了父类中的某个方法，方法名、参数列表和返回类型都必须与父类中的方法相同。
+- 重写的方法在子类中可以有不同的实现，但是方法签名必须保持一致。
+- 方法重写实现了多态性，即通过父类的引用可以调用子类重写的方法，实现了运行时动态绑定。
+
+示例：
+
+```java
+class Animal {
+    void makeSound() {
+        System.out.println("Animal makes a sound");
+    }
+}
+
+class Dog extends Animal {
+    // 重写父类的方法
+    void makeSound() {
+        System.out.println("Dog barks");
+    }
+}
+```
+
+#### 区别总结
+
+- 方法重载是同一个类中的方法，方法名相同但参数列表不同；
+- 方法重写是子类重新定义了父类的方法，方法名和参数列表都相同，实现了多态性；
+- 方法重载的主要目的是提高代码的可读性和灵活性，而方法重写的主要目的是实现多态性。
 
 ## 第5章 继承
 
@@ -832,6 +890,8 @@ logger.info("some message"); // 打印消息
 
 
 ## 第8章 泛型程序设计
+
+> 
 
 ## 第9章 集合
 
