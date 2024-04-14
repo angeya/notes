@@ -917,6 +917,8 @@ server:
 
    出参在`AbstractJackson2HttpMessageConverter`类的`writeInternal`方法查看，该方法中的`Object object`参数即是返回的对象。
 
+
+
 ### 五、序列化框架
 
 Jackson 和 Fastjson 都是流行的 Java JSON 库，用于在 Java 对象和 JSON 数据之间进行转换。
@@ -1121,6 +1123,8 @@ public class UserController {
    InputStream inputStream = classPathResource.getInputStream();
    ```
 
+
+
 ### 七、SpringBoot启动完成监听器
 
 如果需要在SpringApplication启动后运行某些特定代码，可以实现`ApplicationRunner`或`CommandLineRunner`接口。两个接口以相同的方式工作。
@@ -1156,6 +1160,16 @@ public class AppLaunchListener implements CommandLineRunner {
 
 
 ### 八、SpringBoot自定义Starter
+
+Spring框架也使用了SPI机制来实现扩展点的加载和扩展。在Spring中，常见的SPI机制的使用包括：
+
+1. **Spring Bean加载**：Spring的ApplicationContext接口提供了多种实现，例如ClassPathXmlApplicationContext、AnnotationConfigApplicationContext等。这些实现类通过SPI机制加载，Spring在classpath下查找所有的META-INF/spring.factories文件，并加载其中指定的ApplicationContext实现类。
+2. **Spring扩展点**：Spring提供了多种扩展点，例如BeanPostProcessor、BeanFactoryPostProcessor等。开发者可以实现这些接口，并在META-INF/spring.factories文件中指定实现类，从而让Spring在启动时加载并执行这些扩展点。
+3. **Spring Boot自动配置**：Spring Boot通过SPI机制实现了自动配置的功能。在classpath下的META-INF/spring.factories文件中，Spring Boot会列出各种自动配置类，当启动Spring Boot应用程序时，它会根据当前的环境和依赖项自动配置应用程序所需的Bean。
+
+
+
+其中自定义`starter`就是基于`SpringBoot`自动状态实现的。
 
 #### 1 编写自己的Starter
 
@@ -1296,7 +1310,10 @@ public class AppLaunchListener implements CommandLineRunner {
 Hello sunny, I am July
 ```
 
+
+
 ### 九、SSE服务端推送
+
 服务器向浏览器推送信息，除了 WebSocket，还有一种方法：Server-Sent Events（以下简称 SSE）。
 
 **SSE的本质**
@@ -1420,6 +1437,8 @@ public class DemoController {
 </html>
 ```
 
+
+
 ### 十、数据库连接池
 
 #### 常见连接池
@@ -1487,6 +1506,8 @@ public String test() {
 ```
 
 > 注意：DataSource 是 javax.sql 包下面的，一般容易导错类。
+
+
 
 ### 十一、Transactional 事务支持
 
@@ -1648,6 +1669,8 @@ public void saveData() throws Exception {
 
 但如果你使用的还是传统的spring项目，则需要在applicationContext.xml文件中，手动配置事务相关参数。如果忘了配置，事务肯定是不会生效的。
 
+
+
 ### 十二、加载其他jar包中的Bean
 
 在SpringBoot项目中引入其他jar包，如果jar包中包含Spring Bean的定义，默认情况下在当前SpringBoot项目中是不能加载到这些Bean的，因为SpringBoot默认值扫描当前启动类所在的包的Bean、以及jar包中META-INF/spring.factories并配置为SpringBoot Starter的包。
@@ -1684,6 +1707,8 @@ java -jar --spring.config.location=file:application.yml xxx.jar
 ```
 
 > 理论上，在SpringBoot的配置文件中指定 `spring.config.location`配置项也是可以的，但是目前实践并没有生效。
+
+
 
 ### 十四、Spring事件机制
 
