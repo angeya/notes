@@ -353,6 +353,38 @@ public class MyResourceHandler implements DisposableBean {
 
 `DisposableBean` 接口提供了一种标准的方式来进行资源清理，有助于防止资源泄漏。在实际开发中，除了直接实现 `DisposableBean` 接口之外，也可以使用 `@PreDestroy` 注解或者在 bean 的定义中指定 `destroy-method` 属性来指定销毁回调，这些方法也都可以用于定义销毁前的清理逻辑。选择哪种方式取决于具体的场景和个人偏好。
 
+### ApplicationContextInitializer
+
+允许在 Spring 应用程序上下文（ApplicationContext）创建之前对其进行修改。可以通过实现此接口来自定义 ApplicationContext 的初始化逻辑。
+
+### ApplicationListener
+
+用于监听 Spring 应用程序中特定事件的发生。通过实现此接口，可以在应用程序启动、关闭、上下文刷新等事件发生时执行相应的逻辑。
+
+### CommandLineRunner 和 ApplicationRunner
+
+用于在 Spring Boot 应用程序启动后立即执行一些任务或命令行操作。`CommandLineRunner` 接口的 `run` 方法会在 Spring Boot 应用程序启动时被调用，而 `ApplicationRunner` 接口则提供了更丰富的参数信息。使用详情[启动监听器](#AppLaunchListener)。
+
+### EnvironmentPostProcessor
+
+用于在 Spring 应用程序上下文创建之前对环境进行修改。可以通过实现此接口来动态地修改应用程序的配置信息。
+
+### BeanPostProcessor
+
+允许在 Spring 容器中的 bean 实例化、依赖注入等过程中对 bean 进行定制化处理。通过实现此接口，可以在 bean 初始化之前和之后执行自定义的逻辑。
+
+### HandlerInterceptor
+
+用于拦截和处理 Web 请求。通过实现此接口，可以在请求处理之前、之后以及完成后执行自定义的逻辑，例如身份验证、日志记录等。
+
+### EmbeddedServletContainerCustomizer 和 WebServerFactoryCustomizer
+
+用于自定义嵌入式 Servlet 容器的配置。通过实现这些接口，可以对嵌入式 Servlet 容器进行各种配置，如端口号、上下文路径、SSL 配置等。
+
+### HandlerMethodArgumentResolver 和 HandlerMethodReturnValueHandler
+
+用于扩展 Spring MVC 的处理器方法参数解析和返回值处理。通过实现这些接口，可以自定义处理器方法的参数解析逻辑和返回值处理逻辑。
+
 
 
 ## Spring MVC
@@ -1125,7 +1157,7 @@ public class UserController {
 
 
 
-### 七、SpringBoot启动完成监听器
+### 七、SpringBoot启动完成监听器<a id="AppLaunchListener"></a>
 
 如果需要在SpringApplication启动后运行某些特定代码，可以实现`ApplicationRunner`或`CommandLineRunner`接口。两个接口以相同的方式工作。
 
@@ -1155,7 +1187,7 @@ public class AppLaunchListener implements CommandLineRunner {
 }
 ```
 
-但是要注意，上面的这两个`run`方法执行的时候，SpringBoot项目已经启动成功了，可以对外提供服务了（比如接口可以接收请求了）。是在由于`run`方法是在主线程中运行的，一旦抛出异常没有处理，将会导致主线程崩溃，进而导致整个SpringBoot应用崩溃，所以应该在`run`方法中捕获异常，除非是必要的步骤执行失败了。
+但是要注意，上面的这两个`run`方法执行的时候，SpringBoot项目已经启动成功了，可以对外提供服务了（比如接口可以接收请求了）。是在由于`run`方法是在主线程中运行的，一旦抛出异常没有处理，将会导致主线程崩溃，进而导致整个SpringBoot应用崩溃，所以应该在`run`方法中捕获异常，除非是必要的步骤执行失败了就停止启动。
 
 
 
