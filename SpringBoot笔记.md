@@ -1040,6 +1040,48 @@ Gson、Fastjson、和Jackson是Java生态中最常用的三种JSON库，用于�
 
 #### 这些框架的使用
 
+**Gson**
+
+maven依赖
+
+```xml
+<dependency>
+    <groupId>com.google.code.gson</groupId>
+    <artifactId>gson</artifactId>
+    <version>2.8.6</version>
+</dependency>
+```
+
+java示例代码
+
+```java
+// 创建用户对象
+User user = new User();
+user.setName("angeya");
+user.setAge(18);
+user.setFriendList(Arrays.asList("lili", "tony", "mary"));
+
+// 序列化
+Gson gson = new Gson();
+String json = gson.toJson(user);
+System.out.println(json);
+
+// 反序列化
+User user2 =gson.fromJson(json, User.class);
+System.out.println(user2);
+```
+
+但是，将Json字符串转换为List对象的时候，就有一点不同了。
+
+由于List接口带泛型，如果还调用   fromJson(String, Class)方法，那么返回的虽然还是个List集合，但是集合里面的数据却不是User对象，而是Map对象，并将User的属性以键值对的形式存放在Map的实例中。类似的，Map和Set等带泛型的接口也是如此。
+```java
+// Gson包提供TypeToken<>类获取Type对象，不需要重写方法，只需获取其对象并调用getType()方法即可
+List<User> userList = gson.fromJson(json, new TypeToken<List<User>>(){}.getType());
+System.out.println(userList);
+```
+
+
+
 **Jackson**
 
 Jackson 有三个核包，分别是 Streaming、Databid、Annotations，通过这些包可以方便的对 JSON 进行操作。
