@@ -512,6 +512,47 @@ ribbon:
 - connectTimeout：防止由于服务器处理时间长而阻塞调用者。
 - readTimeout：从连接建立时开始应用，在返回响应时间过长时触发。
 
+### 日志级别
+
+### 请求拦截器
+
+在使用 Spring Cloud 中的 OpenFeign 进行服务间通信时，可以通过编写拦截器来对 Feign 请求和响应进行处理。OpenFeign 提供了 `RequestInterceptor` 接口，我们可以实现该接口来定义自己的拦截器。
+
+通过配置类
+
+```java
+@Configuration
+public class FeignClientInterceptorConfig {
+
+    // 自定义请求拦截器
+    @Bean
+    public RequestInterceptor customRequestInterceptor() {
+        return new RequestInterceptor() {
+            @Override
+            public void apply(RequestTemplate template) {
+                // 在这里可以对请求进行修改或添加头部信息等操作
+                template.header("Authorization", "Bearer your_token_here");
+            }
+        };
+    }
+}
+```
+
+或者直接声明为Bean。
+
+```java
+// 自动请求拦截器
+@Component
+public class CustomRequestInterceptor implements RequestInterceptor {
+    
+    @Override
+    public void apply(RequestTemplate template) {
+        // 在这里可以对请求进行修改或添加头部信息等操作
+        template.header("Authorization", "Bearer your_token_here");
+    }
+}
+```
+
 
 
 ## SpringCloudBus
