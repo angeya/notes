@@ -146,7 +146,7 @@ csv的内容格式如下：
 
 根据目前的经验，官方给出的命令总是报错，不知道为什么。
 
-## Java中使用InfluxDB2.x
+#### Java中使用InfluxDB2.x
 
 1. 引入maven依赖
 
@@ -248,6 +248,30 @@ csv的内容格式如下：
    influxDbClient.close();
    ```
 
-   
+
+#### 合并多个属性为一行显示
+
+InfluxDB默认将多个属性分多行显示，但是很多时候我们需要在一行中显示多个属性值。
+
+`pivot` 函数是一种数据重组函数，它可以将数据从纵向（列存储）转为横向（行存储）的形式。这意味着 `pivot` 函数可以将数据集中相同标签的不同字段值转换成单独的列，从而将多条数据转化为一条数据，并保留原始标签。这有助于将多条记录组合成一条记录，并在查询结果中将不同字段的值并列显示。
+
+`pivot` 函数的主要参数有：
+
+- `rowKey`: 一个列表参数，用于指定作为行键的列（一般为标签）。这些列将决定输出数据的行分组方式。
+- `columnKey`: 一个列表参数，用于指定作为列键的列（通常为字段）。这些列将决定数据的列分组方式。
+- `valueColumn`: 用于指定包含数据值的列（通常为 `_value`）。
+
+下面是一个 `pivot` 函数的示例，展示如何将多个字段的值转化为同一行：
+
+```flux
+from(bucket: "my_bucket")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "my_measurement")
+  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+```
+
+通过使用 `pivot` 函数，你可以将数据从传统的纵向形式转换为横向形式，从而使不同字段的值在查询结果中以列的形式并列显示。
+
+
 
 InfluxDB2.x 官方文档网址：[influxdata/influxdb-client-java: InfluxDB 2 JVM Based Clients (github.com)](https://github.com/influxdata/influxdb-client-java)
