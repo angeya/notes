@@ -342,13 +342,18 @@ docker version # 查看docker版本
 **部署一个nginx一个mysql**
 
 ```yaml
-version:'3.2'
+version: '3.2'
 
 services:
+  # 服务名称
   web:
-    image: nginx:latest
-    container_name: nginx
-    restart: always
+    # 镜像
+    image: nginx:latest 
+    # 容器名称
+    container_name: nginx 
+    # 意外停掉之后是否重启
+    restart: always 
+    # network_mode: host 端口直接映射 就不需要具体指定端口映射了
     ports:
       - "80:80"
       - "443:443"
@@ -356,6 +361,7 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./html:/usr/share/nginx/html
       - ./logs:/var/log/nginx
+    # 容器的环境变量
     environment: - NGINX_HOST=localhost - NGINX_PORT=80
     networks: - webnet
   db: 
@@ -510,7 +516,7 @@ DockerCompose的详细语法参考官网：https://docs.docker.com/compose/compo
        ports:
          - 8080:80
        environment:
-         - REGISTRY_TITLE=传智教育私有仓库
+         - REGISTRY_TITLE=私有仓库
          - REGISTRY_URL=http://registry:5000
        depends_on:
          - registry
