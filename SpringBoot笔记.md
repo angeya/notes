@@ -266,6 +266,10 @@ Signature signature = joinPoint.getSignature();
    ((AClass)AopContext.currentProxy()).B();
    ```
 
+3. 使用 AspectJ 注解，但是启动类中没有使用`@EnableAspectJAutoProxy`注解开启代理。
+
+
+
 ## 扩展接口
 
 ### ApplicationContextAware
@@ -388,6 +392,253 @@ public class MyResourceHandler implements DisposableBean {
 
 
 ## Spring MVC
+
+### 基础
+
+#### Spring MVC的设计与流程
+
+1. MVC思想
+
+    在处理HTTP请求时，请求先到达控制器（Controller），控制器的作用是进行请求分发；
+
+    这样它会根据请求的内容去访问模型层（Model； 在现今互联网系统中，数据主要从数据库和 NoSQL 中来，而且对于数据库而言往往还存在事务的机制，设计者会把模型层再细分为两层，即服务层（Service）和数据访问层（DAO）；
+
+    当控制器取到由模型层返回数据后 ，就将数据渲染到视图（View）中，这样就能够展现给用户了。
+
+    TODO图片
+
+    
+
+    在日常开发中，我们最主要的工作是控制器的开发。
+
+2. Spring MVC的处理流程
+
+    流程和组件是 SpringMVC 的核心， SpringMVC的流程是围绕 DispatcherServlet 而工作的，所以 pring MVC DispatcherServlet 是其最重要的内容，在DIspatcherServlet 的基础上，还存在其他的组件， 掌握流程和组件就是 SpringMVC 开发的基础。
+
+    TODO图片
+
+    
+
+    DispatcherServlet：请求的分发中心，收到请求之后转发给HandlerMapping
+
+    HandlerMapping：处理器映射，通过Http请求的信息，找出对应的控制器。控制器中@Controller注解表明这是一个控制器，@RequestMapping代表请求路径和控制器的映射关系，这个映射关系会在服务器启动SpringMVC时扫描到HandlerMapping的机制中存储。等收到请求之后通过URI和其他条件就能找到对应的控制器方法进行响应。只不过通过处理器映射返回的是一个HandlerExecutionChain对象。
+
+    HandlerExecutionChain：处理器执行链，内部包含处理器（对控制器的包装）和拦截器。
+
+    HandlerAdapter：处理器适配器。除了Http请求，还有按BeanName的请求或者是WebSocket的请求，所以得到了控制器之后不能直接执行控制器方法，因此需要一个适配器去运行HandlerExecutionChain对象的处理器。
+
+    ModelAndView：模型与视图。运行控制器方法（一般会调用Service和Dao层）后，得到数据，将数据和视图（如Jsp文件）路径封装成ModeAndView对象返回给DispatcherServlet。
+
+    ViewResolver：视图解析器。通过ModelAndView对象（逻辑视图），定位视图资源。
+    
+    View：视图渲染（结果可能是Jsp）。
+
+#### 处理器映射
+
+请求路径与控制器方法的映射，在方法上使用注解@RequestMapping。如
+
+```java
+@RequestMapping(value = "sayHi",method = RequestMethod.POST)
+public void sayHi(){
+    // do some thing
+}
+```
+
+如果@RequestMapping用在控制器上，则控制器的所有方法都控制器配置的请求路径下。
+
+在 Spring 4.3 的版本之后，为了简 method配置项的配置新增了几个注解，如`＠GetMapping` 、`＠PostMapping` 、`＠PatchMapping` 、`＠PutMapping、@DeleteMapping` 。
+
+从名称可以看出，＠GetMapping 对应的是GET 方法， @PostMapping 对应的是POST 方法。
+
+#### 获取控制器方法参数
+
+处理器是对控制器的包装 ，在处理器运行的过程中会调度控制器方法，只是它在进入控制器方法之前会对 HTTP 参数和上下文进行解析，将它们转换为控制器所参数。开发者也可以自定义转换规则。
+
+1. 无注解时获取参数
+
+    控制器方法中没有注解，则表示http请求参数名称与方法参数名称一致。
+
+    如：
+
+    http://localhost:8080l/test?id=20&price=50与方法
+
+    ```java
+    @PostMapping (”/test”) 
+    public void test(Integer id, Float price, String name){
+    	// do some thing
+    }
+    ```
+
+    对应，name默认允许为空。
+
+    Spring MVC支持使用逗号分隔的数组参数，如Integer[] ids对应参数?id=15,16
+
+2. 使用＠RequestParam 获取参数
+
+    不使用参数注解，前后端参数命名必须一致。使用注解＠RequestParam可以做参数名称映射
+
+    如：
+
+    http://localhost:8080l/test?orderId=20&price=50与方法
+
+    ```java
+    @PostMapping (”/test”)
+    public void test(@RequestParam(value="orderId”)Integer id,
+                     @RequestParam(value="price”)Float price, 
+                     @RequestParam(value="name”, required = false) String name){
+    	// do song thing
+    }
+    ```
+
+    对应，设置required = false，表示参数name允许为空。
+
+3. 传递Json
+
+    当前前后端分离趋势下 ，使用 JSON 已经十分普遍。
+
+    将参数使用@RequestBody标注，意味着接收前端的Json请求体。
+
+    ```java
+    @PostMapping (”/insert”) 
+    @ResponseBody
+    public User insert (@RequestBody User user) {
+        // do some thing
+        return user; 
+    }
+    ```
+
+    控制器方法标注@Response注解，会将方法返回值转换为Json数据格式返回给前端。
+
+4. 通过URL传递参数
+
+    REST风格的接口，参数往往通过URL进行传递。例如id为1的用户，URL一般为/user/1。Spring MVC通过注解@PathVariable和处理器映射器的组合获取URL参数。首先通过处理器映射可以定位参数的位置和名称，而＠PathVariable 则可以通过名称来获取参数。
+
+    ```java
+    @GetMapping (”/user/{id}”)  //｛...} 代表占位 ，还可以配置参数名称
+    @PathVariable // 通过名称获取参数
+    public User getUser (@PathVariable (”id” ) Long id) {
+        // do some thing
+        return user;
+    }
+    ```
+
+5. 获取格式化参数
+
+    Spring MVC支持还支持对参数的格式化，如日期(yyyy-MM-dd)和数值(1,000,000.23)等。
+
+    ```java
+    PostMapping("/format/commit"）
+    public void formatTest(@DateTimeFormat(iso＝ISO.DATE) Date date , 
+    						@NumberFormat(pattern =”#,###.##”) Double number) {
+        // do some thing
+    }
+    ```
+
+    Spring Boot 中， 日期参数的格式化也可以不使用＠DateTimeFormat 注解，而只在配置文件application.properties 中加入如下配置项即可：`spring.mvc.date-format=yyyy-MM-dd `
+
+#### 文件上传
+
+SpringMVC 对文件上传的支持：DispatcherServlet 会使用适配器模式，将 HttpServletRequest 对象转换为 MultipartHttpServletRequest 象。 MultipartHttpServletRequest 接口扩展了HttpServletRequest 接口的所有方法，而且定义了一些操作文件的方法 ，这样通过这些方法就可以实现对上传件的操作。
+
+在SpringBoot的机制内，自动配置的机制会为我们自动创建 MultipartResover 对象来实现文件上传，而且支持如下关于文件上传的配置。
+
+```properties
+spring.servlet.multipart.enabled: true #是否启用springMVC multipart(http请求中将文件分为多个部分)上传功能
+spring.servlet.multipart.file-size-threshold=0 ＃将文件写入磁盘的阀值 值可以使用后缀“MB ”或“ KB 来表示兆字节或字节大小
+spring.servlet.multipart.max-file-size: 500MB #单个文件进最大值
+spring.servlet.multipart.max-request-size: 1000MB #所有文件最大值
+spring.servlet.multipart.location: "files" # 文件保存目录，该目录在tomcat下
+```
+
+在控制器方法中，可以接收文件的参数有三种类型。每一种类型的处理方法都不一样。推荐使用第二、三种。
+
+```java
+// 1、使用 HttpServletRequest 类作为参数
+PostMapping(”/upload/request”) 
+public void uploadRequest(HttpServletRequest request) { 
+    // 强制转化为 MultipartHttpServletRequest 接口对象
+    MultipartHttpServletRequest mreq = (MultipartHttpServletRequest) request; 
+    MultipartFile mf = mreq.getFile(”file ”);
+    String fileName = mf.getOriginalFilename(); // 获取源文件名称
+    File file= new File(fileName) ; 
+    mf.transferTo (file ); // 保存文件
+}
+                     
+// 2、使用 Spring MVC MultipartFile 类作为参数
+PostMapping(”/upload/multipart”) 
+public void uploadMultipartFile (MultipartFile file) { 
+    String fileName = file.getOriginalFilename(); // 获取源文件名称
+    File dest =new File(fileName) ; 
+    file.transferTo(dest); // 保存文件
+}
+
+// 3、使用 Part 类作为参数
+@PostMapping(”/upload/part") 
+public void uploadPart (Part file ) { 
+    String fileName = file.getSubmittedFileName(); // 获取源文件名称
+    filele.write(fileName); // 保存文件
+}
+
+```
+
+#### 拦截器
+
+当请求来到 DispatcherServlet 时， 它会根据 HandlerMapping 的机制找到处理器 这样就会返回一个 HandlerExecutionChain对象，这个对象包含处理器和拦截器。这里的拦截器会对处理器进行拦截，这样通过拦截器就可以增强处理器的功能。（比如上传文件时，如果文件过大，只有在文件全部接收完成之后，才会将文件作为参数传送给控制器，使用拦截器在请求刚到达时就做一些处理）。
+
+拦截器的开发分为两步：
+
+第一步是编写拦截器（实现HandlerInterceptor接口，重写相关方法）：
+
+```java
+// 自定义拦截器，（实现接口方法参数以省略）
+public class MyInterceptor implements HandlerInterceptor {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // 在请求处理器之前进行调用（Controller方法调用之前）
+        System.out.println("Pre Handle");
+        return true; // 如果返回false，则停止流程，api不会被调用
+    }
+ 
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+        // 请求处理器之后进行调用，但是在视图被渲染之前（Controller方法调用之后）
+        System.out.println("Post Handle");
+    }
+ 
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception{
+        // 在整个请求结束之后调用，也就是在DispatcherServlet渲染了视图执行
+        System.out.println("After Completion");
+    }
+}
+```
+
+第二步是在SpringMVC中注册拦截器：
+
+```java
+// 注册拦截器
+@Component
+public class MvcConfig implements WebMvcConfigurer {
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        // 将自定义拦截器对象注册拦截器到 Spring MVC，然后会返回一个拦截器注册
+        InterceptorRegistration ir = registry.addInterceptor(new MyInterceptor() );
+        //指定拦截匹配模式，限制拦截器拦截请求
+        ir.addPathPatterns("/*/upload*"); // 这里可以配置拦截的路径，该模式可拦截请求/test/uploadFile
+        //.excludePathPatterns("/login", "/error"); // 这里可以配置不拦截的路径
+    }
+}
+```
+
+
+
+
+
+
+
+
+
+
 
 ### Controller最佳实践
 
