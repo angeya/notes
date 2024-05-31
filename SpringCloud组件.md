@@ -628,3 +628,213 @@ public class MyListener {
 ```
 
 如果监听不到远程事件，可以尝试在监听器方法加上`@Async注解`试一试。
+
+
+
+## Spring Cloud Stream
+
+### 一、Spring Cloud Stream是什么
+
+Spring Cloud Stream 是一个构建消息驱动微服务的框架。
+
+Spring Cloud Stream解决了开发人员无感知的使用消息中间件的问题，因为Spring Cloud Stream对消息中间件的进一步封装，可以做到代码层面对消息中间件的无感知，甚至于动态的切换中间件(rabbitmq切换为kafka等)，使得微服务开发的高度解耦，服务可以关注更多自己的业务流程；
+
+不需要自己写配置类，直接在配置文件中配置关键信息即可
+
+支持的消息中间件官网
+
+### 二、用Spring Cloud Stream与直接使用消息中间件对比
+
+和MQ中间件解耦：相较同样是针对MQ中间价集成的Spring Message项目，提供了更高层的面向不同MQ中间件代理（RabbitMQ、Kafka等）的Binder抽象，为开发人员提供了统一的编程模型。例如RabbitMQ原生并不支持partition特性，如果想要从Kafaka迁移到RabbitMQ，就需要修改一堆代码，但是如果是Spring Cloud Stream则有可能只需要修改几个配置即可。
+
+### 三、Spring Cloud Stream 关键信息说明
+
+应用程序通过input（相当于消费者consumer）、output（相当于生产者producer）来与Spring Cloud Stream中Binder交互，而Binder负责与消息中间件交互，因此，我们只需关注如何与Binder交互即可，而无需关注与具体消息中间件的交互。
+
+| 组成            | 说明                                                         |
+| --------------- | ------------------------------------------------------------ |
+| Binder          | Binder是应用与消息中间件之间的封装，通过Binder可以很方便的连接中间件，可以动态的改变消息类型(对应于Kafka的topic，RabbitMQ的exchange)，这些都可以通过配置文件来实现； |
+| @Input          | 该注解标识输入通道，通过该输入通道接收消息进入应用程序       |
+| @Output         | 该注解标识输出通道，发布的消息将通过该通道离开应用程序       |
+| @StreamListener | 监听队列，用于消费者的队列的消息接收                         |
+| @EnableBinding  | 将信道channel和exchange绑定在一起                            |
+
+
+
+
+### 四、Spring Cloud Stream 非持久化消息（基于RabbitMQ）
+
+maven依赖
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+</dependency>
+```
+
+#### 生产者
+
+生产者配置文件
+```yaml
+spring:
+  #r abbitmq配置
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: rabbitmq
+    password: rabbitmq
+  cloud:
+    # stream定义
+    stream:
+      binders:
+        # rabbitmqBinder是一个key，这个名字是一个通道的名称，消费者和生产者会绑定到这个通道
+        rabbitmqBinder:
+          # 指定中间件类型
+          type: rabbit
+      # 生产者和消费者绑定
+      bindings:
+        # @Output注解中的值
+        myOutput:
+          # 设置要绑定的消息服务的binder，就是 rabbitmqBinder
+          binder: rabbitmqBinder
+          #d estination表示要使用的Exchange名称定义，注意默认是Topic模式
+          destination: myExchange
+```
+
+自定义消息通道
+
+```java
+import org.springframework.cloud.stream.annotation.Output;
+import org.springframework.messaging.MessageChannel;
+
+/**
+ * @Description: 自定义消息通道
+ */
+public interface MessageSource {
+
+    //channel名称
+    String OUTPUT = "myOutput";
+
+    @Output(MessageSource.OUTPUT)
+    MessageChannel output();
+}
+
+```
+
+消息发送类，此处使用的自定义管道（@EnableBinding(Source.class)：为使用默认管道，key=“output”）
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.stream.annotation.EnableBinding;
+import org.springframework.messaging.support.MessageBuilder;
+
+import java.util.Date;
+
+/**
+ * @Description: 消息推送
+ */
+@EnableBinding(MessageSource.class)
+public class MessageSender {
+
+    /**
+     * 消息的发送管道
+     */
+    @Autowired
+    private MessageSource messageSource;
+
+    public void publish(String msg) {
+        messageSource.output().send (MessageBuilder.withPayload(msg).build());
+        System.out.println("消息发送：<" + msg + "> 完成，时间：" + new Date());
+    }
+}
+
+```
+
+消息发送Controller
+
+```java
+@RestController
+public class IndexController{
+
+    @Autowired
+    MessageSender messageSender;
+
+    @RequestMapping("sendMsg")
+    public void gen(){
+        messageSender.publish("hello Stream");
+    }
+    
+}
+```
+
+#### 消费者
+
+消费者配置文件
+
+```yaml
+spring:
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: rabbitmq
+    password: rabbitmq
+  cloud:
+    # stream定义
+    stream:
+      binders:
+        # rabbitmqBinder是一个key，这个名字是一个通道的名称，在代码中会用到
+        rabbitmqBinder:
+          # 中间件类型
+          type: rabbit
+      bindings:
+        # 与@Input注解中值对应
+        myInput:
+          # 设置要绑定的消息服务的binder，就是 rabbitmqBinder
+          binder: rabbitmqBinder
+          # destination表示要使用的Exchange名称定义，注意默认是Topic模式
+          destination: myExchange
+```
+
+自定义可订阅通道
+
+```java
+import org.springframework.cloud.stream.annotation.Input;
+import org.springframework.messaging.SubscribableChannel;
+
+/**
+ * @Description: 自定义可订阅通道
+ */
+public interface MessageSink {
+    /**
+     * Input channel name.
+     */
+    String INPUT = "myInput";
+
+    /**
+     * 消费者信道
+     */
+    @Input(MessageSink.INPUT)
+    SubscribableChannel input();
+}
+
+```
+
+自定义通道消息接收（默认@EnableBinding(Sink.class)，@StreamListener(Sink.INPUT)，key=“input”）
+
+```java
+import org.springframework.cloud.stream.annotation.EnableBinding;
+import org.springframework.cloud.stream.annotation.StreamListener;
+import org.springframework.messaging.Message;
+import java.util.Date;
+
+@EnableBinding(MessageSink.class)
+public class MessageReceiver {
+
+    @StreamListener(MessageSink.INPUT)
+    public void input(Message message) {
+        System.out.println("消息接收：<" + message.getPayload()  + "> 完成，时间：" + new Date());
+    }
+}
+
+```
+
