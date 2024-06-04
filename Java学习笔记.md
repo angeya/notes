@@ -1500,6 +1500,50 @@ List<Callable<Integer>> callableList = ...
 List<Future<Integer>> resultList = executorService.invokeAll(callableList);
 ```
 
+### CompletableFuture
+
+`CompletableFuture` 是 Java 8 引入的一个类，用于支持异步编程。它扩展了 `Future` 接口，提供了更多的功能和灵活性。
+
+`CompletableFuture`和`Future`主要区别如下：
+
+1. **异步执行任务**：
+   - `Future` 接口提供了一个异步执行任务并获取结果的简单机制。但是，它的功能有限，无法手动完成任务或者使用回调函数处理任务完成时的结果。
+   - `CompletableFuture` 可以手动完成任务，也可以使用回调函数处理任务完成时的结果，提供了更加灵活的异步编程方式。
+2. **链式操作**：
+   - `CompletableFuture` 支持链式操作，可以将多个异步任务连接在一起，形成复杂的任务流水线。这样的操作使得编写异步代码更加清晰和简洁。
+   - `Future` 不支持链式操作，需要手动管理异步任务之间的依赖关系，代码结构相对较为复杂。
+3. **异常处理**：
+   - 在 `Future` 中，如果异步任务抛出异常，它将会在调用 `get()` 方法时抛出。
+   - 而在 `CompletableFuture` 中，可以通过 `exceptionally` 或 `handle` 方法来处理异步任务的异常，使得异常处理更加灵活。
+
+使用方法：
+
+- **Future**：使用 `ExecutorService` 提交任务，返回 `Future` 对象，通过 `get()` 方法获取任务结果。
+
+  ```java
+  java复制代码ExecutorService executor = Executors.newFixedThreadPool(1);
+  Future<Integer> future = executor.submit(() -> {
+      // 执行任务
+      return 1;
+  });
+  Integer result = future.get();
+  ```
+
+- **CompletableFuture**：通过 `supplyAsync` 或 `runAsync` 方法创建 `CompletableFuture` 对象，可以直接链式调用方法，使用 `thenApply`, `thenCompose`, `thenCombine` 等方法处理任务完成后的结果。
+
+  ```java
+  java复制代码CompletableFuture<Integer> future = CompletableFuture.supplyAsync(() -> {
+      // 执行任务
+      return 1;
+  });
+  future.thenApply(result -> result * 2)
+        .thenAccept(System.out::println);
+  ```
+
+  如果需要阻塞的方式，可以调用`join`方法。直接等待执行完成并获取结果。
+
+综上所述，`CompletableFuture` 提供了更加强大和灵活的异步编程能力，适用于复杂的异步场景，而 `Future` 则适用于简单的异步任务。
+
 ### 异步计算
 
 等待添加...
