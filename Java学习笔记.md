@@ -887,6 +887,76 @@ logger.info("some message"); // 打印消息
 >
 > final：编程习惯，而且使用 final 可以提高日志的可信度
 
+Java日志标准框架中日志级别和其他日志框架级别名称不太一样，具体如下（省略了大部分代码）：
+
+```java
+package java.util.logging;
+
+public class Level implements java.io.Serializable {
+    private static final String defaultBundle = "sun.util.logging.resources.logging";
+
+    /**
+     * @serial  The non-localized name of the level.
+     */
+    private final String name;
+
+    /**
+     * @serial  The integer value of the level.
+     */
+    private final int value;
+
+    /**
+     * OFF is a special level that can be used to turn off logging.
+     * This level is initialized to <CODE>Integer.MAX_VALUE</CODE>.
+     */
+    public static final Level OFF = new Level("OFF",Integer.MAX_VALUE, defaultBundle);
+
+    /**
+     * SEVERE is a message level indicating a serious failure.
+     */
+    public static final Level SEVERE = new Level("SEVERE",1000, defaultBundle);
+
+    /**
+     * WARNING is a message level indicating a potential problem.
+     */
+    public static final Level WARNING = new Level("WARNING", 900, defaultBundle);
+
+    /**
+     * INFO is a message level for informational messages.
+     */
+    public static final Level INFO = new Level("INFO", 800, defaultBundle);
+
+    /**
+     * CONFIG is a message level for static configuration messages.
+     */
+    public static final Level CONFIG = new Level("CONFIG", 700, defaultBundle);
+
+    /**
+     * FINE is a message level providing tracing information.
+     */
+    public static final Level FINE = new Level("FINE", 500, defaultBundle);
+
+    /**
+     * FINER indicates a fairly detailed tracing message.
+     */
+    public static final Level FINER = new Level("FINER", 400, defaultBundle);
+
+    /**
+     * FINEST indicates a highly detailed tracing message.
+     */
+    public static final Level FINEST = new Level("FINEST", 300, defaultBundle);
+
+    /**
+     * ALL indicates that all messages should be logged.
+     * This level is initialized to <CODE>Integer.MIN_VALUE</CODE>.
+     */
+    public static final Level ALL = new Level("ALL", Integer.MIN_VALUE, defaultBundle);
+}
+
+```
+
+
+
 
 
 ## 第8章 泛型程序设计
