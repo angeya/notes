@@ -524,7 +524,7 @@ DockerCompose的详细语法参考官网：https://docs.docker.com/compose/compo
 
 3. 配置Docker信任地址
 
-   我们的私服采用的是http协议，默认不被Docker信任，所以需要做一个配置：
+   我们的私服采用的是http协议，默认不被Docker信任 (信任https)，所以需要做一个配置：
 
    ```bash
    # 打开要修改的文件
@@ -541,22 +541,22 @@ DockerCompose的详细语法参考官网：https://docs.docker.com/compose/compo
 
 推送镜像到私有镜像服务必须先tag，步骤如下：
 
-1. 重新tag本地镜像，名称前缀为私有仓库的地址：192.168.150.101:8080/
+1. 重新tag本地镜像，名称前缀为私有仓库的地址：127.0.0.1:8080/
 
    ```bash
-   docker tag nginx:latest 192.168.150.101:8080/nginx:1.0 
+   docker tag nginx:latest 127.0.0.1:8080/nginx:1.0 # nginx:latest为本地镜像，远程可以增加上目录如：127.0.0.1:8080:8080/web/nginx:1.0
    ```
 
 2. 推送镜像
 
    ```bash
-   docker push 192.168.150.101:8080/nginx:1.0 
+   docker push 127.0.0.1:8080/nginx:1.0 
    ```
 
 3. 拉取镜像
 
    ```bash
-   docker pull 192.168.150.101:8080/nginx:1.0 
+   docker pull 127.0.0.1:8080/nginx:1.0 
    ```
 
    
