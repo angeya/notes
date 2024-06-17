@@ -188,8 +188,8 @@ docker pull # 从仓库拉取镜像，可以在镜像前面写上仓库地址，
 docker iamges # 查看所有的本地镜像
 docker search # 在远程仓库搜索相关镜像
 docker push # 将本地镜像推送到仓库
-docker save # 保存镜像为一个压缩包 如：docker save -o cni.tar flannel/flannel-cni-plugin 参数-o为output
-docker load # 加载压缩包为镜像 如：docker load -i cni.tar 参数-i为input
+docker save # 保存镜像为一个压缩包 如：docker save -o nginx.tar nginx/nginx:1.0 参数-o为output，
+docker load # 加载压缩包为镜像 如：docker load -i nginx.tar 参数-i为input，加载之后镜像tag也会被创建
 docker tag # 修改镜像的tag或者名称 如：docker tag xxx flannel/flannel-cni-plugin:1.2.0 其中xxx为镜像id，这里是会复制出一个新的镜像，但是新旧镜像id是一样的，要删除旧镜像只能通过 rmi name:tag 的方式
 docker create # 通过镜像创建容器
 docker run # 创建容器并运行，相当于create和start两条命令,docker run --name nginx -p 80:80 -d nginx 参数：-p配置主机端口和容器端口的映射，第一个是-d后台运行。也可以使用 ---network=host 配置项设置容器的网络模式，设置为host时，容器将会直接使用主机的端口，避免了配置端口映射的麻烦，默认的网络模式是bridge。
@@ -303,6 +303,8 @@ docker version # 查看docker版本
 - Yaml格式：`Docker Compose`使用Yaml格式来定义容器、服务、网络和存储等信息，易于理解和管理。
 - 可扩展性：`Docker Compose`可以快速扩展、添加和删除容器，使得它非常适合于部署和管理大规模的容器化应用程序。
 - 与`Docker Engine`集成：`Docker Compose`与`Docker Engine`紧密集成，在Docker官方文档中有详细的介绍，同时也支持第三方插件和工具。
+
+如果没有安装docker-compose，也可以使用docker来代替，只是管理会比较麻烦，部署应用的话建议将docker命令放入一个sh脚本文件中，这样便于下次使用，避免记不住命令的尴尬。
 
 ### 4.1DockerCompose的安装
 
