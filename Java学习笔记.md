@@ -1515,6 +1515,8 @@ ExecutorService service = new ThreadPoolExecutor(10, 15, 60,
                 new ThreadPoolExecutor.AbortPolicy());
 ```
 
+`ThreadPoolExecutor`类的`allowCoreThreadTimeOut(true)`方法：可以设置允许核心线程超时销毁，节省资源。适用于线程池的任务有时候很多，但是有时候很少的情况。为什么不把核心线程设置为0 ？因为那样只有当任务队列满了，才会创建线程执行任务。
+
 **参数说明：**
 
 - corePoolSize  核心线程数：线程池创建的时候就会创建的线程数量，默认会一直存在线程池，即便空闲着。
