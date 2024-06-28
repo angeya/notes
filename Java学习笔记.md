@@ -1515,9 +1515,37 @@ ExecutorService service = new ThreadPoolExecutor(10, 15, 60,
                 new ThreadPoolExecutor.AbortPolicy());
 ```
 
-线程工厂ThreadFactory是用来创建线程的（返回一个Thread对象），可以自定义实现，不过一般使用默认提供的就够了。
+**参数说明：**
 
-拒绝策略，默认是AbortPolicy
+- corePoolSize  核心线程数：线程池创建的时候就会创建的线程数量，默认会一直存在线程池，即便空闲着。
+
+- maximumPoolSize 最大线程数：这是线程池允许创建的最大线程数。如果队列已满且活动线程数小于最大线程数，则会创建新线程来处理任务。
+
+- keepAliveTime 非核心线程空闲时存活时间：非核心线程如果空闲时间超过这个配置，就会被销毁，节省资源。
+
+- unit 时间单位：上一个参数的时间单位。
+
+- workQueue 任务队列：一个阻塞队列，用于存放任务，线程池不断从中获取任务执行。
+
+- threadFactory 线程工厂T： 用来创建线程的（返回一个Thread对象），可以自定义实现，不过一般使用默认提供的就够了。
+
+- handler 拒绝策略：当任务无法被提交执行时的处理策略。一般队列满了，最大线程也都在执行任务，就会拒绝提交。
+
+  1. `ThreadPoolExecutor.AbortPolicy()`: 是默认的策略，它会抛出 `RejectedExecutionException` 异常来拒绝新任务的提交。
+
+     适用于希望在任务无法处理时立即得到通知的场景。
+
+  2.  `ThreadPoolExecutor.CallerRunsPolicy()`: 被拒绝后使用当前调用的线程来执行任务。这种策略可以有效降低新任务的提交速率，从而减少任务被拒绝的次数，因为提交任务的线程在执行任务时无法继续提交新任务。
+
+     适用于希望尽量保证任务执行但不要求高并发性的场景。
+
+  3. `ThreadPoolExecutor.DiscardPolicy()`：当任务被拒绝时，直接丢弃被拒绝的任务，不予处理，也不抛出异常。
+
+     适用于不需要处理被拒绝任务的场景。
+
+  4. `ThreadPoolExecutor.DiscardOldestPolicy()`：当任务被拒绝时，丢弃队列中最旧的未处理任务，然后重新尝试提交被拒绝的任务。
+
+     适用于希望优先处理最新任务而不是维护所有任务的场景。
 
 #### ExecutorService常用方法
 
