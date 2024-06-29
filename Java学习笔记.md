@@ -844,9 +844,15 @@ Throwable original = caughtException.getCause();
 try(Resource res) {
     // do something
 }
+
+// try-with-resources 语句可以管理多个资源，每个资源用分号分隔
+try (InputStream inputStream = new FileInputStream("filePath"); 
+     OutputStream outputStream = new FileOutputStream("filePath")) {
+    // do something
+}
 ```
 
-try 块退出时，会自动调用 res 资源对象的 close() 方法。
+try 块退出时，会自动调用 res 资源对象的 close() 方法。不过前提是 res 必须要实现 `java.lang.AutoCloseable` 接口，该接口包含一个 `close()` 方法。
 
 > try-with-resource 也可以有catch 和 finally 子句，它们会在资源关闭后执行
 
