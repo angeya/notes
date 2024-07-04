@@ -1260,11 +1260,15 @@ try {
 
 #### 守护线程
 
-可以调用如下方法将线程设置为守护线程。不过这样一个线程并没有什么魔力。不过当只剩下守护线程时，虚拟机就会退出。因为守护线程是为其他线程服务的。
+可以调用如下方法将线程设置为守护线程、不过这样一个线程并没有什么魔力。当只剩下守护线程时，虚拟机就会退出，因为守护线程是为其他线程服务的。
 
 ```java
 thread.setDaemon(true);
 ```
+
+> `ThreadPoolExecutor` 默认创建的线程是非守护线程（non-daemon threads）。非守护线程会阻止 JVM 关闭，即使主线程已经完成。因此，你的程序不会退出，直到线程池中所有的（非守护）线程终止。
+>
+> `ForkJoinPool.commonPool()` 使用的线程是守护线程（daemon threads）。守护线程不会阻止 JVM 关闭。当所有非守护线程完成时，JVM 会退出，即使还有守护线程在运行。因此，如果主线程完成并且没有其他非守护线程，JVM 会退出，不会等待守护线程完成剩余的任务。
 
 #### 线程名
 
@@ -1497,6 +1501,8 @@ ExecutorService：执行器服务，真正地线程池接口。继承Executor接
 
 ThreadPoolExecutor：ExecutorService的默认实现，继承了类AbstractExecutorService。可以用来创建自定义线程池。
 
+
+
 #### JDK内置线程池
 
 以下为JDK内置的几种常见线程池：
@@ -1523,21 +1529,21 @@ ExecutorService service = new ThreadPoolExecutor(10, 15, 60,
 
 `ThreadPoolExecutor`类的`allowCoreThreadTimeOut(true)`方法：可以设置允许核心线程超时销毁，节省资源。适用于线程池的任务有时候很多，但是有时候很少的情况。为什么不把核心线程设置为0 ？因为那样只有当任务队列满了，才会创建线程执行任务。
 
-**参数说明：**
+**ThreadPoolExecutor参数说明：**
 
-- corePoolSize  核心线程数：线程池创建的时候就会创建的线程数量，默认会一直存在线程池，即便空闲着。
+- `corePoolSize`  核心线程数：线程池创建的时候就会创建的线程数量，默认会一直存在线程池，即便空闲着。
 
-- maximumPoolSize 最大线程数：这是线程池允许创建的最大线程数。如果队列已满且活动线程数小于最大线程数，则会创建新线程来处理任务。
+- `maximumPoolSize` 最大线程数：这是线程池允许创建的最大线程数。如果队列已满且活动线程数小于最大线程数，则会创建新线程来处理任务。
 
-- keepAliveTime 非核心线程空闲时存活时间：非核心线程如果空闲时间超过这个配置，就会被销毁，节省资源。
+- `keepAliveTime` 非核心线程空闲时存活时间：非核心线程如果空闲时间超过这个配置，就会被销毁，节省资源。
 
-- unit 时间单位：上一个参数的时间单位。
+- `unit` 时间单位：上一个参数的时间单位。
 
-- workQueue 任务队列：一个阻塞队列，用于存放任务，线程池不断从中获取任务执行。
+- `workQueue` 任务队列：一个阻塞队列，用于存放任务，线程池不断从中获取任务执行。
 
-- threadFactory 线程工厂T： 用来创建线程的（返回一个Thread对象），可以自定义实现，不过一般使用默认提供的就够了。
+- `threadFactory` 线程工厂T： 用来创建线程的（返回一个Thread对象），可以自定义实现，不过一般使用默认提供的就够了。
 
-- handler 拒绝策略：当任务无法被提交执行时的处理策略。一般队列满了，最大线程也都在执行任务，就会拒绝提交。
+- `handler` 拒绝策略：当任务无法被提交执行时的处理策略。一般队列满了，最大线程也都在执行任务，就会拒绝提交。
 
   1. `ThreadPoolExecutor.AbortPolicy()`: 是默认的策略，它会抛出 `RejectedExecutionException` 异常来拒绝新任务的提交。
 
@@ -1591,16 +1597,19 @@ Callable<String> stringCallable = new Callable<String>() {
         return "This is callable";
     }
 };
+
 // 方法一：通过FutureTask，它实现了Future和Runnable接口
 FutureTask<String> task = new FutureTask<>(stringCallable);
 Thread thread = new Thread(task);
 thread.start();
 System.out.println(task.get()); // 打印执行结果
+
 // 方法二：通过执行器执行
 ExecutorService service = Executors.newSingleThreadExecutor();
 Future<String> result = service.submit(stringCallable);
 service.shutdown();
 System.out.println(result.get()); // 打印执行结果
+
 // 也可以批量在线程池中执行任务
 List<Callable<Integer>> callableList = ...
 List<Future<Integer>> resultList = executorService.invokeAll(callableList);
@@ -1622,33 +1631,146 @@ List<Future<Integer>> resultList = executorService.invokeAll(callableList);
    - 在 `Future` 中，如果异步任务抛出异常，它将会在调用 `get()` 方法时抛出。
    - 而在 `CompletableFuture` 中，可以通过 `exceptionally` 或 `handle` 方法来处理异步任务的异常，使得异常处理更加灵活。
 
-使用方法：
 
-- **Future**：使用 `ExecutorService` 提交任务，返回 `Future` 对象，通过 `get()` 方法获取任务结果。
 
-  ```java
-  java复制代码ExecutorService executor = Executors.newFixedThreadPool(1);
-  Future<Integer> future = executor.submit(() -> {
-      // 执行任务
-      return 1;
-  });
-  Integer result = future.get();
-  ```
+**创建和完成 `CompletableFuture`**
 
-- **CompletableFuture**：通过 `supplyAsync` 或 `runAsync` 方法创建 `CompletableFuture` 对象，可以直接链式调用方法，使用 `thenApply`, `thenCompose`, `thenCombine` 等方法处理任务完成后的结果。
+创建一个已经完成的 `CompletableFuture`
 
-  ```java
-  java复制代码CompletableFuture<Integer> future = CompletableFuture.supplyAsync(() -> {
-      // 执行任务
-      return 1;
-  });
-  future.thenApply(result -> result * 2)
-        .thenAccept(System.out::println);
-  ```
+```java
+CompletableFuture<String> completedFuture = CompletableFuture.completedFuture("Hello");
+System.out.println(completedFuture.get()); // 输出 "Hello"
+```
 
-  如果需要阻塞的方式，可以调用`join`方法。直接等待执行完成并获取结果。
+创建一个新的 `CompletableFuture` 并手动完成
 
-综上所述，`CompletableFuture` 提供了更加强大和灵活的异步编程能力，适用于复杂的异步场景，而 `Future` 则适用于简单的异步任务。
+```java
+CompletableFuture<String> future = new CompletableFuture<>();
+// 在另一个线程中完成这个 future
+new Thread(() -> {
+    try {
+        Thread.sleep(1000); // 模拟延迟
+        future.complete("Hello from another thread");
+    } catch (InterruptedException e) {
+        future.completeExceptionally(e);
+    }
+}).start();
+
+System.out.println(future.get()); // 等待并获取结果
+```
+
+**异步执行任务**
+
+异步执行任务可以自己提供执行器，不提供则使用 `ForkJoinPool.commonPool()` 执行。这个线程池是一个全局的、共享的池，适用于大多数应用程序。
+
+使用 `runAsync` 执行一个没有返回值的异步任务
+
+```java
+CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+    try {
+        Thread.sleep(1000); // 模拟延迟
+        System.out.println("Hello from runAsync");
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+});
+future.get(); // 等待任务完成
+```
+
+使用 `supplyAsync` 执行一个有返回值的异步任务。
+
+```java
+CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+    try {
+        Thread.sleep(1000); // 模拟延迟
+        return "Hello from supplyAsync";
+    } catch (InterruptedException e) {
+        throw new IllegalStateException(e);
+    }
+});
+System.out.println(future.get()); // 等待并获取结果
+```
+
+**组合多个 `CompletableFuture`**
+
+使用 `thenCombine` 组合两个 `CompletableFuture`
+
+```java
+CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
+    return "Hello";
+});
+CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
+    return "World";
+});
+CompletableFuture<String> combinedFuture = future1.thenCombine(future2, (result1, result2) -> {
+    return result1 + " " + result2;
+});
+System.out.println(combinedFuture.get()); // 输出 "Hello World"
+```
+
+**处理异常**
+
+使用 `exceptionally` 处理异常
+
+```java
+CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+    if (true) {
+        throw new RuntimeException("Exception occurred!");
+    }
+    return "Hello";
+}).exceptionally(ex -> {
+    System.out.println("Exception: " + ex.getMessage());
+    return "Recovered";
+});
+System.out.println(future.get()); // 输出 "Recovered"
+```
+
+使用 `handle` 处理结果和异常
+
+```java
+CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+    if (true) {
+        throw new RuntimeException("Exception occurred!");
+    }
+    return "Hello";
+}).handle((result, ex) -> {
+    // 一般result和ex总有一个为null
+    if (ex != null) {
+        System.out.println("Exception: " + ex.getMessage());
+        return "Recovered";
+    }
+    return result;
+});
+System.out.println(future.get()); // 输出 "Recovered"
+```
+
+**回调**
+
+使用 `thenApply` 处理结果，加强结果，返回`CompletableFuture<U>`
+
+```java
+CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+    return "Hello";
+}).thenApply(result -> {
+    return result + " World";
+});
+System.out.println(future.get()); // 输出 "Hello World"
+```
+
+使用 `thenAccept` 处理异步任务的结果，消费结果，返回`CompletableFuture<Void>`
+
+```java
+CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
+    return "Hello, World!";
+}).thenAccept(result -> {
+    System.out.println(result); // 输出 "Hello, World!"
+});
+future.get(); // 等待任务完成
+```
+
+这些示例展示了 `CompletableFuture` 的一些基本用法。通过组合这些操作，你可以以声明式的方式编写复杂的异步逻辑，从而避免传统的回调地狱问题。
+
+
 
 ### 异步计算
 
