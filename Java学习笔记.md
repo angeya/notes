@@ -1514,6 +1514,10 @@ ExecutorService executorService = Executors.newFixedThreadPool(10);
 ExecutorService executorService = Executors.newCachedThreadPool();
 // 创建单线程线程池，保证任务执行顺序，也可以用于测试单线程与多线程的性能差异
 ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+// 一般各种编码规则插件都提示不建议使用上面的几个线程池。
+// JDK 1.7之后加了ForkJoinPool，实现了AbstractExecutorService，可以作为通用线程池。
+ExecutorService executorService = ForkJoinPool.commonPool();
 ```
 
 #### 自定义线程池
@@ -1568,8 +1572,9 @@ Future<T> submit(Callable<T> task); // 提交callable任务
 Future<T> submit(Runnable task, T result); // 
 Future<?> submit(Runnable task); //
 void execute(Runnable task); // 执行任务，没有返回值
-shutdown(); // 不再接收新任务，等所有提交的任务执行完后关闭线程池
-shutdownNow(); // 等正在执行任务完成就关闭线程池
+boolean shutdown(); // 不再接收新任务，等所有提交的任务执行完后关闭线程池
+boolean shutdownNow(); // 等正在执行任务完成就关闭线程池
+boolean awaitTermination(long timeout, TimeUnit unit); // 在shutdown方法调用之后，会阻塞直到所有任务执行结束
 ```
 
 ### Callable和Future
