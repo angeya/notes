@@ -184,11 +184,11 @@ yum  install -y epel-release # 我们安装的网络yum源基本都是基础的y
 
    如果以上方法不行。
 
-   编辑文件`/etc/sysconfig/network-scprits/ifcfg-ens33`,文件名可能不是33而是其他编号。
+   编辑文件`/etc/sysconfig/network-scprits/ifcfg-ens33`,文件名可能不是-ens33而是其他编号，或者类似eth0等。
 
    在文件中 找到 ONBOOT=NO 改成 ONBOOT=yes
 
-   重启网络： `service network restart`
+   重启网络： `systemctl restart network`
 
 ### 查看linux的IP地址
 

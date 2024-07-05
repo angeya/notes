@@ -336,10 +336,13 @@ docker version # 查看docker版本
 - version：指定Compose文件格式的版本号，当前最新版本为3.2。
 - services：定义应用程序中的各个服务，每个服务都有一个独立的Docker容器。
 - image：指定要使用的Docker镜像。
-- ports：将容器端口映射到主机端口，格式为"HOST:CONTAINER"。
-- volumes：将主机上的目录或文件夹挂载到容器中，格式为"HOST:CONTAINER"。
+- container_name：创建的容器的名称
+- ports：将容器端口映射到主机端口，格式为`hostPort:containerPort`。
+- networks：配置网络，不同的网络配置可以进行网络隔离。如果指定为host网络模式，则与宿主机直连，可以不用配置端口映射。
+- volumes：将主机上的目录或文件夹挂载到容器中，格式为`hostPath:containerPath`。
 - networks：定义应用程序中的网络，在同一个网络中的服务可以相互通信。
-- environment：设置环境变量，格式为"KEY=VALUE"。
+- environment：设置环境变量，格式为"KEY=VALUE"。当环境变量多的时候可以使用 env_file。
+- env_file：指定一个或多个配置环境变量的文件。只有几个变量的时候可以使用 environment。
 
 **部署一个nginx一个mysql**
 
@@ -364,14 +367,20 @@ services:
       - ./html:/usr/share/nginx/html
       - ./logs:/var/log/nginx
     # 容器的环境变量
-    environment: - NGINX_HOST=localhost - NGINX_PORT=80
+    environment: 
+    	- NGINX_HOST=localhost 
+    	- NGINX_PORT=80
     networks: - webnet
   db: 
     image: mysql 
-    volumes: - ./db:/var/lib/mysql 
-    networks: - dbnet 
-    environment: - MYSQL_ROOT_PASSWORD=password 
-    networks: - webnet
+    volumes: 
+      - ./db:/var/lib/mysql 
+    networks: 
+      - dbnet 
+    environment: 
+      - MYSQL_ROOT_PASSWORD=password 
+    networks: 
+      - webnet
 ```
 
 
