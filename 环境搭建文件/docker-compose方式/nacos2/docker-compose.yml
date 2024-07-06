@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  nacos:
+    image: nacos/nacos-server:v2.3.2
+    container_name: nacos2
+    env_file:
+      - ./env/nacos.env
+    volumes:
+      - ./logs/:/home/nacos/logs
+      - ./data/:/home/nacos/data/
+      - ./conf/nacos-logback.xml:/home/nacos/conf/nacos-logback.xml
+      # - ./conf/application.properties:/home/nacos/conf/application.properties
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    #depends_on:
+    #  mysql:
+    #    condition: service_healthy
+    restart: always
