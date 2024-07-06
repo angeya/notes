@@ -146,7 +146,7 @@ yum -y install <package_name>           							# 不加-y则会询问是否安�
 yum install --downloadonly --downloaddir=/xx/xxx/xx/				 # 只下载软件但不安装
 
 # yum 卸载删除软件
-yum remove <package_name>						# 卸载程序包，此卸载命令会岁 yum 或 rpm 安装的包生效，如果是编译安装的，则不受yum控制
+yum remove <package_name>						# 卸载程序包，此卸载命令会对 yum 或 rpm 安装的包生效，如果是编译安装的，则不受yum控制
 yum groupremove <group_name>					# 删除程序组group
 
 # yum 包升级

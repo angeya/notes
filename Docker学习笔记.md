@@ -95,7 +95,7 @@
 1. 卸载旧版本Docker相关组件
 
    ```bash
-    sudo yum remove docker \
+    yum remove docker \
                      docker-client \
                      docker-client-latest \
                      docker-common \
@@ -105,13 +105,15 @@
                      docker-engine
    ```
 
-2. 安装yum相关组件，并添加仓库地址
+2. 安装yum相关组件，并添加 yum 源仓库地址
 
    ```bash
-    sudo yum install -y yum-utils
-    sudo yum-config-manager \
-       --add-repo \
-       https://download.docker.com/linux/centos/docker-ce.repo
+   # 安装 yum 扩展工具，用于添加源地址
+   yum install -y yum-utils
+   # 配置添加官方的源，可能会出现网络连不上的问题
+   yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+   # 使用阿里云的源
+   yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
    ```
 
 3. 安装Docker（CentOS）
@@ -119,7 +121,7 @@
    安装最新版
 
    ````bash
-   sudo yum install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+   yum install docker-ce docker-ce-cli containerd.io docker-compose-plugin
    ````
 
    安装指定版本
@@ -128,21 +130,24 @@
    # 列出可安装的版本
    yum list docker-ce --showduplicates | sort -r
    # 指定版本号进行安装
-   sudo yum install docker-ce-<VERSION_STRING> docker-ce-cli-<VERSION_STRING> containerd.io docker-compose-plugin
+   yum install docker-ce-<VERSION_STRING> docker-ce-cli-<VERSION_STRING> containerd.io docker-compose-plugin
    ```
 
 4. 启动Docker
 
    ```bash
-   sudo systemctl start docker
+   systemctl start docker
    # 还可以通过 systemctl 命令进行stop enable status等操作
+   
+   # 如果提示 Unit docker.service could not be found. 说明没有注册到systemd中，可能需要执行如下命令或者重新安装
+   systemctl daemon-reload # 重载守护进程
    ```
 
 5. 验证Docker是否安装成功
 
    ```bash
    # 拉取 hello-world 镜像并运行
-   sudo docker run hello-world
+   docker run hello-world
    ```
 
    完整安装步骤可见官网 `https://docs.docker.com/engine/install/centos/`
