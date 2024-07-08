@@ -1,0 +1,16 @@
+version: '3.3'
+services:
+  redis:
+    container_name: redis
+    image: redis:7.0.15
+    # 使用root权限
+    user: root
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./conf/:/usr/local/etc/redis/conf/
+      - ./data/:/data/
+      - ./logs/:/logs/
+    # 启动命令
+    command: redis-server /usr/local/etc/redis/conf/redis.conf
