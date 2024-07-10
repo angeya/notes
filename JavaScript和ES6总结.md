@@ -1055,6 +1055,8 @@ FileReader 是 JavaScript 提供的内置对象，用于读取本地文件内容
 
 需要注意的是，由于 FileReader 方法是异步执行的，因此需要在 `onload` 事件处理函数中处理文件内容或进行后续操作。
 
+
+
 ### 获取静态文件内容
 
 在浏览器中直接打开静态文件的地址会变成文件预览或者下载，如果使用axios访问，获取到的文件内容被修改了，不知道是不是目前项目中做了拦截的原因（可以进一步去验证）。
@@ -1078,6 +1080,8 @@ function getPlainText(link) {
       })
   }
 ```
+
+
 
 ### 前端使用代码编辑器
 
@@ -1179,6 +1183,7 @@ Vue-Codemirror 6版本只支持Vue3，因为项目是Vue2，所以这里的使�
    ```
 
 
+
 ### 获取地址栏参数
 
 ```javascript
@@ -1187,6 +1192,8 @@ const params = new URLSearchParams(window.location.search);
 // 获取id参数
 const id = params.get('id')
 ```
+
+
 
 ### 使用js渲染pdf
 
@@ -1256,6 +1263,8 @@ const id = params.get('id')
 </script>
 ```
 
+
+
 ### Iframe之间通过postMessage传递消息
 
 理解 `postMessage()` 方法的使用方法是很重要的，下面我将为你提供一个简单的示例来说明如何在父窗口和嵌套的 `<iframe>` 之间进行消息传递。
@@ -1320,6 +1329,29 @@ const id = params.get('id')
 </html>
 
 ```
+
+
+
+### 浏览器打开媒体文件还是下载
+
+为什么浏览器中有些图片、PDF等文件点击后是预览，有些是下载? 这是因为请求的响应头设置了参数`Content-Disposition`来告诉浏览器怎么处理这个响应内容。
+
+这是请求头的几种形式
+
+```
+Content-Disposition: inline # 浏览器尝试打开和渲染内容，不设置应该和这个一样
+Content-Disposition: attachment # 下载为文件
+Content-Disposition: attachment; filename="example.txt" # 下载为文件, filename指定下载的文件名称
+```
+
+pdf 文件下载的请求头一般为
+
+```
+Content-Disposition: attachment; filename="example.pdf"
+Content-Type: application/pdf
+```
+
+
 
 
 
