@@ -1,4 +1,4 @@
-# Nginx常用配置
+## Nginx常用配置
 
 ### 简介
 
@@ -161,6 +161,8 @@ http {
 ```
 ### 支持WebSocket
 
+本质上是添加请求头，并设置http版本为1.1。
+
 ```nginx
 location /index/ {
 	proxy_http_version 1.1;
@@ -169,3 +171,41 @@ location /index/ {
 	proxy_pass http://127.0.0.1:80/home.html;
 }
 ```
+
+
+
+### Nginx配置常用指令说明
+
+#### proxy_set_header
+
+设置请求头：`add_header header_name header_value [always];`可选的 `always` 参数表示无论响应状态码是什么，都应该添加该头部。
+
+```nginx
+# 设置并传递原始请求的host
+proxy_set_header Host $host;
+```
+
+
+
+#### proxy_hide_header
+
+去掉响应头：`proxy_set_header header_name header_value;`
+
+```nginx
+# 不设置内容处理方式，例如有的服务通过设置此响应头来强制下载文件
+proxy_hide_header Content-Disposition;
+# 隐藏Mime类型，比如 text/html 类型，这时候浏览器会html的代码，而不是渲染
+proxy_hide_header Content-Type;
+```
+
+
+
+#### add_header 
+
+设置响应头：`add_header header_name header_value [always];`可选的 `always` 参数表示无论响应状态码是什么，都应该添加该头部。
+
+```java
+# 设置响应的内容类型
+add_header Content-Type applicaiton/json;
+```
+
