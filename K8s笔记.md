@@ -23,7 +23,7 @@ Kubernetes（通常缩写为k8s）是一个开源的容器编排系统，用于�
 3. 创建和删除资源：
 
   ```bash
-  kubectl apply -f <file.yaml> # 根据 YAML 文件创建或更新资源。
+  kubectl apply -f <file.yaml> # 根据 YAML 文件创建或更新资源。 
   kubectl create -f <file.yaml> # 根据 YAML 文件创建资源。
   kubectl delete pod <pod-name> # 删除指定的 Pod。
   kubectl delete -f <file.yaml> # 删除 YAML 文件中定义的资源。
@@ -33,7 +33,7 @@ Kubernetes（通常缩写为k8s）是一个开源的容器编排系统，用于�
 4. 与 Pod 交互：
 
   ```bash
-  kubectl logs <pod-name> # 显示特定 Pod 的日志。
+  kubectl logs <pod-name> # 显示特定 Pod 的日志。-f 跟踪 --tail= 指定行数；和docker一样
   kubectl exec -it <pod-name> -- /bin/bash # 在指定的 Pod 中打开一个 Shell，进行交互式调试。
   kubectl port-forward <pod-name> <本地端口>:<pod端口> # 将本地端口转发到 Pod 的指定端口。
   ```
