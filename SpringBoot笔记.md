@@ -2581,6 +2581,23 @@ Object currentProxy();
 
 
 
+## 经验之谈
+
+### Redis集群拓扑刷新
+
+当使用`spring-boot-starer-redis`连接Redis集群的时候，如果一个主节点或者从节点挂了，集群的结构会变化，但是SpringBoot的Redis客户端没有获取到更新之后的Reids节点拓扑信息，还是用之前的节点信息进行数据操作，就会报错。
+
+SpringBoot 2.3.x以上版本，可以增加以下配置，使Redis客户端能够自动刷新Redis集群拓扑结构。
+
+```yaml
+redis:
+  lettuce:
+    cluster:
+      refresh:
+        adaptive: true # 开启集群拓扑自动刷新
+        period: 10s # 刷新周期，会有短时间还是使用之前的节点信息
+```
+
 
 
 
