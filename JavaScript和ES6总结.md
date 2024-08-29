@@ -1349,6 +1349,7 @@ pdf 文件下载的请求头一般为
 ```
 Content-Disposition: attachment; filename="example.pdf"
 Content-Type: application/pdf
+# 这时候通过隐藏Content-Disposition请求头，浏览器就会尝试打开文件从而实现预览：proxy_hide_header Content-Disposition;
 ```
 
 

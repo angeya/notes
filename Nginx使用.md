@@ -194,7 +194,7 @@ proxy_set_header Host $host;
 ```nginx
 # 不设置内容处理方式，例如有的服务通过设置此响应头来强制下载文件
 proxy_hide_header Content-Disposition;
-# 隐藏Mime类型，比如 text/html 类型，这时候浏览器会html的代码，而不是渲染
+# 隐藏Mime类型，比如 text/html 类型，这时候浏览器会显示html的代码，而不是渲染
 proxy_hide_header Content-Type;
 ```
 
@@ -204,7 +204,7 @@ proxy_hide_header Content-Type;
 
 设置响应头：`add_header header_name header_value [always];`可选的 `always` 参数表示无论响应状态码是什么，都应该添加该头部。
 
-```java
+```nginx
 # 设置响应的内容类型
 add_header Content-Type applicaiton/json;
 ```
