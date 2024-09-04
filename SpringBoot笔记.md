@@ -2207,6 +2207,67 @@ Spring的事件机制是Spring框架中的一个重要特性，基于观察者�
 
 默认事件的发布与处理是同步的，如果想要一步处理事件，只需要在监听器处理方法上面添加`@Async`注解即可。同时别忘记了在启动类上增加`@EnableAsync`注解。
 
+### 十五、通过ApplicationContext
+
+要获取 Spring 容器中所有的 Bean 对象，可以使用 `ApplicationContext` 的 `getBeansOfType()` 方法或 `getBean()` 方法结合 `getBeanDefinitionNames()` 方法。下面是如何实现的详细步骤：
+
+#### 1，getBeansOfType()获取所有Bean对象
+
+如果你想获取所有特定类型的 Bean 对象，可以使用 `getBeansOfType()` 方法。这个方法返回一个包含所有符合指定类型的 Bean 名称和实例的 `Map`。
+
+```java
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+import java.util.Map;
+
+public class AllBeansExample {
+    public static void main(String[] args) {
+        ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+
+        // 获取所有 Object 类型的 Bean 实例
+        Map<String, Object> allBeans = context.getBeansOfType(Object.class);
+
+        // 输出所有的 Bean 名称和对象
+        for (Map.Entry<String, Object> entry : allBeans.entrySet()) {
+            System.out.println("Bean Name: " + entry.getKey() + ", Bean Object: " + entry.getValue());
+        }
+    }
+}
+```
+
+#### 2，getBeanDefinitionNames()与 getBean() 组合
+
+你可以先获取所有的 Bean 名称，然后使用 `getBean()` 方法逐个获取每个 Bean 实例。
+
+```java
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+public class AllBeansExample {
+    public static void main(String[] args) {
+        ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+
+        // 获取所有 Bean 名称
+        String[] beanNames = context.getBeanDefinitionNames();
+
+        // 遍历 Bean 名称，获取每个 Bean 对象
+        for (String beanName : beanNames) {
+            Object bean = context.getBean(beanName);
+            System.out.println("Bean Name: " + beanName + ", Bean Object: " + bean);
+        }
+    }
+}
+```
+
+### 解释
+
+- **`getBeanDefinitionNames()`**: 返回所有 Bean 的名称。
+- **`getBean(String name)`**: 根据 Bean 名称获取对应的 Bean 对象实例。
+- **`getBeansOfType(Class<T> type)`**: 获取指定类型（或所有类型）Bean 的实例映射。
+
+
+
 ## 工具方法
 
 ### **断言**
