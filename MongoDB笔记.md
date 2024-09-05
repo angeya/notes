@@ -127,11 +127,16 @@
    
        private Integer age;
    
+       // @Indexed(name = "user_city_idx") // 添加索引
        private String city;
        
        // 省略Setter和Getter
    }
    ```
+   
+   > spring-boot设置中未将**auto-index-creation**设为true, 从**Spring Data MongoDB 3.0**以后，出于防止滥用的考虑，自动创建索引是默认关闭的，需要设置开启。配置项为：spring.data.mongodb.auto-index-creation=true。
+   >
+   > 可以通过如下命令查看集合的索引(假设集合名称是user：db.user.getIndexes()
 
 ### 类JPA的方式
 
