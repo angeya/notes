@@ -4,7 +4,7 @@
 
 2. 创建日志目录 /usr/local/mongodb/single/log，数据目录 /usr/local/mongodb/single/data/db。
 
-3. 在 /usr/local/mongodb/ 下创建配置文件 mongodb.conf，并输入一下内容
+3. 在 /usr/local/mongodb/ 下创建配置文件 mongodb.conf，并输入以下内容：
 
    ```yaml
    systemLog:
@@ -26,7 +26,7 @@
       authorization: enabled # 开启登录验证功能
    ```
 
-4. 使用以下命令启动mongodb服务：mongod -f /usr/local/mongodb/mongod.conf
+4. 使用以下命令启动mongodb服务：`mongod -f /usr/local/mongodb/mongod.conf`
 
 ## 连接数据库
 
@@ -57,21 +57,88 @@
 
 ## MongoDB常用命令
 
+选择和切换数据库
+
+```bash
+use test 
 ```
-选择切换数据库：use test 
-插入数据：db.comment.insert({bson数据}) 
-查询所有数据：db.comment.find(); 
-条件查询数据：db.comment.find({条件}) 
-查询符合条件的第一条记录：db.comment.findOne({条件}) 
-查询符合条件的前几条记录：db.comment.find({条件}).limit(条数) 
-查询符合条件的跳过的记录：db.comment.find({条件}).skip(条数) 修
-改数据：db.comment.update({条件},{修改后的数据}) 或db.comment.update({条件},{$set:{要修改部分的字段:数据}) 
-修改数据并自增某字段值：db.comment.update({条件},{$inc:{自增的字段:步进值}}) 
-删除数据：db.comment.remove({条件}) 
-统计查询：db.comment.count({条件}) 
-模糊查询：db.comment.find({字段名:/正则表达式/}) 
-条件比较运算：db.comment.find({字段名:{$gt:值}}) 
-包含查询：db.comment.find({字段名:{$in:[值1，值2]}})或db.comment.find({字段名:{$nin:[值1，值2]}}) 
+
+插入数据
+
+```bash
+db.comment.insert({bson数据})
+```
+
+查询所有数据
+
+```bash
+db.user.find(); 
+```
+
+条件查询数据
+
+```bash
+db.user.find({条件}) 
+```
+
+查询符合条件的第一条记录
+
+```bash
+db.user.findOne({条件}) 
+```
+
+查询符合条件的前几条记录
+
+```bash
+db.user.find({条件}).limit(条数) 
+```
+
+查询符合条件的跳过的记录
+
+```bash
+db.user.find({条件}).skip(条数) 
+```
+
+修改数据
+
+```bash
+db.user.update({条件},{修改后的数据}) 或db.user.update({条件},{$set:{要修改部分的字段:数据}) 
+```
+
+修改数据并自增某字段值
+
+```bash
+db.user.update({条件},{$inc:{自增的字段:步进值}}) 
+```
+
+删除数据
+
+```bash
+db.user.remove({条件}) 
+```
+
+统计查询
+
+```bash
+db.user.count({条件}) 
+```
+
+模糊查询
+
+```bash
+db.user.find({字段名:/正则表达式/}) 
+```
+
+条件比较运算
+
+```bash
+db.user.find({字段名:{$gt:值}}) 
+```
+
+包含查询
+
+```bash
+db.user.find({字段名:{$in:[值1，值2]}})或db.user.find({字段名:{$nin:[值1，值2]}}) 
 ```
 
 
