@@ -150,5 +150,25 @@ public static boolean isIpInCidr(String ip, String cidr) throws Exception {
 3. 对IP地址的整数形式应用子网掩码。这可以通过按位与操作符（&）实现。例如，如果IP地址的整数形式为 `ipInt`，子网掩码的整数形式为 `mask`，则结果为 `ipInt & mask`。
 4. 比较结果。如果IP地址的整数形式与CIDR的网络地址的整数形式经过子网掩码处理后相等，那么该IP地址就位于CIDR网段内。
 
+### 查找匹配正则表达式的内容
+
+示例：查找字符串 `${name} is good, he is ${age} years old` 中的被`${}`包裹起来的变量的名。
+
+```java
+String expression = "${name} is good, he is ${age} years old";
+// 正则表达式 \\$\\{：匹配 ${。([^}]+)：捕获 ${} 之间的内容，即变量名(使用一堆括号定义一个捕获组)。\\}：匹配 }。
+// 捕获组是通过括号 () 将匹配到的部分内容保存起来，以便在后续操作中可以引用或处理这些内容。捕获组可以用来提取、引用、或操作字符串中的某些部分，非常有用。
+Pattern pattern = Pattern.compile("\\$\\{([^}]+)\\}");
+Matcher matcher = pattern.matcher(expression);
+// 不断往后匹配
+while (matcher.find()) {
+    // 因为只有一个捕获组，所以只需要获取第一个捕获组(下标从1开始)的内容即可
+    String g = matcher.group(1);
+    System.out.println(g);
+}
+```
+
+
+
 
 
