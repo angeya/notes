@@ -1127,7 +1127,7 @@ xxxxxxxxxx Object currentProxy();java
 // 请求对象
 HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
 // 响应对象
-HttpServletResponse request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getResponse();
+HttpServletResponse response = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getResponse();
 ```
 
 
@@ -2265,6 +2265,236 @@ public class AllBeansExample {
 - **`getBeanDefinitionNames()`**: 返回所有 Bean 的名称。
 - **`getBean(String name)`**: 根据 Bean 名称获取对应的 Bean 对象实例。
 - **`getBeansOfType(Class<T> type)`**: 获取指定类型（或所有类型）Bean 的实例映射。
+
+
+
+### 十六、Spring Boot Actuator 
+
+#### 1. Spring Boot Actuator 概述
+
+Spring Boot Actuator 是 Spring Boot 提供的用于管理和监控应用的工具集。它暴露了一些预定义的端点（例如 `/actuator/health`、`/actuator/info`），通过这些端点，你可以轻松地查看应用的健康状态、配置信息、监控指标等。Actuator 还支持自定义和扩展，允许你添加自己的监控信息。
+
+#### 2. Actuator 原理
+
+Spring Boot Actuator 基于 Spring Framework 的核心功能，使用了 Spring 的 `@Endpoint` 和 `@WebEndpoint` 等注解来定义和暴露各种监控端点。Actuator 集成了以下几个 Spring 组件：
+
+- **Spring MVC 或 Spring WebFlux**：处理 HTTP 请求，暴露 REST 风格的端点。
+- **Spring Boot Autoconfiguration**：自动配置健康检查、指标、环境等信息。
+- **Micrometer**：用于监控和度量的接口，整合了 Actuator 提供的指标功能，支持输出到 Prometheus、Graphite 等监控系统。
+
+#### 3.Spring Boot Actuator 
+
+Spring Boot Actuator 默认暴露了一些有用的端点，以下是一些常见的端点：
+
+- **`/actuator/health`**：显示应用的健康状态（如数据库连接、缓存状态等）。
+- **`/actuator/info`**：显示应用的自定义信息（通常来自 `application.properties` 中的配置信息）。
+- **`/actuator/metrics`**：显示应用的各类性能指标（如 JVM 内存使用情况、CPU 使用情况等）。
+- **`/actuator/beans`**：显示 Spring 容器中所有的 Bean。
+- **`/actuator/env`**：显示应用的环境属性。
+- **`/actuator/loggers`**：查看和修改日志级别。
+
+这些端点并不是默认全部暴露的，只有 `health` 和 `info` 是默认可访问的，其余的需要通过配置文件启用。
+
+#### 4. Actuator 使用步骤
+
+**4.1 引入 Actuator 依赖**
+
+首先需要在项目中添加 `spring-boot-starter-actuator` 依赖：
+
+Maven：
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+```
+
+Gradle：
+
+```
+implementation 'org.springframework.boot:spring-boot-starter-actuator'
+```
+
+**4.2 配置 Actuator 端点**
+
+通过配置文件启用需要的端点，例如你可以在 `application.properties` 或 `application.yml` 中指定哪些端点可以对外暴露：
+
+application.properties：
+
+```properties
+management.endpoints.web.exposure.include=health,info,metrics,beans,env
+```
+
+application.yml：
+
+```yaml
+endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,beans,env
+```
+
+如果你想排除某些端点，可以使用：
+
+```properties
+management.endpoints.web.exposure.exclude=loggers
+```
+
+**4.3 访问 Actuator 端点**
+
+在启动项目后，你可以通过以下方式访问暴露的端点：
+
+- 健康检查：`http://localhost:8080/actuator/health`
+- 应用信息：`http://localhost:8080/actuator/info`
+- 性能指标：`http://localhost:8080/actuator/metrics`
+
+#### 5. 健康检查与自定义健康检查
+
+**5.1 健康检查端点**
+
+`/actuator/health` 是一个非常常用的端点，用于显示应用的整体健康状况。默认的健康检查包括对数据库连接、Redis、内存等资源的检查。
+
+可以通过配置来显示详细的健康信息：
+
+```properties
+management.endpoint.health.show-details=always
+```
+
+Actuator会扫描注册了的指示器，根据这些指示器提供的健康状态信息，最后汇总成当前应用的健康状态信息。如果有一个指示器状态Down，则当前应用状态为Down。如Mysql、Redis等常见组件在它们的Starter包中，都提供了自己的指示器。
+
+如果你不想在健康状态检查的时候，跳过某个组件，可以通过下面配置实现
+
+```yaml
+management:
+  # 健康状态检查跳过Sentinel
+  health:
+    sentinel:
+      enabled: false
+```
+
+如果你不想自己暴漏原生的端点，想通过自己写接口获取健康状态，可以通过一下代码实现
+
+首先配置关闭actuator接口
+
+```yaml
+management:
+  server:
+    # 修改端口
+    port: -1
+  endpoints:
+    # 关闭所有actuator接口
+    enabled-by-default: false
+```
+
+然后再代码中获取健康状态
+
+```java
+@Resource
+private Optional<HealthEndpoint> healthEndpointOptional;
+ /**
+ * 服务健康状态检查
+ *
+ * @return 健康状态
+ */
+public boolean serviceHealthCheck() {
+    // 健康状态默认为false
+    boolean isHealthy = false;
+    if (healthEndpointOptional.isPresent()) {
+        // 通过Future异步获取健康状态，如果超过8s没有响应(down的时候检查会很慢)，则直接返回down
+        Future<HealthComponent> future = CompletableFuture.supplyAsync(() -> healthEndpointOptional.get().health());
+        try {
+            HealthComponent healthComponent = future.get(8, TimeUnit.SECONDS);
+            Status status = healthComponent.getStatus();
+            // 判断状态是否为UP
+            isHealthy = status == Status.UP;
+            // 打印状态详情日志，方便排查问题
+            Map<String, HealthComponent> healthDetail = ((SystemHealth) healthComponent).getComponents();
+            log.debug("系统健康状态详细信息: {}", healthDetail);
+        } catch (TimeoutException e) {
+            // 超时的话需要取消任务
+            future.cancel(true);
+            log.error("异步获取健康检查状态超时, 返回down");
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("异步获取健康检查状态异常", e);
+        }
+    } else {
+        log.debug("HealthEndpoint组件没有被注入, 默认返回false");
+    }
+    return isHealthy;
+}
+```
+
+**5.2 自定义健康指示器**
+
+你可以通过实现 `HealthIndicator` 接口来自定义健康检查。例如，检查某个外部服务的可用性：
+
+```java
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.stereotype.Component;
+
+@Component
+public class MyServiceHealthIndicator implements HealthIndicator {
+
+    @Override
+    public Health health() {
+        boolean serviceUp = checkExternalService();
+        if (serviceUp) {
+            return Health.up().withDetail("service", "Available").build();
+        } else {
+            return Health.down().withDetail("service", "Unavailable").build();
+        }
+    }
+
+    private boolean checkExternalService() {
+        // 自定义检查外部服务的逻辑
+        return true;  // 假设服务可用
+    }
+}
+```
+
+#### 6. 指标收集与监控
+
+Actuator 通过 `metrics` 端点提供了多种系统和应用的监控指标。例如，以下是一些常见的指标：
+
+- **JVM 指标**：`jvm.memory.used`, `jvm.gc.pause`
+- **系统指标**：`system.cpu.usage`, `process.uptime`
+- **HTTP 请求**：`http.server.requests`
+
+你可以通过访问 `/actuator/metrics` 来查看可用的指标，然后通过访问 `/actuator/metrics/{metricName}` 查看具体的指标数据。
+
+例如：
+
+- `http://localhost:8080/actuator/metrics/jvm.memory.used` 显示当前 JVM 使用的内存。
+- `http://localhost:8080/actuator/metrics/system.cpu.usage` 显示系统的 CPU 使用情况。
+
+#### 7. 安全与访问控制
+
+由于 Actuator 端点可能暴露敏感的应用信息，因此在生产环境中建议保护这些端点。Spring Boot Actuator 允许你配置不同的安全策略来控制端点的访问。
+
+**7.1 启用基本身份验证**
+
+你可以在 Spring Security 中启用基本身份验证来保护 Actuator 端点：
+
+**application.properties**：
+
+```properties
+management.endpoints.web.exposure.include=health,info
+management.endpoint.health.show-details=always
+management.endpoints.web.base-path=/manage
+```
+
+使用 Spring Security 的默认安全配置，你可以配置用户和密码：
+
+```properties
+spring.security.user.name=admin
+spring.security.user.password=admin123
+```
+
+#### 8. 总结
+
+Spring Boot Actuator 提供了一套强大且易于扩展的管理和监控工具。通过简单的配置，开发者可以轻松获取应用的健康状态、监控指标、日志信息等。Actuator 支持自定义扩展、灵活的安全配置，并且通过 Micrometer 集成，能够输出指标到多种监控系统。
 
 
 
