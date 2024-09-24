@@ -49,7 +49,16 @@
   exit
   ```
 
-  
 
-- 
+## SSH客户端
+
+在windows中，可以在cmd或者powerShell中使用ssh命令连接到ssh服务器。示例如下
+
+```cmd
+ssh 127.0.0.1 -l root # 参数-l 可以指定登录的用户名。-p 可以指定端口号。
+```
+
+
+
+
 
