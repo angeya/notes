@@ -1999,18 +1999,20 @@ personMap.get(false).forEach(p -> System.out.println(p.getAge()));
 #### 找到最xxx的人
 
 ```java
-// 查找名字最长的人
-Stream<String> nameStream = Stream.of("Sunnyangeya", "Lily", "Tom", "Snake");
-System.out.println(nameStream.reduce((x, y) -> x.length() > y.length() ? x : y).get());
+// 使用reduce自定义排序或者直接使用max等结合Comparator提供的方法也可以
+// 查找名字最长的人(字符串)
+String name = nameList.stream().reduce((x, y) -> x.length() > y.length() ? x : y).get();
+// 查找名字最长的人(对象)
+Person person = personList.stream().max(Comparator.comparingInt(dpt -> dpt.getPath().length())).get()
 ```
 
 #### 对流中的某个字段进行排序
 
 ```java
 // 年幼优先
-persons.stream().sorted(Comparator.comparing(Person::getAge)).forEach(p -> System.out.println(p.getAge()));
+personList.stream().sorted(Comparator.comparing(Person::getAge)).forEach(p -> System.out.println(p.getAge()));
 // 女士优先(可以根据需要加上reversed进行倒序）
-persons.stream().sorted(Comparator.comparing(Person::getFemale).reversed()).forEach(p -> System.out.println(p.getName()));
+personList.stream().sorted(Comparator.comparing(Person::getFemale).reversed()).forEach(p -> System.out.println(p.getName()));
 ```
 
 #### 收集结果时指定特定容器
