@@ -280,7 +280,11 @@ public class Doc4jTest {
 
 ### OpenOffice/LibreOffice
 
-这里以LibreOffice为例，需要先安装LibreOffice。
+这里以LibreOffice为例，需要先安装LibreOffice。安装包下载地址是：https://www.libreoffice.org/download/download-libreoffice/。
+
+**Windows上安装LibreOffice**
+
+直接下载windows版本，然后像常规的exe安装包一样安装就可以了。安装完成以后可以通过命令行使用，也可以打开可视化窗口进行文档的创建和编辑。
 
 **Linux(CentOS)上安装LibreOffice**
 
