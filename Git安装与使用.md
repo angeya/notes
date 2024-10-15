@@ -76,11 +76,18 @@
   
   如果 git 无法自动解决冲突，这时就需要手动解决（有冲突的两个版本的代码被>>>和===分隔开），解决好后再 add commit push 即可
 
+
+
 ## 4. Git工作示意图
 
 ![image-20220323202621424](images/git-construction.png)
 
+
+
 ## 5. 解决 Failed to connect to github.com port 443:connection timed out超时
+
+设置或者取消代理
+
 ```shell
 # 设置代理
 git config --global http.proxy http://127.0.0.1:1080
@@ -89,6 +96,21 @@ git config --global https.proxy http://127.0.0.1:1080
 git config --global --unset http.proxy
 git config --global --unset https.proxy
 ```
+
+上面的方式也不一定有用，可以通过修改下面的配置文件，并关闭外网代理尝试解决。
+
+首先找到git的安装目录，找到`/etc/ssh/ssh_config`文件，然后把下面的内容加在后面
+
+```
+Host github.com
+User git
+Hostname ssh.github.com
+PreferredAuthentications publickey
+IdentityFile ~/.ssh/id_rsa
+Port 443
+```
+
+
 
 ## 6. Java项目 .gitignore 文件示例
 
@@ -147,7 +169,7 @@ build/
 *.cmd
 ```
 
-### 7.一些使用案例
+## 7.一些使用案例
 
 ### 7.1 代码已经被修改甚至被commit，这时候来了一个更紧急的任务
 
