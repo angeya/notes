@@ -141,6 +141,89 @@ db.user.find({字段名:{$gt:值}})
 db.user.find({字段名:{$in:[值1，值2]}})或db.user.find({字段名:{$nin:[值1，值2]}}) 
 ```
 
+根据日期、模块、登记分组分别查询慢sql日志
+```bash
+// 日期
+db.pf_slow_sql_log.aggregate([
+  {
+    $project: {
+      // 处理字段 creastamp
+      creastampDay: {
+        $dateToString: { format: "%Y-%m-%d", date: "$creastamp" }
+      }
+    }
+  },
+  {
+    $group: {
+      _id: {
+        creastampDay: "$creastampDay"
+      },
+      count: { $sum: 1 }
+    }
+  },
+  {
+    $sort: { "_id.creastampDay": 1}
+  }
+])
+
+-- 模块
+
+db.pf_slow_sql_log.aggregate([
+  {
+    $group: {
+      _id: {
+        module: "$module",
+      },
+      count: { $sum: 1 }
+    }
+  },
+  {
+    $sort: {"_id.module": 1}
+  }
+])
+
+-- 级别
+db.pf_slow_sql_log.aggregate([
+  {
+    // 处理duration字段
+    $project: {
+      durationGroup: {
+        // 根据duration的值，分配500、1000、2000
+        $cond: {
+          if: { $lt: ["$duration", 1000] }, // 如果duration小于1000
+          then: {
+            $cond: {
+              if: { $lt: ["$duration", 500] }, // 如果duration小于500
+              then: '<500',
+              else: '500-1000'
+            }
+          },
+          else: {
+            $cond: {
+              if: { $lt: ["$duration", 2000] }, // 如果duration小于2000
+              then: '1000-2000',
+              else: '>=2000'
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    // 按durationGroup分组
+    $group: {
+      _id: {
+        durationGroup: "$durationGroup"
+      },
+      count: { $sum: 1 }
+    }
+  },
+  {
+    $sort: {"_id.durationGroup": 1 }
+  }
+])
+```
+
 
 
 ## SpringBoot整合MongoDB
