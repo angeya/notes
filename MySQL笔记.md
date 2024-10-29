@@ -241,6 +241,62 @@ ANALYZE TABLE table_name;
 
 非主键索引的叶子节点只会存放主键信息，所以当通过非主键索引查找到数据后，还需要根据主键信息去主键索引中查找完整的数据，这个过程就是回表，回表会增加性能损耗。
 
+### 判断与增加索引
+
+```sql
+-- mysql
+-- 创建存储过程，调用之后再删除掉
+DELIMITER // -- 将 SQL 语句的结束符从默认的 ; 改为 //，遇到 // 则表示结束。
+CREATE PROCEDURE AddIndexIfNotExists()
+BEGIN -- BEGIN 标识代码块的开始，END 表示结束。用于将存储过程中的多条语句组合在一起。
+    IF NOT EXISTS(
+        SELECT 1
+        FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE table_name = 'user' AND index_name = 'idx_phone'
+    ) THEN
+        ALTER TABLE `user` ADD INDEX `idx_phone`(`phone`);
+    END IF;
+END //
+DELIMITER ; -- 将语句结束符还原为 ;，以便后续 SQL 语句使用默认的 ; 作为结束标志。
+CALL AddIndexIfNotExists();
+DROP PROCEDURE IF EXISTS AddIndexIfNotExists;
+
+-- pgsql
+-- DO 语句表示执行一个匿名代码块，$$ 用作定界符，标识代码块的开始和结束。所有的 SQL 逻辑和控制流语句写在 BEGIN 和 END 之间
+DO
+$$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_phone' AND tablename = 'user') THEN
+        CREATE INDEX idx_phone ON public.user (phone);
+    END IF;
+END
+$$;
+
+-- 达梦
+DECLARE
+   idx_exs INT;
+BEGIN
+ 	SELECT COUNT(1) INTO idx_exs FROM all_indexes WHERE table_name = 'USER' AND index_name = 'IDX_PHONE';
+  	IF idx_exs = 0 THEN
+        EXECUTE IMMEDIATE 'CREATE INDEX IDX_PHONE ON USER (PHONE)';
+  	END IF;
+END;
+
+-- 金仓
+DO
+$$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM sys_indexes WHERE indexname = 'IDX_PHONE' AND tablename = 'USER') THEN
+        CREATE INDEX IDX_PHONE ON public.USER(PHONE);
+    END IF;
+END
+$$;
+```
+
+
+
+
+
 ## 外键
 
 级联删除 (一般不使用)
