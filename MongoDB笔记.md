@@ -372,6 +372,7 @@ public class MongoService {
 
    ```java
    mongoTemplate.insert(user);
+   mongoTemplate.insertAll(userList); // MongoDB在插入的时候(特别是并发)，可能会出现id重复的情况，所以最好自己手动给id赋值
    mongoTemplate.save(user);
    ```
 
