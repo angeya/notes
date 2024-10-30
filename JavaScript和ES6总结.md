@@ -920,28 +920,121 @@ y // "obj"
 
 ### Promise
 
-1. promise对象保存着未来才会结束的事件，结束时状态由pending变为fulfilled（resolve方法）或者rejected（reject方法）
+在 ES6 中，`Promise` 是用于处理异步操作的对象，通过链式调用 `then()`、`catch()` 和 `finally()` 方法，来编排异步操作的执行顺序和错误处理。下面是 `Promise` 的基础使用方式。
 
-2. 对象的then()方法将在状态改变之后调用，方法中获取异步事件的返回的结果
+#### 1. 基本使用
 
-    ```javascript
-    // 示例代码
-    function read(dir){
-        let promise = new Promise(function (resolve, reject){
-            fs.readFile(dir, function(err, data){
-                if (err) {
-                    reject(err)
-                }else{
-                    resolve(data)
-                }
-            })
-        })
-        return promise
+一个 `Promise` 有三种状态：
+
+- `pending`：初始状态，未完成；
+- `fulfilled`：操作成功完成；
+- `rejected`：操作失败。
+
+创建一个 `Promise` 需要传入一个执行器函数，该函数接受两个参数：`resolve`（成功时调用）和 `reject`（失败时调用）。
+
+示例代码
+
+```javascript
+// 创建一个Promise对象
+const myPromise = new Promise((resolve, reject) => {
+  // 模拟异步操作，比如网络请求
+  setTimeout(() => {
+    const success = true;
+    if (success) {
+      resolve("操作成功");
+    } else {
+      reject("操作失败");
     }
-    read().then(function(data){}).catch(function(err){}).then()
-    ```
+  }, 1000);
+});
+```
 
-3. then方法仍然返回一个新的Promise对象，该对象的resolve数据为then方法中return的值
+#### 2. 使用 `then`、`catch` 和 `finally`
+
+- `then()`：接收 `resolve` 的结果，并返回一个新的 `Promise`，允许链式调用。
+- `catch()`：捕获 `reject` 的结果。
+- `finally()`：无论 `Promise` 的状态是成功还是失败，都会执行。
+
+**示例代码**
+
+```javascript
+myPromise.then(result => {
+    console.log(result); // 输出 "操作成功"
+  }).catch(error => {
+    console.error(error); // 输出 "操作失败"
+  }).finally(() => {
+    console.log("操作结束"); // 无论成功或失败都会执行
+  });
+```
+
+#### 3. 链式调用
+
+每次 `then()` 或 `catch()` 返回一个新的 `Promise`，可以进行链式调用来处理多步异步操作。
+
+**示例代码**
+
+```javascript
+myPromise
+  .then(result => {
+    console.log(result); // 输出 "操作成功"
+    return "下一步操作"; // 传递给下一个 then
+  })
+  .then(nextResult => {
+    console.log(nextResult); // 输出 "下一步操作"
+  })
+  .catch(error => {
+    console.error("错误：", error); // 捕获所有错误
+  });
+```
+
+#### 4. 使用 `Promise.all` 和 `Promise.race`
+
+**Promise.all**
+
+`Promise.all` 接收一个 `Promise` 数组，所有 `Promise` 都完成后返回一个包含所有结果的数组，如果任意一个 `Promise` 失败则返回错误。
+
+```javascript
+javascript复制代码const promise1 = Promise.resolve(3);
+const promise2 = new Promise((resolve, reject) => setTimeout(resolve, 100, 'foo')); // setTimeout第三个参数为第一个参数的方法的实参
+const promise3 = 42;
+
+Promise.all([promise1, promise2, promise3])
+  .then(values => console.log(values)) // 输出：[3, "foo", 42]
+  .catch(error => console.error(error));
+```
+
+**Promise.race**
+
+`Promise.race` 接收一个 `Promise` 数组，只要有一个 `Promise` 处理完成，立即返回该 `Promise` 的结果。
+
+```javascript
+const promise1 = new Promise((resolve, reject) => setTimeout(resolve, 500, 'one'));
+const promise2 = new Promise((resolve, reject) => setTimeout(resolve, 100, 'two'));
+
+Promise.race([promise1, promise2])
+  .then(value => console.log(value)) // 输出："two"
+  .catch(error => console.error(error));
+```
+
+#### 5. 使用 `async` / `await`
+
+在 ES8 中，`async` / `await` 是对 `Promise` 的语法糖，使代码更清晰。
+
+```javascript
+javascript复制代码async function asyncFunction() {
+  try {
+    const result = await myPromise;
+    console.log(result);
+  } catch (error) {
+    console.error(error);
+  }
+}
+asyncFunction();
+```
+
+#### 总结
+
+`Promise` 通过链式调用简化了异步操作，避免了传统的回调嵌套问题，是现代 JavaScript 进行异步编程的重要工具。
 
 ### Generator函数
 
