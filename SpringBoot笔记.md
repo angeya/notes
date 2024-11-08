@@ -165,7 +165,7 @@
    }  
    ```
 
-3. 后置最终通知@After
+3. xxxxxxxxxx // 简单处理数字的自定义拦截器，需要实现Interceptor接口public class HandleNum implements Interceptor {    private static Logger logger = LoggerFactory.getLogger(HandleNum.class);    /**     * 初始化操作，可以用于打开资源     */    public void initialize() {}​    /**     * 拦截单个event     */    public Event intercept(Event event) {        //输出20-60之间的数，大于60，则×100        int num = Integer.parseInt(new String(event.getBody()));        if (num < 20) {            logger.warn("num {} is too small, abandon!", num);            return null;        } else if (num > 60){            num = num * 100;        }        event.setBody(Integer.toString(num).getBytes());        return event;    }​    /**     * 拦截多个event（可以直接调用单个 event 的拦截器）     */    public List<Event> intercept(List<Event> list) {        return list.stream()                .map(this::intercept)                .filter(Objects::nonNull)                .collect(Collectors.toList());    }​    /**     * 拦截器关闭，可以用于关闭资源     */    public void close() {}​    /**     * 通过内部类继承Builder类，并实现build方法，建立拦截器     */    public static class Builder implements Interceptor.Builder {        public Interceptor build() {            return new HandleNum(); // 创建拦截器实例        }​        public void configure(Context context) {            // 上下文环境，可以获取配置信息        }    }}java
 
    ```java
    /** 
@@ -1092,7 +1092,381 @@ public class MvcConfig implements WebMvcConfigurer {
 
    就会自动抛出`AppCode.USER_IS_NULL`状态码的响应，并且带上异常详细信息`用户为空`。
 
-   
+
+
+### 后端校验
+
+在 Spring Boot 中，后端校验通常使用 Java Bean Validation（如 `javax.validation.constraints` 中的注解）和 Spring 的校验功能（如 `@Valid` 和 `@Validated`）。它可以帮助确保传入的数据符合指定规则，并简化了校验逻辑的实现。
+
+#### 1. 添加依赖
+
+确保你的项目中包含以下依赖（如果使用的是 Spring Boot Starter，则通常会自动包含）：
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-validation</artifactId>
+</dependency>
+```
+
+`javax.validation.constraints` 包中包含许多常用的注解，用于对 Java Bean 的字段进行约束验证。Spring Boot 和其他框架常用这些注解进行数据校验。以下是常用的约束注解及其用法示例：
+
+#### 1. @NotNull
+
+用于验证字段不能为 `null`。
+
+```java
+import javax.validation.constraints.NotNull;
+
+public class User {
+    @NotNull(message = "用户名不能为空")
+    private String username;
+
+    // getters and setters
+}
+```
+
+**说明**：`@NotNull` 只要求字段不能为 `null`，但可以是空字符串 `""` 或空集合 `[]`。
+
+------
+
+#### 2. @NotEmpty
+
+用于验证字段不能为空。适用于字符串、集合等类型，且不能为空字符串或空集合。
+
+```java
+import javax.validation.constraints.NotEmpty;
+
+public class User {
+    @NotEmpty(message = "用户名不能为空且不能为空字符串")
+    private String username;
+
+    // getters and setters
+}
+```
+
+**说明**：`@NotEmpty` 要求字段既不能为 `null`，也不能为空字符串或空集合。
+
+------
+
+#### 3. @NotBlank
+
+用于验证字符串不能为空且不能是空白（包含空格的字符串也算空白）。
+
+```java
+import javax.validation.constraints.NotBlank;
+
+public class User {
+    @NotBlank(message = "用户名不能为空，且不能全是空格")
+    private String username;
+
+    // getters and setters
+}
+```
+
+**说明**：`@NotBlank` 用于字符串字段，要求既不能为 `null`，也不能为 `" "`。
+
+------
+
+#### 4. @Size
+
+用于验证集合、字符串、数组等的长度或大小。
+
+```java
+import javax.validation.constraints.Size;
+
+public class User {
+    @Size(min = 3, max = 15, message = "用户名长度必须在3到15个字符之间")
+    private String username;
+
+    // getters and setters
+}
+```
+
+**说明**：`@Size` 常用于字符串或集合类型，验证其长度在指定范围内。
+
+------
+
+#### 5. @Min 和 @Max
+
+用于验证数值类型字段的最小值和最大值。
+
+```java
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Max;
+
+public class Product {
+    @Min(value = 1, message = "库存数量不能小于1")
+    private int stock;
+
+    @Max(value = 100, message = "折扣率不能超过100%")
+    private int discount;
+
+    // getters and setters
+}
+```
+
+**说明**：`@Min` 和 `@Max` 用于数值类型字段，`@Min` 验证字段值不能小于指定值，`@Max` 验证字段值不能超过指定值。
+
+------
+
+#### 6. @DecimalMin 和 @DecimalMax
+
+用于验证 `BigDecimal` 或 `Double` 等带小数的数值的最小值和最大值。
+
+```java
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.DecimalMax;
+import java.math.BigDecimal;
+
+public class Product {
+    @DecimalMin(value = "0.0", inclusive = false, message = "价格必须大于0")
+    private BigDecimal price;
+
+    @DecimalMax(value = "1000.0", message = "价格不能超过1000")
+    private BigDecimal maxPrice;
+
+    // getters and setters
+}
+```
+
+**说明**：`inclusive` 属性可以控制是否包含边界值。
+
+------
+
+#### 7. @Pattern
+
+用于验证字符串是否匹配指定的正则表达式。
+
+```java
+import javax.validation.constraints.Pattern;
+
+public class User {
+    @Pattern(regexp = "^[A-Za-z0-9]+$", message = "用户名只能包含字母和数字")
+    private String username;
+
+    // getters and setters
+}
+```
+
+**说明**：`@Pattern` 适用于字符串类型，常用于验证特定格式的输入（如用户名、电话号码等）。
+
+------
+
+#### 8. @Email
+
+用于验证邮箱格式是否正确。
+
+```java
+import javax.validation.constraints.Email;
+
+public class User {
+    @Email(message = "邮箱格式不正确")
+    private String email;
+
+    // getters and setters
+}
+```
+
+**说明**：`@Email` 适用于字符串类型，验证邮箱的格式是否符合标准。
+
+------
+
+#### 9. @Future 和 @Past
+
+用于验证日期必须是未来或过去的日期。
+
+```java
+import javax.validation.constraints.Future;
+import javax.validation.constraints.Past;
+import java.time.LocalDate;
+
+public class Event {
+    @Future(message = "活动日期必须是未来的日期")
+    private LocalDate eventDate;
+
+    @Past(message = "生日必须是过去的日期")
+    private LocalDate birthday;
+
+    // getters and setters
+}
+```
+
+**说明**：`@Future` 和 `@Past` 适用于日期类型，`@Future` 要求日期必须是未来，`@Past` 要求日期必须是过去。
+
+------
+
+#### 10. @FutureOrPresent 和 @PastOrPresent
+
+用于验证日期必须是未来或当前、过去或当前的日期。
+
+```java
+import javax.validation.constraints.FutureOrPresent;
+import javax.validation.constraints.PastOrPresent;
+import java.time.LocalDate;
+
+public class Event {
+    @FutureOrPresent(message = "创建日期不能是过去的日期")
+    private LocalDate createdDate;
+
+    @PastOrPresent(message = "开始日期不能是未来的日期")
+    private LocalDate startDate;
+
+    // getters and setters
+}
+```
+
+**说明**：`@FutureOrPresent` 要求日期必须是将来或当前的日期，`@PastOrPresent` 要求日期是过去或当前的日期。
+
+------
+
+#### 11. @Positive 和 @Negative
+
+用于验证字段值必须为正或负的数。
+
+```java
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.Negative;
+
+public class Account {
+    @Positive(message = "账户余额必须为正数")
+    private double balance;
+
+    @Negative(message = "欠款金额必须为负数")
+    private double debt;
+
+    // getters and setters
+}
+```
+
+**说明**：`@Positive` 和 `@Negative` 用于数值类型字段，要求字段值为正数或负数。
+
+------
+
+#### 12. @PositiveOrZero 和 @NegativeOrZero
+
+用于验证字段值必须为正或0、负或0。
+
+```java
+import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.NegativeOrZero;
+
+public class Account {
+    @PositiveOrZero(message = "账户余额不能为负数")
+    private double balance;
+
+    @NegativeOrZero(message = "最大债务金额不能为正数")
+    private double maxDebt;
+
+    // getters and setters
+}
+```
+
+**说明**：`@PositiveOrZero` 要求字段为正或零，`@NegativeOrZero` 要求字段为负或零。
+
+------
+
+#### 13. @Digits
+
+用于验证数字的整数位和小数位的位数限制。
+
+```java
+import javax.validation.constraints.Digits;
+import java.math.BigDecimal;
+
+public class Product {
+    @Digits(integer = 5, fraction = 2, message = "金额整数部分最多5位，小数部分最多2位")
+    private BigDecimal price;
+
+    // getters and setters
+}
+```
+
+**说明**：`@Digits` 常用于验证货币等带小数的数值。
+
+#### 14 @AssertFalse
+
+用于验证字段的值必须为 `false`。
+
+```java
+import javax.validation.constraints.AssertFalse;
+
+public class Settings {
+    @AssertFalse(message = "该选项不能启用")
+    private boolean enabled;
+
+    // getters and setters
+}
+```
+
+**说明**：`@AssertFalse` 用于布尔类型字段，要求值为 `false`。
+
+------
+
+#### 15. @AssertTrue
+
+用于验证字段的值必须为 `true`。
+
+```java
+import javax.validation.constraints.AssertTrue;
+
+public class TermsAgreement {
+    @AssertTrue(message = "您必须同意条款和条件")
+    private boolean agreed;
+
+    // getters and setters
+}
+```
+
+**说明**：`@AssertTrue` 用于布尔类型字段，要求值为 `true`。
+
+------
+
+#### 示例：结合多个注解
+
+```java
+public class User {
+    @NotNull(message = "用户名不能为空")
+    @Size(min = 3, max = 15, message = "用户名长度必须在3到15个字符之间")
+    private String username;
+
+    @Email(message = "邮箱格式不正确")
+    private String email;
+
+    @Min(value = 18, message = "年龄不能小于18岁")
+    @Max(value = 65, message = "年龄不能超过65岁")
+    private Integer age;
+
+    // getters and setters
+}
+```
+
+以上代码中，`username` 字段需要满足 `@NotNull` 和 `@Size` 的条件，`email` 字段需要满足邮箱格式，`age` 字段需要满足年龄范围。使用这些注解可以轻松实现数据验证逻辑。
+
+------
+
+#### 使用说明
+
+在 Spring Boot 项目中，可以通过 `@Valid` 注解结合控制器方法参数实现校验，例如：
+
+```java
+import org.springframework.web.bind.annotation.*;
+import javax.validation.Valid;
+
+@RestController
+public class UserController {
+
+    @PostMapping("/users")
+    public String createUser(@Valid @RequestBody User user) {
+        // 如果校验失败，会自动返回错误信息
+        return "用户创建成功";
+    }
+}
+```
+
+当请求中数据不符合约束条件时，Spring Boot 会自动返回校验错误信息。
+
+
 
 ## SpringBoot3.0 版本新特性
 
