@@ -143,6 +143,12 @@ http {
 		server 127.0.0.1:9092 weight=1;
 	}
     
+    # 代理（如果A失败，则会转到B处理，用户无感知。A失败两次后，将会不会被分发请求，直到60s后）
+    upstream servers2 {
+    	server 127.0.0.1:8001 fail_timeout=60s max_fails=2; # Server A
+    	server 127.0.0.1:8002 fail_timeout=60s max_fails=2; # Server B
+	}
+    
     #每个server是一个服务
     server {
         listen       8088; #监听的端口号
