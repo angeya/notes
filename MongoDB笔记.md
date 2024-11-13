@@ -1,3 +1,17 @@
+## MongoDB简介
+
+MongoDB是一个开源、高性能、无模式的文档型数据库，当初的设计就是用于简化开发和方便扩展，是NoSQL数据库产品中的一种。是最像关系型数据库（MySQL）的非关系型数据库。
+
+它支持的数据结构非常松散，是一种类似于 JSON 的 格式叫BSON，所以它既可以存储比较复杂的数据类型，又相当的灵活。
+
+MongoDB中的记录是一个文档，它是一个由字段和值对（field:value）组成的数据结构。MongoDB文档类似于JSON对象，即一个文档认为就是一个对象。字段的数据类型是字符型，它的值除了使用基本的一些类型外，还可以包括其他文档、普通数组和文档数组。
+
+MongoDB一般可以用在如下场景：
+
+- 数据量大
+- 写入操作频繁（读写都很频繁）
+- 价值较低的数据，对事务性要求不高
+
 ## Linux下安装
 
 1. 下载软件包mongodb-linux-x86_64-rhel70-6.0.3.tgz，并解压到 /usr/local/mongodb文件夹。
@@ -45,7 +59,7 @@
    ```bash
    db.createUser({
      user: 'admin',  // 用户名
-     pwd: '123ASDasd=',  // 密码
+     pwd: '123456',  // 密码
      roles:[{
        role: 'admin',  // 角色
        db: 'admin'  // 数据库
@@ -284,7 +298,7 @@ db.pf_slow_sql_log.aggregate([
    }
    ```
    
-   > spring-boot设置中未将**auto-index-creation**设为true, 从**Spring Data MongoDB 3.0**以后，出于防止滥用的考虑，自动创建索引是默认关闭的，需要设置开启。配置项为：spring.data.mongodb.auto-index-creation=true。
+   > spring-boot设置中未将 **auto-index-creation** 设为true, 从 **Spring Data MongoDB 3.0** 以后，出于防止滥用的考虑，自动创建索引是默认关闭的，需要设置开启。配置项为：spring.data.mongodb.auto-index-creation=true。
    >
    > 可以通过如下命令查看集合的索引(假设集合名称是user：db.user.getIndexes()
 
@@ -398,10 +412,20 @@ public class MongoService {
 4. 查询
 
    ```java
+   // 普通查询
    Query query = new Query(Criteria.where("id").is(id));
    return mongoTemplate.findOne(query, User.class);
+   
+   // 分页查询
+   Query query = new Query();
+   query.addCriteria(Criteria.where("module").in(moduleCodeList));
+   query.addCriteria(Criteria.where("create_time").gte(startTime).lt(endTime));
+   // 分页参数(MongoDB的当前页从0开始)
+   Pageable pageable = PageRequest.of(current - 1, size, Sort.by("age", "create_time").descending());
+   query.with(pageable);
+   List<User> slowSqlLogList = mongoTemplate.find(query, User.class);
    ```
-
+   
    
 
 
