@@ -1,44 +1,100 @@
-## Windows 开发环境管理
+## 基础
 
 ### 命令详情
 
 使用以下格式可以查看命令的使用详情
 
-命令 /?；如 ipconfg /？
+```cmd
+command /?  # 如 ipconfg /？
+```
+
+### 命令注释
+
+在cmd中命令的注释符号是 `#`，而在 bat 批处理文件中注释符号是 `--`。
+
+### 命令路径带空格
+
+```cmd
+# 需要执行如下命令时，因为目录中包含空格，命令会被拆分解析，导致提示Program命令不存在
+D:\Program Files\2345Soft\HaoZip\HaoZipC
+# 这时候应该使用引号包裹起来，如下
+"D:\Program Files\2345Soft\HaoZip\HaoZipC"
+```
+
+### 常见基础命令
+
+```cmd
+robocopy .\ .\simple-service\src\main\resources\static\ /E /XD "simple-service" /XD "ok" /XF "start.bat"
+-- pushd .\simple-service\src\main\resources\static\
+-- ren *.* *.doc
+-- popd
+cd .\simple-service
+call mvn package
+echo package finished....
+cd .\target
+"D:\Program Files\2345Soft\HaoZip\HaoZipC" x simple-service-1.0-SNAPSHOT.jar -y
+-- del /Q simple-service-1.0-SNAPSHOT.zip
+-- rename simple-service-1.0-SNAPSHOT.jar simple-service-1.0-SNAPSHOT.zip
+-- rmdir /S /Q .\output\
+-- powershell -Command "Expand-Archive -Path 'simple-service-1.0-SNAPSHOT.zip' -DestinationPath 'output\' -Force"
+cd ..\..\
+robocopy .\simple-service\target\BOOT-INF\classes\static .\ok
+pause
+```
+
+
+
+## Windows 开发环境管理
 
 ###  系统服务
 
-- 查看服务
+查看服务
 
-  运行 services.msc
+```cmd
+运行 services.msc
+```
 
-- 开启服务
+开启服务
 
-  net start 服务名，如net start mysql
+```cmd
+net start 服务名 # 如net start mysql
+```
 
-- 停止服务
+停止服务
 
-  net stop 服务名
+``` cmd
+net stop 服务名
+```
 
-- 删除服务
+删除服务
 
-  sc delete 服务名
+```cmd
+sc delete 服务名
+```
 
 ### 进程管理
 
-- 查看进程
+查看进程
 
-  所有进程：tasklist
+```cmd
+tasklist # 所有进程
 
-  筛选：tasklist | findstr chrome
+tasklist | findstr chrome # 进程过滤
+```
 
-- 停止进程
+停止进程
 
-  taskkill /F /PID 进程id
+```cmd
+taskkill /F /PID 进程id
+```
 
-- 查看端口占用进程
+查看端口占用进程
 
-  netstat -ao | findstr 9025
+```cmd
+netstat -ao | findstr 9025
+```
+
+
 
 ### 修改终端编码为UTF-8
 
