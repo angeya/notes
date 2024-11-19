@@ -1106,6 +1106,23 @@ asyncFunction();
 2. super关键字可以当做方法来使用，也可以当做对象来使用。super()方法虽然代表了父类的构造函数，但是返回的却是子类的实例，即super内部的this指向子类。如果super当做对象来使用，则super指向父类的prototype，所以定义在父类实例上的方法或者属性，是无法通过super调用的。
 3. 大多数浏览器的ES5实现中，每一个对象都有\_\_prototype\_\_属性，指向构造函数的prototype。class作为构造函数的语法糖，同时有prototype属性和\_\_prototype\_\_属性，所以同时存在两条继承链。即子类的\_\_prototype\_\_表示构造函数的继承，指向父类，子类的prototype属性的\_\_prototype\_\_属性表示方法的继承，总是指向父类的prototype属性
 
+
+
+## ECMAScript新语法
+
+### 可选链操作符
+
+```javascript
+let obj = null;
+// 可选链避免错误
+console.log(obj?.name); // undefined，不会报错
+// 普通访问会报错
+console.log(obj.name);  // Uncaught TypeError: Cannot read properties of null (reading 'name')
+
+```
+
+
+
 ## 开发案例
 
 ### 获取本地文件内容
