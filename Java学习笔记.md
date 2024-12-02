@@ -2074,6 +2074,34 @@ long sum = personList.stream().map(Person::getAge).reduce(0, (a, b) -> a + b);
 long sum = personList.stream().map(Person::getAge).reduce(0, Long::sum);
 ```
 
+#### 根据某个字段去重
+
+```java
+// 根据id去重
+Collection<User> users = list.stream()
+                .collect(Collectors.toMap(
+                        User::getId,
+                        user -> user,
+                        (existing, replacement) -> existing))
+                .values()));
+// 结果为List 1
+List<User> userList = new ArrayList(list.stream()
+                .collect(Collectors.toMap(
+                        User::getId,
+                        user -> user,
+                        (existing, replacement) -> existing))
+                .values()));
+// 结果为List 2
+List<User> userList = list.stream()
+                .collect(Collectors.toMap(
+                        User::getId,
+                        user -> user,
+                        (existing, replacement) -> existing))
+                .values()
+                .stream()
+                .collect(Collectors.toList());
+```
+
 
 
 
