@@ -2074,34 +2074,6 @@ long sum = personList.stream().map(Person::getAge).reduce(0, (a, b) -> a + b);
 long sum = personList.stream().map(Person::getAge).reduce(0, Long::sum);
 ```
 
-#### 根据某个字段去重
-
-```java
-// 根据id去重
-Collection<User> users = list.stream()
-                .collect(Collectors.toMap(
-                        User::getId,
-                        user -> user,
-                        (existing, replacement) -> existing))
-                .values()));
-// 结果为List 1
-List<User> userList = new ArrayList(list.stream()
-                .collect(Collectors.toMap(
-                        User::getId,
-                        user -> user,
-                        (existing, replacement) -> existing))
-                .values()));
-// 结果为List 2
-List<User> userList = list.stream()
-                .collect(Collectors.toMap(
-                        User::getId,
-                        user -> user,
-                        (existing, replacement) -> existing))
-                .values()
-                .stream()
-                .collect(Collectors.toList());
-```
-
 
 
 
@@ -2525,6 +2497,8 @@ HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandle
 System.out.println(response.body());
 ```
 
+
+
 ## 第6章 日期和时间API
 
 Java 1.0 有一个Date类，当Java1.1引入Calendar类之后，Date类中的大部分方法就被弃用了。但是Calendar的API还不够给力，而且它的实例是可修改的。
@@ -2841,5 +2815,55 @@ Component中有一个方法setBounds()可以设置当前容器的位置和大小
 
 <img src="Java学习笔记.assets/image-20220902144711202.png" alt="image-20220902144711202" style="zoom: 80%;" />
 
+# 后来
 
+## 常见问题答疑
+
+### 单核CPU为什么能执行多线程？
+
+多任务系统往往需要同时执行多道作业。作业数往往大于机器的CPU数，然而一颗CPU同时只能执行一项任务，如何让用户感觉这些任务正在同时进行呢? 操作系统的设计者 巧妙地利用了时间片轮转的方式
+
+时间片是CPU分配给各个任务（线程）的时间！
+
+线程上下文是指某一时间点 CPU 寄存器和程序计数器的内容，CPU通过时间片分配算法来循环执行任务（线程），因为时间片非常短，所以CPU通过不停地切换线程执行。
+
+换言之，单CPU这么频繁，多核CPU一定程度上可以减少上下文切换。
+
+
+
+### 在 Java 程序中，创建线程的数量主要受哪些因素限制？
+
+#### 1. 系统的物理资源
+
+- 内存
+
+  ： 每个线程在创建时会分配一定大小的
+
+  栈内存
+
+  。默认栈大小取决于操作系统和 JVM 的配置：
+
+  - 一般为 **1MB ~ 2MB**。
+  - 可以通过 JVM 参数 `-Xss` 调整线程栈的大小。例如：`-Xss512k` 将栈大小设置为 512 KB。
+  - 线程数量 = 可用内存 / 每线程栈大小。
+
+- **CPU 核心数**： 系统的核心数不会限制线程的创建，但大量线程可能导致过多上下文切换，从而影响性能。
+
+
+#### 2. 操作系统限制
+
+- 最大线程数
+
+  ： 操作系统对每个进程的线程数有硬性限制：
+
+  - **Linux/Unix**：可以通过 `ulimit -u` 查看用户线程限制。
+  - **Windows**：通常在 2000-3000 个线程左右，具体取决于内存和配置。
+
+- 这些限制主要与内核资源和线程控制块（TCB）数量相关。
+
+
+#### 3. JVM 的限制
+
+- JVM 没有明确限制线程数，但会受到堆内存和线程栈大小的影响。
+- 如果线程数过多，可能会引发 `java.lang.OutOfMemoryError: unable to create native thread` 错误。
 
