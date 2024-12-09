@@ -92,7 +92,7 @@ db.user.find();
 条件查询数据
 
 ```bash
-db.user.find({条件}) 
+db.user.find({条件}) # db.pf_log.find({"client_ip":"10.3.27.200"}) / db.pf_log.find({"_id":ObjectId("xxx")}) # id是ObjectId类型的
 ```
 
 查询符合条件的第一条记录
