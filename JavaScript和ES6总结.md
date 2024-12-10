@@ -1307,7 +1307,7 @@ const id = params.get('id')
 
 ### 使用js渲染pdf
 
-这里使用`pdf.js`框架实现，它是基于canvas实现的，下面使用的案例是旧版本（用到了两个js文件pdf.min.js和pdf.worker.min.js，这两个文件在reference目录中），新版本尝试好像会报错。
+这里使用`pdf.js`框架实现，它是基于canvas实现的，下面使用的案例是旧版本（用到了两个js文件pdf.min.js和pdf.worker.min.js），4.0以上的新版本使用mjs后缀的文件，用法可能和js不太不一样。在github中，老版本和新版本的代码示例不一样，如果要看老版本的，可以在tag中选择。编译过的文件包在如下CDN地址中：[pdf.js CDN](https://www.jsdelivr.com/package/npm/pdfjs-dist?version=3.11.174&tab=files&path=build)，可以下载整个包，本笔记库也已经下载了 [3.11.174版本](references/js库/pdf.js/pdfjs-dist-3.11.174.tgz)了(3.x的最后版本)。地址。
 
 这是[pdf.js的github地址](https://github.com/mozilla/pdf.js)。下面以加载《图解算法》为例.
 
@@ -1345,7 +1345,14 @@ const id = params.get('id')
     const pdfUrl = './算法图解.pdf'
     const pdfViewer = document.getElementById('pdfViewer');
     // 使用 PDF.js 加载 PDF 文件
-    pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
+	const loadPdfOption = {
+        url: pdfUrl,
+        // PDF 中的字体没有嵌入或使用了自定义编码，pdf.js 就会参考 cMap 文件来找到对应的字符，没有配置可能会导致某些pdf显示不出文字
+        cMapUrl: './cmaps/',
+        // 启用打包版本，减少网络请求数量
+        cMapPacked: true
+    }
+    pdfjsLib.getDocument(loadPdfOption).promise.then(pdf => {
         // 获取 PDF 文件的总页数
         const numPages = pdf.numPages;
 
