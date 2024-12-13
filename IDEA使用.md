@@ -16,7 +16,13 @@ settings - Editor - File And Code Templates - includes，找到（或者新建�
 
 ### 设置多行文件tab
 
+settings - Editor - General - Editor Tabs 勾选 Multiple rows
+
 ## 常用插件
+
+### Code Glance
+
+### Alibaba Java Coding GuideLines
 
 ### Lombok
 
