@@ -96,6 +96,19 @@ netstat -ao | findstr 9025
 
 
 
+### 网络请求
+
+curl命令，Windows内置的，用法和linux的curl类似。
+
+```cmd
+# 访问接口或者页面
+curl https://www.baidu.com
+# 下载文件
+curl -O https://www.demo.com/demo.pdf
+```
+
+
+
 ### 修改终端编码为UTF-8
 
 使用`chcp`命令可以显示或更改当前的代码页（Code Page）。代码页决定了在命令行窗口中使用的字符集，因此影响文本的显示和输入。
