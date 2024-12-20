@@ -86,6 +86,9 @@ tasklist | findstr chrome # 进程过滤
 
 ```cmd
 taskkill /F /PID 进程id
+# 如果出现如下报错，可能是因为权限不够，需要使用管理员打开cmd再操作
+错误: 无法终止 PID 为 xxx 的进程。
+原因: 拒绝访问。
 ```
 
 查看端口占用进程
