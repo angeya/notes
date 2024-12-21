@@ -56,10 +56,15 @@ LocalDateTime.now().atZone(ZoneOffset.systemDefault()).toInstant();
 LocalDateTime.now().toInstant(ZoneOffset.UTC);
 ```
 
-应该使用如下语句
+应该使用如下语句。通过带时区的时间来转换，系统会自动计算时差。
 
 ```java
+// 转Instant
 LocalDateTime.now().atZone(ZoneOffset.systemDefault()).toInstant();
+// 时间戳转LocalDateTime
+long timestamp = LocalDateTime.now().atZone(ZoneOffset.systemDefault()).toInstant().toEpochMilli();
+// LocalDateTime转时间戳
+LocalDateTime localDateTime = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalDateTime()
 ```
 
 ### 获取当前时刻
