@@ -1307,7 +1307,7 @@ const id = params.get('id')
 
 ### 使用js渲染pdf
 
-这里使用`pdf.js`框架实现，它是基于canvas实现的，下面使用的案例是旧版本（用到了两个js文件pdf.min.js和pdf.worker.min.js），4.0以上的新版本使用mjs后缀的文件，用法可能和js不太不一样。在github中，老版本和新版本的代码示例不一样，如果要看老版本的，可以在tag中选择。编译过的文件包在如下CDN地址中：[pdf.js CDN](https://www.jsdelivr.com/package/npm/pdfjs-dist?version=3.11.174&tab=files&path=build)，可以下载整个包，本笔记库也已经下载了 [3.11.174版本](references/js库/pdf.js/pdfjs-dist-3.11.174.tgz)了(3.x的最后版本)。地址。
+这里使用`pdf.js`框架实现，它是基于canvas实现的，下面使用的案例是旧版本（用到了两个js文件pdf.min.js和pdf.worker.min.js），4.0以上的新版本使用mjs后缀的文件，用法可能和js不太不一样，[基础可参考](https://mozilla.github.io/pdf.js/examples/)。在github中，老版本和新版本的代码示例不一样，如果要看老版本的，可以在tag中选择。编译过的文件包在如下CDN地址中：[pdf.js CDN](https://www.jsdelivr.com/package/npm/pdfjs-dist?version=3.11.174&tab=files&path=build)，可以下载整个包，本笔记库也已经下载了 [3.11.174版本](references/js库/pdf.js/pdfjs-dist-3.11.174.tgz)了(3.x的最后版本)。
 
 这是[pdf.js的github地址](https://github.com/mozilla/pdf.js)。下面以加载《图解算法》为例.
 
@@ -1376,6 +1376,127 @@ const id = params.get('id')
         }
     }).catch(error => {
         console.error('加载 PDF 文件时出现问题：', error);
+    });
+</script>
+```
+
+带有放大缩小重置功能的pdf渲染
+
+```html
+<!-- html核心元素 -->
+<div id="pdfViewer"></div>
+<div id="loading">
+    <div id="circle"></div>
+</div>
+<script src="./pdf.min.js" type="application/javascript"></script>
+
+<!-- js核心代码 -->
+<script>
+    // 获取参数
+    const params = new URLSearchParams(window.location.search)
+    const title = params.get("title")
+    if (title) {
+        document.title = title
+    }
+    const pdfUrl = params.get("pdfUrl")
+
+    const pdfViewer = document.getElementById('pdfViewer');
+    const loading = document.getElementById('loading');
+    const DEFAULT_SCALE = 1.5;
+    let currentScale = DEFAULT_SCALE;
+    const MAX_SCALE = 5;
+    const MIN_SCALE = 0.5;
+    // 缓存渲染的页面
+    const renderedPages = new Map();
+
+    const loadOption = {
+        url: pdfUrl,
+        cMapUrl: './cmaps/',
+        cMapPacked: true,
+    };
+
+    // 加载PDF文档
+    let pdfInstance = null;
+    pdfjsLib.getDocument(loadOption).promise.then(pdf => {
+        pdfInstance = pdf;
+        renderAllPages(DEFAULT_SCALE);
+    }).catch(error => {
+        console.error('加载 PDF 文件时出现问题：', error);
+    }).finally(() => {
+        loading.style.display = 'none';
+    });
+
+    // 渲染所有页面
+    function renderAllPages(scale) {
+        loading.style.display = 'flex';
+
+        for (let i = 1; i <= pdfInstance.numPages; i++) {
+            if (renderedPages.has(i)) {
+                // 如果页面已缓存，直接重新渲染
+                const page = renderedPages.get(i);
+                renderPage(page, scale);
+            } else {
+                // 如果页面未缓存，加载并渲染
+                pdfInstance.getPage(i).then(page => {
+                    // 缓存页面
+                    renderedPages.set(i, page);
+                    renderPage(page, scale);
+                });
+            }
+        }
+
+        loading.style.display = 'none';
+    }
+
+    // 渲染单个页面
+    function renderPage(page, scale) {
+        const viewport = page.getViewport({ scale });
+        const canvasId = `canvas-${page.pageNumber}`;
+        let canvas = document.getElementById(canvasId);
+
+        if (!canvas) {
+            canvas = document.createElement('canvas');
+            canvas.setAttribute('id', canvasId);
+            pdfViewer.appendChild(canvas);
+        }
+
+        const context = canvas.getContext('2d');
+        // const devicePixelRatio = window.devicePixelRatio || 1;
+        const devicePixelRatio = 1.5;
+
+        canvas.width = viewport.width * devicePixelRatio;
+        canvas.height = viewport.height * devicePixelRatio;
+        canvas.style.width = `${viewport.width}px`;
+        canvas.style.height = `${viewport.height}px`;
+
+        context.scale(devicePixelRatio, devicePixelRatio);
+
+        const renderContext = {
+            canvasContext: context,
+            viewport: viewport,
+            enhanceTextRendering: true, // 提高文字渲染清晰度
+        };
+        return page.render(renderContext).promise;
+    }
+
+    // 放大
+    document.getElementById('zoom-out').addEventListener('click', () => {
+        if (currentScale > MIN_SCALE) {
+            currentScale = Math.max(currentScale - 0.2, MIN_SCALE);
+            renderAllPages(currentScale);
+        }
+    });
+    // 缩小
+    document.getElementById('zoom-in').addEventListener('click', () => {
+        if (currentScale < MAX_SCALE) {
+            currentScale = Math.min(currentScale + 0.2, MAX_SCALE);
+            renderAllPages(currentScale);
+        }
+    });
+    // 重置大小
+    document.getElementById('reset').addEventListener('click', () => {
+        currentScale = DEFAULT_SCALE;
+        renderAllPages(currentScale);
     });
 </script>
 ```
