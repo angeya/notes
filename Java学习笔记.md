@@ -1069,6 +1069,8 @@ Collections类的静态方法synchronizedMap可以将任何一个映射转换成
 Map<String, String> sychronizedMap = Collections.synchronizedMap(map);
 ```
 
+
+
 ### 属性映射
 
 属性映射是一个特殊类型的映射结构。有如下三个特性：
@@ -1085,13 +1087,36 @@ Properties properties = new Properties();
 properties.setProperty("name", "sunny");
 properties.setProperty("age", "25");
 // 存储到文件，第二个参数是描述信息，存放在文件头
-properties.store(new FileOutputStream(""), "properties demo");
+properties.store(new FileOutputStream("filePath"), "properties demo");
+
 // 创建新属性映射对象
 Properties properties1 = new Properties();
 // 从文件中加载属性映射到对象
 properties1.load(new FileInputStream(""));
 String name = properties1.getProperty("name");
+
+// 创建新属性映射对象
+Properties properties2 = new Properties();
+String params = "balabala...";
+properties2.load(new StringReader(params));
 ```
+
+### 常用的不可变集合
+
+`Collections`工具类提供了许多好用的不可变集合，这些集合在使用中方便，不过需要注意的是它们的元素是不可变的，试图修改其中的元素将直接抛出`UnsupportedOperationException`异常。
+
+```java
+Collections.EMPTY_SET; // 空集合
+Collections.EMPTY_LIST; // 空列表
+Collections.EMPTY_MAP; // 空映射
+
+// 方便在创建集合的时候直接添加一个元素
+Collections.singleton(Object obj); // 单个元素的集合
+Collections.singletonList(Object obj); // 单个元素的列表
+Collections.singletonMap(Object key, Object value); // 单个元素的映射
+```
+
+
 
 ### 算法
 
