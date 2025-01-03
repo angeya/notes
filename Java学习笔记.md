@@ -36,6 +36,21 @@ java Demo # 不用加class
 
 > 在java中，不区分变量的声明和定义。
 
+### 三目表达式
+
+在 Java 中，三目运算符会根据返回值类型的不同分支选择一个“公共”类型来进行返回。如果两者的类型不一致，Java 会自动将它们转换为更广泛的类型（通常是两者的共同超类型）以统一结果。如果是引用类型很有可能就用Object类型进行返回。
+
+例如下面代码中会打印浮点数的3.0，而不是整型的3。
+
+```java
+public static void main(String[] args) {
+    // 三目表达式中因为int可以隐式转换为double，所以将使用double作为返回类型。然后调用System.out.println(double x)方法进行输出。
+    System.out.println(1> 0? 3: 5.0D);
+}
+```
+
+
+
 
 
 ## 第4章 类与对象
