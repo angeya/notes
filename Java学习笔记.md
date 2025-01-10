@@ -2154,6 +2154,34 @@ RandomAccessFile同时实现了DataInput和DataOutput接口，可以调用readIn
 
 ZIP文档通常以压缩格式存储一个或多个文件，每个ZIP文档都有一个头，包含诸如每个文件名字和所使用的压缩方法等信息。
 
+Zip的输出示例代码如下：
+
+```java
+try (FileOutputStream fos = new FileOutputStream(file);
+     // 可以使用ByteArrayOutputStream代替FileOutputStream
+     ZipOutputStream zipOutputStream = new ZipOutputStream(fos);
+     FileInputStream inputStream = new FileInputStream(sourceFile)) {
+
+    // 创建 ZipEntry，表示压缩包中的文件
+    ZipEntry zipEntry = new ZipEntry(sourceFile.getName());
+    zipOutputStream.putNextEntry(zipEntry);
+
+    // 读取文件并写入到 ZipOutputStream
+    byte[] buffer = new byte[1024];
+    int length;
+    while ((length = inputStream.read(buffer)) >= 0) {
+        zipOutputStream.write(buffer, 0, length);
+    }
+
+    zipOutputStream.closeEntry();
+    System.out.println("文件已成功压缩到: " + zipFilePath);
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+
+
 ZIp文档的读入示例代码如下：
 
 ```java
