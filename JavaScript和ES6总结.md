@@ -42,7 +42,7 @@ ES6内容可以参考阮一峰的[ES6标准入门](https://es6.ruanyifeng.com/)
 
 1. javascript中使用构造函数创建一个实例，构造函数如果不使用new关键字执行，则与普通函数一样
 
-2. 构造函数与原型组合是创建对象很好的模式，构造函数中有属性，而原型中定义方法
+2. xxxxxxxxxx public class Client {    public static void main(String[] args) throws Exception{        SmsService smsService = SmsService.getInstance();        smsService.startService();//        smsService.sendMessage("10086", "测试 Test4！");        //读消息需要异步和增加一个回调        smsService.readNewMessage();        smsService.readOldMessage();        smsService.readAllMessage();        // 停止服务//        smsService.stopService();    }}java
 
 3. 注意点1：原型中添加方法要在实例创建之前，否则方法对实例无效
 
@@ -1588,6 +1588,32 @@ pdf 文件下载的请求头一般为
 Content-Disposition: attachment; filename="example.pdf"
 Content-Type: application/pdf
 # 这时候通过隐藏Content-Disposition请求头，浏览器就会尝试打开文件从而实现预览：proxy_hide_header Content-Disposition;
+```
+
+
+
+前端接收字节数组的文件内容并下载
+
+```javascript
+// 调用后端接口，返回的数据类型是R<byte[]>
+downloads(id).then(res => {
+      if (res.data.success) {
+              // 处理编码得到字节数组
+            const byteCharacters = atob(res.data.data); // Decode Base64
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+
+            // 创建二进制数据并下载
+            const blob = new Blob([byteArray], { type: 'application/pdf' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = "xxx.zip";
+            link.click();
+      }
+})
 ```
 
 
