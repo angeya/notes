@@ -209,15 +209,15 @@ systemctl get-default # 查看当前运行级别
 systemctl set-default target # 设置运行级别，重启生效
 ```
 
-
-
 0	shutdown.target	系统停机状态
 1	emergency.target	单用户工作状态
 2	rescure.target	多用户状态（没有NFS）
-3	multi-user.target	多用户状态（有NFS）
+3	multi-user.target	多用户状态（有NFS，不需要图形用户界面时用）
 4	无	系统未使用，留给用户
 5	graphical.target	图形界面
 6	无	系统正常关闭并重新启动
+
+> NFS（Network File System，网络文件系统）是一种分布式文件系统协议，它允许用户在不同操作系统和不同硬件平台的计算机之间共享文件。
 
 #### shell脚本基础
 
