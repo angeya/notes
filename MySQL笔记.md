@@ -414,6 +414,101 @@ SET TRANSACTION ISOLATION LEVEL level;
 
    该SQL语句的作用是删除二进制日志中指定位置之前的所有日志文件。被删除的二进制日志将无法再用于数据库的复制或恢复操作。因此，在执行该语句之前，应该确保不再需要这些日志文件，并且已经进行了适当的备份。
 
+### 查看binlog日志内容
+
+binlog是mysql数据库的操作日志，可以用来恢复数据或者排查问题等。
+
+1. 找到binlog日志文件
+
+   首先，确保 MySQL 已开启了 binlog，默认是开启的。可以通过以下 SQL 查询来检查：
+
+   ```sql
+   SHOW VARIABLES LIKE 'log_bin';
+   ```
+
+   如果返回值是 `ON`，则表示 binlog 已经启用。
+
+   Binlog 是以文件形式存储的，MySQL 会按顺序生成多个 binlog 文件。你可以通过以下命令查看当前的 binlog 文件：
+
+   ```sql
+   SHOW BINARY LOGS;
+   ```
+
+   会返回类似这样的结果：
+
+   ```sql
+   +------------------+-----------+
+   | Log_name         | File_size |
+   +------------------+-----------+
+   | mysql-bin.000001 | 107374182 |
+   | mysql-bin.000002 | 2048      |
+   +------------------+-----------+
+   ```
+
+   可以在Mysql的数据库文件夹中找到相关的binlog文件。
+
+2. 使用mysqlbinlog解析日志文件
+
+   可以通过 `mysqlbinlog` 工具来查看 binlog 文件中的 SQL 事件，找到误删数据之前的操作。
+
+   ```sql
+   mysqlbinlog --no-defaults -v binlog.000002 > log02.sql
+   -- -v参数是把sql的内容解码显示出来，默认可能是base64的。--no-defaults参数是为编码utf编码等默认配置报错
+   ```
+
+   `mysqlbinlog` 会将二进制日志转换为 SQL 语句。接下来，你可以检查日志文件中删除数据的 SQL 语句（如 `DELETE`）以及相关的时间戳。
+
+   如果你想查看特定时间段的 binlog，可以使用 `--start-datetime` 和 `--stop-datetime` 参数：
+
+   ```sql
+   mysqlbinlog --start-datetime="2025-02-09 10:00:00" --stop-datetime="2025-02-09 11:00:00" binlog.000002 > log02.sql
+   ```
+
+3. 数据解读
+
+   binlog转换为sql文件后，会有如下面代码块的内容：
+
+   详细的记录了事务的开始，开始记录的索引位置，在哪个服务器id上做的操作，对哪张表做了更新，更新语句是什么，事务隔离级别，什么时候提交事务等等。
+   需要注意的是，在更新操作中，不会显示出更新表的字段名称，而是通过 `@字段顺序`来表示。
+
+   ```sql
+   BEGIN
+   /*!*/;
+   # at 2219
+   #250212 11:17:28 server id 1  end_log_pos 2279 CRC32 0xd90bb51f 	Table_map: `test`.`student` mapped to number 95
+   # at 2279
+   #250212 11:17:28 server id 1  end_log_pos 2355 CRC32 0x69c33145 	Update_rows: table id 95 flags: STMT_END_F
+   ### UPDATE `test`.`student`
+   ### WHERE
+   ###   @1=1
+   ###   @2='张三'
+   ###   @3=30
+   ### SET
+   ###   @1=1
+   ###   @2='张三'
+   ###   @3=33
+   # at 2355
+   #250212 11:17:28 server id 1  end_log_pos 2386 CRC32 0x7a225902 	Xid = 107
+   COMMIT/*!*/;
+   # at 2386
+   #250212 11:17:33 server id 1  end_log_pos 2465 CRC32 0x0a1538d1 	Anonymous_GTID	last_committed=7	sequence_number=8	rbr_only=yes	original_committed_timestamp=1739330253404578	immediate_commit_timestamp=1739330253404578	transaction_length=326
+   /*!50718 SET TRANSACTION ISOLATION LEVEL READ COMMITTED*//*!*/;
+   # original_commit_timestamp=1739330253404578 (2025-02-12 11:17:33.404578 CST)
+   # immediate_commit_timestamp=1739330253404578 (2025-02-12 11:17:33.404578 CST)
+   /*!80001 SET @@session.original_commit_timestamp=1739330253404578*//*!*/;
+   /*!80014 SET @@session.original_server_version=80027*//*!*/;
+   /*!80014 SET @@session.immediate_server_version=80027*//*!*/;
+   SET @@SESSION.GTID_NEXT= 'ANONYMOUS'/*!*/;
+   # at 2465
+   #250212 11:17:33 server id 1  end_log_pos 2545 CRC32 0x336b858f 	Query	thread_id=14	exec_time=0	error_code=0
+   SET TIMESTAMP=1739330253/*!*/;
+   BEGIN
+   ```
+
+4. 如何恢复被删除的数据
+
+   根据手动分析，找到需要还原的数据重新执行。或者其他工具协助恢复。
+
 ## 案例
 
 ### 递归查询父子结构数据
