@@ -26,7 +26,7 @@ kubectl delete namespace <命名空间名称> # 删除指定的命名空间。
 3. 描述资源：
 
   ```bash
-  kubectl describe pod <pod-name> # 显示有关特定 Pod 的详细信息，包括事件、容器状态和配置详情。
+  kubectl describe pod <pod-name> -n <namespace> # 显示有关特定 Pod 的详细信息，包括事件、容器状态和配置详情。可以查看有哪些容器
   kubectl describe node <node-name> # 提供有关特定节点的详细信息。
   kubectl describe service <service-name> # 显示特定服务的详细信息。
   ```
@@ -41,11 +41,15 @@ kubectl delete namespace <命名空间名称> # 删除指定的命名空间。
   kubectl delete namespace <命名空间> # 删除指定的命名空间及其中的所有资源。
   ```
 
-5. 与 Pod 交互：
+5. 与 Pod中的容器交互：
 
   ```bash
-  kubectl logs -n namespace pod-name # 显示特定 Pod 的日志。-f 跟踪 --tail= 指定行数；和docker一样
-  kubectl exec -it pod-name -- /bin/bash # 在指定的 Pod 中打开一个 Shell，进行交互式调试。
+  # pod中只有唯一的容器，可以不指定容器
+  # -- 符号是分隔符表示后面的参数是容器中要执行的命令。-it中i是交互式，t是伪终端，没有it参数不会打开交互式命令
+  kubectl logs -n <namespace> pod-name # 显示特定 Pod 的日志。-f 跟踪 --tail= 指定行数；和docker一样
+  kubectl exec -n <namespace> pod-name -- env # 在指定的 Pod 中打开一个 Shell，进行交互式调试。这是Pod中只有一个容器的情况
+  kubectl exec -it -n <namespace> pod-name -- /bin/bash # 在指定的 Pod 中打开一个 Shell，进行交互式调试。这是Pod中只有一个容器的情况
+  kubectl exec -it -n <namespace> pod-name -c my-container -- /bin/bash # 和上条命令类似，适用于有多个容器的情况，要指定容器
   kubectl port-forward pod-name <本地端口>:<pod端口> # 将本地端口转发到 Pod 的指定端口。
   ```
 
