@@ -57,9 +57,10 @@ vim /etc/ssh/sshd_config # 新增一行DenyUsers test，禁止test用户登录ss
 cat /etc/passwd # 查看用户信息 passwd文件保存用户信息
 chown -R root:ftpuer ftpuserhome # 将ftpuserhome路径拥有者设置为root组(可选)ftpuser用户
 who # 用户最近登录信息
-last # 查看用户登录历史
+last # 查看用户登录历史 可以显示哪些用户、ip登录和登出的时间
 whoami # 查看当前登录用户
 source # 在当前bash环境下读取并执行文件中的命令 如source test.sh
+lastb # 查看近期登录失败的用户、ip和时间
 ```
 
 #### 系统维护
