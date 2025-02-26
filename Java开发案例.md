@@ -257,6 +257,7 @@ public class CalReadFileTime {
         try (FileChannel fileChannel = FileChannel.open(Paths.get(filePath))){
             ByteBuffer byteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
             while (byteBuffer.hasRemaining()) {
+                // byteBuffer.get(byte[]) 方法可以获取到所有的字节数据
                 crc32.update(byteBuffer.get());
             }
         } catch (IOException e) {
