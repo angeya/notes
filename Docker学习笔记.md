@@ -315,6 +315,8 @@ docker version # 查看docker版本
 
 ### 4.1DockerCompose的安装
 
+如果是较新的 Docker 版本（如26.1.3）已经会自带 Docker-compose工具了，命令使用方式为`docker compose xxx`，就无需自己手动安装了。
+
 1. 执行如下命令下载docker-compse并放到指定目录
 
    ```bash
