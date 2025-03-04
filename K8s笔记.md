@@ -36,7 +36,7 @@ kubectl delete namespace <命名空间名称> # 删除指定的命名空间。
   ```bash
   kubectl apply -f <file.yaml> # 根据 YAML 文件创建或更新资源。 
   kubectl create -f <file.yaml> # 根据 YAML 文件创建资源。
-  kubectl delete pod <pod-name> # 删除指定的 Pod。
+  kubectl delete pod <pod-name> -n <namespace> # 删除指定的 Pod。如果Pod 是由 ReplicaSet、Deployment 等控制器管理，控制器会自动创建一个新的 Pod替代被删除的 Pod，从而实现“重启”。
   kubectl delete -f <file.yaml> # 删除 YAML 文件中定义的资源。
   kubectl delete namespace <命名空间> # 删除指定的命名空间及其中的所有资源。
   ```
