@@ -2223,30 +2223,9 @@ public class DemoController {
 3. Tomcat JDBC Pool：Tomcat JDBC Pool是Apache Tomcat Web服务器的官方JDBC连接池。它具有高性能、高可靠性、安全性和可扩展性等优点。同时，它还支持异步查询、连接泄漏检测和生命周期监听等高级功能。
 4. Druid：Druid是阿里巴巴开源的一个高性能、可扩展的JDBC连接池。它可以监控SQL执行情况、统计执行时间和频率等信息，并提供了一些可视化的监控界面。同时，它也支持连接泄漏检测、密码加密、多数据源等高级功能。
 
-其中HikariCP是SpringBoot默认数据库连接池。
+>  其中HikariCP是SpringBoot默认数据库连接池。
 
-#### HikariCP连接池的常见配置
-
-```yaml
-# 连接池中允许的最小连接数。缺省值和maximum-pool-size一样
-spring.datasource.hikari.minimum-idle=10
-# 连接池中允许的最大连接数。缺省值：10
-spring.datasource.hikari.maximum-pool-size=100
-# 自动提交，缺省值true
-spring.datasource.hikari.auto-commit=true
-# 一个连接idle状态的最大时长（毫秒），超时则被释放（retired），缺省:10分钟
-spring.datasource.hikari.idle-timeout=30000
-# 连接池名字
-spring.datasource.hikari.pool-name=HikariCP
-# 一个连接的生命时长（毫秒），超时而且没被使用则被释放（retired），缺省:30分钟，建议设置比数据库超时时长少30秒
-spring.datasource.hikari.max-lifetime=1800000
-# 等待连接池分配连接的最大时长（毫秒），超过这个时长还没可用的连接则发生SQLException， 缺省:30秒
-spring.datasource.hikari.connection-timeout=30000
-# 数据库连接测试语句
-spring.datasource.hikari.connection-test-query=SELECT 1
-```
-
-#### 两种连接池的区别
+#### 服务端和客户端连接池的区别
 
 mysql服务中的数据库连接池，和SpringBoot项目中的Hikari数据库连接池的区别和联系是什么？
 
@@ -2260,7 +2239,134 @@ mysql服务中的数据库连接池，和SpringBoot项目中的Hikari数据库�
 1. 都是用于连接管理：无论是MySQL服务中的数据库连接池还是Spring Boot项目中的Hikari数据库连接池，它们都用于管理和复用数据库连接，以提高应用程序的性能和资源利用率。
 2. 都可以配置参数：两者都可以通过配置一些参数来调整连接池的行为，比如最大连接数、最小空闲连接数、连接超时等。这些参数的设置可以根据应用程序的需求进行调整。
 
-#### 获取HikariCP连接池的使用情况
+#### HikariCP连接池
+
+HikariCP 适用于需要高效数据库访问的场景，例如 Web 应用、微服务和数据密集型系统。在 Spring Boot 项目中，它作为默认连接池，开箱即用，极大简化了开发者的工作。在 Spring Boot 中，HikariCP 的配置可以通过 application.properties 或 application.yml 文件完成。例如：
+
+```yaml
+spring:
+  datasource:
+    hikari:
+      # 指定连接池的名称，便于在日志或监控中识别。默认值通常为自动生成（如 HikariPool-1）
+      pool-name: MyHikariCP
+      # 设置连接池允许的最大连接数，默认值为 10。可根据应用程序并发需求和数据库性能调整
+      maximum-pool-size: 10
+      # 设置连接池保持的最小空闲连接数，默认与 maximum-pool-size 相同。建议设置为小于等于最大连接数一半，以减少资源占用
+      minimum-idle: 5
+      # 获取连接的超时时间（单位：毫秒），默认值为 30000（30 秒）。超过这个时长还没可用的连接则发生SQLException
+      connection-timeout: 30000
+      # 空闲连接的存活时间（单位：毫秒），默认值为 600000（10 分钟）
+      idle-timeout: 600000
+      # 连接的最大存活时间（单位：毫秒），默认值为 1800000（30 分钟）。超过此时间，连接将被关闭并替换，避免数据库会话过期问题
+      max-lifetime: 1800000
+      # 用于测试连接有效性的 SQL 语句，默认无（HikariCP 尝试自动检测）。对于不支持 JDBC4 的数据库，建议手动指定，如 SELECT 1
+      connection-test-query: SELECT 1
+      # 设置连接是否自动提交事务，默认值为 true。通常在 Spring 事务管理下保持默认
+      auto-commit: true
+      # 连接泄漏检测的阈值（单位：毫秒），默认值为0不启用）。建议在开发或测试环境设为60000(60秒）以检测泄漏。检测结果示例下面有
+      leak-detection-threshold: 60000
+      # 是否启用 JMX 监控，默认值为 false。启用后可通过 JMX 查看连接池状态，适合生产环境监控
+      register-mbeans: true
+```
+
+#### 和连接池有关的报错
+
+- 无法获取连接
+
+  可能的报错如下：
+
+  ```
+  org.springframework.jdbc.CannotGetJdbcConnectionException: Failed to obtain JDBC Connection; nested exception is java.sql.SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 253ms.
+  	at org.mybatis.spring.MyBatisExceptionTranslator.translateExceptionIfPossible(MyBatisExceptionTranslator.java:96)
+  	at com.baomidou.mybatisplus.extension.toolkit.SqlHelper.executeBatch(SqlHelper.java:192)
+  	at com.baomidou.mybatisplus.extension.toolkit.SqlHelper.executeBatch(SqlHelper.java:217)
+  	at com.baomidou.mybatisplus.extension.service.impl.ServiceImpl.executeBatch(ServiceImpl.java:240)
+  	at com.baomidou.mybatisplus.extension.service.impl.ServiceImpl.saveBatch(ServiceImpl.java:136)
+  	at com.baomidou.mybatisplus.extension.service.IService.saveBatch(IService.java:73)
+  	at org.example.service.UserService.lambda$saveData$0(UserService.java:61)
+  	at java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+  	at java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:948)
+  	at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:482)
+  	at java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:290)
+  
+  
+  Caused by: java.sql.SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 253ms.
+  	at com.zaxxer.hikari.pool.HikariPool.createTimeoutException(HikariPool.java:689)
+  	at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:196)
+  	at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:161)
+  	at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:128)
+  	at org.springframework.jdbc.datasource.DataSourceUtils.fetchConnection(DataSourceUtils.java:158)
+  	at org.springframework.jdbc.datasource.DataSourceUtils.doGetConnection(DataSourceUtils.java:116)
+  	at org.springframework.jdbc.datasource.DataSourceUtils.getConnection(DataSourceUtils.java:79)
+  ```
+
+  可能原因：
+
+  并发情况，连接池本身资源不够，导致部分线程获取连接超时。调大连接池参数可解决。
+
+  发生连接泄露，导致连接池资源越来越少。排查连接泄露可以解决。
+
+  数据库性能问题，连接较慢。加大超时时间，解决硬件服务器或者网络问题。
+
+  > 当程序无法获取连接的时候，可以到数据库查看当前的连接情况（当前连接详情和最大连接数，可参考mysql文档），以及配合连接池配置情况进行排查。
+
+  
+
+  - 检测到内存泄露
+
+    可能报错如下：
+
+    ```
+    java.lang.Exception: Apparent connection leak detected
+    	at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:128) ~[HikariCP-3.4.2.jar:na]
+    	at org.example.service.UserService.saveData(UserService.java:37) ~[classes/:na]
+    	at org.example.service.UserService$$FastClassBySpringCGLIB$$3aeda803.invoke(<generated>) ~[classes/:na]
+    	at org.springframework.cglib.proxy.MethodProxy.invoke(MethodProxy.java:218) ~[spring-core-5.2.5.RELEASE.jar:5.2.5.RELEASE]
+    	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:687) ~[spring-aop-5.2.5.RELEASE.jar:5.2.5.RELEASE]
+    	at org.example.service.UserService$$EnhancerBySpringCGLIB$$289ada71.saveData(<generated>) ~[classes/:na]
+    	at org.example.controller.TestController.saveData(TestController.java:32) ~[classes/:na]
+    	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:1.8.0_382]
+    	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[na:1.8.0_382]
+    	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:1.8.0_382]
+    	at java.lang.reflect.Method.invoke(Method.java:498) ~[na:1.8.0_382]
+    ```
+
+    可能的原因：
+
+    一般在代码中从连接池获取数据库连接，但是没有关闭就会出现内存泄露。解决办法：记得关闭连接，或者在 `try()`中去获取连接，不过如果在`@Transactional`事务管理的方法中，即便关闭了可能也不会被释放，因为Spring要管理事务。最好是不自己获取连接，尽量使用`JdbcTemplate`等去操作数据库。
+
+    典型错误代码：
+
+    ```java
+    public String getDbType () {
+        // 获取连接以便获取元数据
+        Connection connection = dataSource.getConnection();
+        DatabaseMetaData metaData = connection.getMetaData();
+        // 其他使用情况
+        // PreparedStatement preparedStatement = connection.prepareStatement("select * from school");
+        // ResultSet resultSet = preparedStatement.executeQuery();
+        // while (resultSet.next()) {
+        //    System.out.println("name: " + resultSet.getString("name") +"  city: " + resultSet.getString("city"));
+        // }
+    	return metaData.getDatabaseProductName();
+    }
+    ```
+
+#### 开启连接池debug日志
+
+在SpringBoot的配置文件中加上如下配置（以 Hikari 为例）：
+
+```yaml
+logging:
+  level:
+    com.zaxxer.hikari: DEBUG 
+```
+
+即可看到连接池的实时使用情况。
+
+
+
+#### 手动获取HikariCP连接池的使用情况
 
 ```java
 @Resource
@@ -2869,6 +2975,31 @@ spring.security.user.password=admin123
 #### 8. 总结
 
 Spring Boot Actuator 提供了一套强大且易于扩展的管理和监控工具。通过简单的配置，开发者可以轻松获取应用的健康状态、监控指标、日志信息等。Actuator 支持自定义扩展、灵活的安全配置，并且通过 Micrometer 集成，能够输出指标到多种监控系统。
+
+
+
+### 十七、HikariCP 连接池
+
+HikariCP 是一个高性能的 JDBC 连接池库，专为 Java 应用程序设计，旨在提供快速、可靠的数据库连接管理。它由 Brett Wooldridge 于 2012 年左右开发，因其卓越的性能和稳定性，现已成为 Spring Boot 等流行框架的默认连接池选择。
+
+#### 主要特点
+
+- **高性能**：通过字节码级优化和微调技术，HikariCP 显著提升了连接获取和执行速度。
+- **轻量级**：库文件仅约 130KB，代码精简，易于集成和维护。
+- **可靠性**：支持连接泄漏检测和自动重连，确保数据库连接的稳定性。
+- **易用性**：配置简单，并支持 JMX 监控，便于管理和调试。
+
+#### 优势
+
+- **速度快**：在基准测试中，HikariCP 的连接获取时间极短，非常适合高并发场景。
+- **稳定性强**：通过严格的线程安全设计和连接池管理，减少了连接泄漏和死锁问题。
+- **兼容性好**：支持多种数据库和 Java 版本，广泛应用于企业级项目。
+
+#### 配置和使用
+
+
+
+
 
 
 
