@@ -1,8 +1,49 @@
 # SpringBoot
 
+## 常用配置
+
+### 缓冲区大小
+
+该配置用于设置 HTTP 消息编解码器在处理请求或响应时内存缓存的最大容量。
+
+具体来说，属性 **spring.codec.max-in-memory-size** 控制了在数据解码（比如在使用 Spring WebFlux 处理请求体时）时允许缓存在内存中的数据的最大大小。
+
+```yaml
+spring:
+  codec:
+    max-in-memory-size: 20MB # http数据解码缓存内存大小
+```
+
+缓冲区大小不够可能会出现如下报错：`Exceeded limit on max bytes to buffer : 10485760`
+
+### 文件上传大小
+
+```yaml
+spring:
+  servlet:
+    multipart:
+      max-file-size: 128MB # 单个文件大小
+      max-request-size: 1024MB # 一个请求中的文件总大小
+```
+
+### 日志输出级别
+
+这里，root 表示全局默认日志级别，而针对特定包（如 com.example.myapp）的配置可以覆盖默认设置。
+
+```yaml
+logging:
+  level:
+    root: INFO # 所有的日志级别
+    com.example.myapp: DEBUG # 针对特定的包
+```
+
+日志级别通常包括 TRACE、DEBUG、INFO、WARN 和 ERROR。配置一个日志级别后，只有大于或等于该级别的日志消息会被输出。例如，将某个包的日志级别设置为 INFO，则 DEBUG 和 TRACE 消息会被过滤掉。
+
+
+
 ## 常用注解
 
-#### @PostConstruct
+### @PostConstruct
 
 @postContruct全限定类名是javax.annotation.PostConstruct，可以看出来其本身不是Spring定义的注解，但是Spring提供了具体的实现。
 
