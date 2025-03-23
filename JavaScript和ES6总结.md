@@ -42,7 +42,7 @@ ES6内容可以参考阮一峰的[ES6标准入门](https://es6.ruanyifeng.com/)
 
 1. javascript中使用构造函数创建一个实例，构造函数如果不使用new关键字执行，则与普通函数一样
 
-2. 构造函数与原型组合是创建对象很好的模式，构造函数中有属性，而原型中定义方法
+2. xxxxxxxxxx public class Client {    public static void main(String[] args) throws Exception{        SmsService smsService = SmsService.getInstance();        smsService.startService();//        smsService.sendMessage("10086", "测试 Test4！");        //读消息需要异步和增加一个回调        smsService.readNewMessage();        smsService.readOldMessage();        smsService.readAllMessage();        // 停止服务//        smsService.stopService();    }}java
 
 3. 注意点1：原型中添加方法要在实例创建之前，否则方法对实例无效
 
@@ -937,15 +937,16 @@ y // "obj"
 ```javascript
 // 创建一个Promise对象
 const myPromise = new Promise((resolve, reject) => {
-  // 模拟异步操作，比如网络请求
-  setTimeout(() => {
-    const success = true;
-    if (success) {
-      resolve("操作成功");
-    } else {
-      reject("操作失败");
-    }
-  }, 1000);
+    // 模拟异步操作，比如网络请求
+    setTimeout(() => {
+        const success = true;
+        // 如果在Promise中既不resolve也不reject，那么Promise就一直不结束。如果放在await中，将获取不到任何结果，await后面的代码也不会被执行
+        if (success) {
+            resolve("操作成功");
+        } else {
+            reject("操作失败");
+        }
+    }, 1000);
 });
 ```
 
@@ -974,8 +975,7 @@ myPromise.then(result => {
 **示例代码**
 
 ```javascript
-myPromise
-  .then(result => {
+myPromise.then(result => {
     console.log(result); // 输出 "操作成功"
     return "下一步操作"; // 传递给下一个 then
   })
@@ -994,7 +994,7 @@ myPromise
 `Promise.all` 接收一个 `Promise` 数组，所有 `Promise` 都完成后返回一个包含所有结果的数组，如果任意一个 `Promise` 失败则返回错误。
 
 ```javascript
-javascript复制代码const promise1 = Promise.resolve(3);
+const promise1 = Promise.resolve(3);
 const promise2 = new Promise((resolve, reject) => setTimeout(resolve, 100, 'foo')); // setTimeout第三个参数为第一个参数的方法的实参
 const promise3 = 42;
 
@@ -1016,19 +1016,22 @@ Promise.race([promise1, promise2])
   .catch(error => console.error(error));
 ```
 
-#### 5. 使用 `async` / `await`
+#### 5. 使用 `async/await`
 
-在 ES8 中，`async` / `await` 是对 `Promise` 的语法糖，使代码更清晰。
+在 ES8 中，`async/await` 是对 `Promise` 的语法糖，使代码更清晰。但是要捕获异常，即 reject 分支
 
 ```javascript
-javascript复制代码async function asyncFunction() {
-  try {
-    const result = await myPromise;
-    console.log(result);
-  } catch (error) {
-    console.error(error);
-  }
+async function asyncFunction() {
+    try {
+        // 等待Promise状态确认，请参考上上面代码
+        const result = await myPromise;
+        console.log(result); // result中的是resolve的数据
+    } catch (error) {
+        // result中的是reject的数据
+        console.error(error);
+    }
 }
+// 调用
 asyncFunction();
 ```
 
@@ -1588,6 +1591,32 @@ pdf 文件下载的请求头一般为
 Content-Disposition: attachment; filename="example.pdf"
 Content-Type: application/pdf
 # 这时候通过隐藏Content-Disposition请求头，浏览器就会尝试打开文件从而实现预览：proxy_hide_header Content-Disposition;
+```
+
+
+
+前端接收字节数组的文件内容并下载
+
+```javascript
+// 调用后端接口，返回的数据类型是R<byte[]>
+downloads(id).then(res => {
+    if (res.data.success) {
+        // 处理编码得到字节数组
+        const byteCharacters = atob(res.data.data); // Decode Base64
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+        	byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+
+        // 创建二进制数据并下载
+        const blob = new Blob([byteArray], { type: 'application/pdf' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = "xxx.zip";
+        link.click();
+    }
+})
 ```
 
 

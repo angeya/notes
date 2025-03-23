@@ -57,9 +57,10 @@ vim /etc/ssh/sshd_config # 新增一行DenyUsers test，禁止test用户登录ss
 cat /etc/passwd # 查看用户信息 passwd文件保存用户信息
 chown -R root:ftpuer ftpuserhome # 将ftpuserhome路径拥有者设置为root组(可选)ftpuser用户
 who # 用户最近登录信息
-last # 查看用户登录历史
+last # 查看用户登录历史 可以显示哪些用户、ip登录和登出的时间
 whoami # 查看当前登录用户
 source # 在当前bash环境下读取并执行文件中的命令 如source test.sh
+lastb # 查看近期登录失败的用户、ip和时间
 ```
 
 #### 系统维护
@@ -99,10 +100,12 @@ export HISTTIMEFORMAT="%F %T " # 设置history命令格式（增加时间列）�
 ntsysv # 查看当前系统开启启动的进程有哪些，如果仅仅想查看一个进程服务，可以使用systemctl status即可
 lsof -i :8086 # 查看8086端口的使用情况
 alias # 显示所有命令的别名 设置别名：alias ll='ls -l'。删除别名 unalias ll。（命令方式为临时方式，写在文件 ~/.bashrc 中则永久生效）
-curl # 发送网络请求 curl https://www.baidu.com。发送post请求：curl -X POST https://xxx.com 
+curl # 发送网络请求 curl https://www.baidu.com。发送post请求：curl -X POST -H "content-type json" https://xxx.com
 wget # 获取网页内容 wget https://www.baidu.com
 watch -n 1 'date' # watch命令用于固定时间执行一次命令，实现监控效果。-n 后面接的是时间间隔。后面的命令可以不用加引号
 lsblk # 查看系统中所有块设备信息的命令，通常用于查看硬盘、分区和挂载点等信息。助记ls block。/home下面满了没事 /不能满
+last reboot # 查看系统最近几次系统启动的时间
+uptime # 查看系统最后一次启动的时间以及运行了多长时间。uptime -s查看具体启动时间
 ```
 
 #### 软件包管理
@@ -207,15 +210,15 @@ systemctl get-default # 查看当前运行级别
 systemctl set-default target # 设置运行级别，重启生效
 ```
 
-
-
 0	shutdown.target	系统停机状态
 1	emergency.target	单用户工作状态
 2	rescure.target	多用户状态（没有NFS）
-3	multi-user.target	多用户状态（有NFS）
+3	multi-user.target	多用户状态（有NFS，不需要图形用户界面时用）
 4	无	系统未使用，留给用户
 5	graphical.target	图形界面
 6	无	系统正常关闭并重新启动
+
+> NFS（Network File System，网络文件系统）是一种分布式文件系统协议，它允许用户在不同操作系统和不同硬件平台的计算机之间共享文件。
 
 #### shell脚本基础
 

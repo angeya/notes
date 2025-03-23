@@ -92,6 +92,8 @@
 
 ### 1.2安装
 
+可以参考官网的安装步骤：[点击这里跳转](https://docs.docker.com/engine/install/)
+
 1. 卸载旧版本Docker相关组件
 
    ```bash
@@ -313,11 +315,14 @@ docker version # 查看docker版本
 
 ### 4.1DockerCompose的安装
 
+如果是较新的 Docker 版本（如26.1.3）已经会自带 Docker-compose工具了，命令使用方式为`docker compose xxx`，就无需自己手动安装了。
+
 1. 执行如下命令下载docker-compse并放到指定目录
 
    ```bash
-   curl -L https://github.com/docker/compose/releases/download/v2.17.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+   curl -L https://github.com/docker/compose/releases/download/v2.32.4/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
    # 其中 -L表示遇到重定向时自动跟随。`uname -a` 和 `uname -m`是两个命令，用于获取操作系统名和处理器架构名
+   # 最新的版本可以参考github地址。https://github.com/docker/compose/releases
    ```
 
 2. 添加执行权限

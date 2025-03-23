@@ -99,15 +99,112 @@ netstat -ao | findstr 9025
 
 
 
-### 网络请求
+### 网络请求 CURL
 
-curl命令，Windows内置的，用法和linux的curl类似。
+curl 是一个功能强大的命令行工具，用于传输数据，支持多种协议（如HTTP、HTTPS、FTP等）。它广泛用于测试API、下载文件、发送请求等场景。
 
-```cmd
-# 访问接口或者页面
-curl https://www.baidu.com
-# 下载文件
-curl -O https://www.demo.com/demo.pdf
+Windows 和 Linux 上的 curl 命令在功能和用法上总体上是**一致的**，因为它们都来源于同一个开源项目（由 Daniel Stenberg 开发），核心代码和参数是相同的。
+
+> Linux 支持单引号，Windows只支持双引号，特别是提交请求体 json 的时候注意需要转义双引号。
+
+#### 基本语法
+
+```bash
+curl [选项] [URL] # 默认是get请求
+```
+
+- **[选项]**：控制curl的行为，例如指定请求方法、添加头信息等。
+- **[URL]**：目标地址，例如 https://example.com。
+
+#### 指定请求方法 -X
+
+通过语法 `-X, --request <METHOD>` 指定请求方法，默认是GET
+
+```bash
+curl -X POST https://example.com/api
+```
+
+#### 指定请求体数据
+
+如果是普通请求体，通过命令 `-d, --data <DATA>` 发送POST请求时附带数据，格式通常为键值对。
+
+```bash
+curl -X POST -d "key1=value1&key2=value2" https://example.com/api
+```
+
+如果数据是JSON格式，需要配置 `-H`设置请求头指定内容为json
+
+```bash
+curl -X POST -H "Content-Type:application/json" -H "Authorization: Basic xxxx"  -d "{\"name\":\"John\"}" http://127.0.0.1/getSequenceByCode?code=Demo
+```
+
+如果数据中包含文件，需要通过`-F`指定为`multipart/form-data`类型
+
+```bash
+curl -X POST -H "Authorization: Basic xxxx" -F "file=@D:\Desktop\images\test.jpg" -F "businessId=12345678" http://127.0.0.1/oss/uploadFile
+```
+
+> 多个请求头`-H`和多个请求体`-F`参数的时候，都是需要多次指定的
+> `@`符号可以用来指定本地文件，不止文件上传，json请求体也可以使用本地文件
+
+#### 指定User-Agent头
+
+通过`-A, --user-agent <STRING>`命令可以指定User-Agent请求头
+
+```bash
+curl -A "Mozilla/5.0" https://example.com
+```
+
+#### 将响应保存到指定文件
+
+使用`-o, --output <FILE>`参数将响应保存到指定文件，响应内容太多时好用
+
+```bash
+curl -o output.txt https://example.com
+```
+
+使用`-O, --remote-name`参数使用URL中的文件名保存文件，常用于下载。
+
+```bash
+curl -O https://example.com/file.zip
+```
+
+#### 自动跟随重定向
+
+使用``参数自动跟随重定向（例如301、302）
+
+```bash
+curl -L https://example.com
+```
+
+#### 超时参数
+
+参数`-m, --max-time <SECONDS>`设置请求最大超时时间（秒）
+
+```bash
+curl -m 10 https://example.com
+```
+
+参数`--connect-timeout <SECONDS>`设置连接超时时间（秒）
+
+```bash
+curl --connect-timeout 5 https://example.com
+```
+
+#### 显示详细的请求和响应信息
+
+使用`-v, --verbose`参数显示详细的请求和响应信息，便于调试
+
+```bash
+curl -v https://example.com
+```
+
+#### 跳过SSL证书验证
+
+参数`-k, --insecure`设置跳过SSL证书验证（用于自签名证书或测试环境）
+
+```bash
+curl -k https://example.com
 ```
 
 
