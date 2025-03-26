@@ -168,6 +168,34 @@ yum  install -y epel-release # 我们安装的网络yum源基本都是基础的y
 
 ##### rpm
 
+rpm（redhat package manager） 原本是 Red Hat Linux 发行版专门用来管理 Linux 各项套件的程序，由于它遵循 GPL 规则且功能强大方便，因而广受欢迎。逐渐受到其他发行版的采用。
+
+安装软件
+
+```bash
+rpm -hvi *.rpm 
+```
+
+查看已经安装的软件
+
+```bash
+rpm -qi mysql*.rpm
+```
+
+##### dnf
+
+CentOS 8 使用的包管理器是 DNF（Dandified Yum）。DNF 是一个用于管理 RPM 软件包的工具，它是 Yum（Yellowdog Updater Modified）的下一代版本。DNF 提供了更快的性能和更强大的功能，是 CentOS 8 中默认的包管理器。
+
+使用 DNF，您可以执行各种包管理操作，例如安装、更新、卸载软件包，解决软件包之间的依赖关系等。以下是一些常用的 DNF 命令示例：
+
+```bash
+dnf install packagename # 安装软件包
+dnf update # 更新软件包
+dnf upgrade # 升级 CentOS 系统
+dnf search packagename # 搜索软件包
+dnf remove packagename # 卸载软件包
+dnf list installed # 列出已安装的软件包
+```
 
 
 ### 无法识别域名(一般出现在虚拟机中)
