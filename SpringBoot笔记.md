@@ -1488,12 +1488,13 @@ public class User {
 
 #### 使用说明
 
-在 Spring Boot 项目中，可以通过 `@Valid` 注解结合控制器方法参数实现校验，例如：
+在 Spring Boot 项目中，可以通过 `@Valid` 注解结合控制器方法参数实现校验，如果需要整个Controller都进行参数校验，则需要`@Validated`注解在类上面。如下代码：
 
 ```java
 import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
+// @Validated 整个controller参会校验
 @RestController
 public class UserController {
 
