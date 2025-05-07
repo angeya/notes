@@ -326,7 +326,7 @@ Java当中常见的Http客户端有很多，除了Feign，类似的还有Apache 
 
 - **name/value：** 指定Feign客户端的名称。用于标识客户端，并作为Spring容器中bean名称的一部分
 - **serviceId: ** ~~已废弃~~。以前用于在使用Eureka等服务发现机制时指定客户端的服务ID。已被`name()`取代
-- **contextId:** 指定Feign客户端的上下文ID。可用于区分同一个Feign客户端的多个实例
+- **contextId:** 指定Feign客户端的上下文ID。可用于区分同一个Feign客户端的多个实例，用来指定配置（如超时时间等）
 - **url:** url一般用于调试，可以手动指定@FeignClient调用的地址
 - **decode404:** 指定是否解码HTTP 404响应。如果设置为`true`，Feign将不会为404响应抛出异常，而是通过Encoder解码返回一个正常的响应对象，否则抛出FeignException
 - **configuration:** Feign配置类，可以自定义Feign的Encoder、Decoder、LogLevel、Contract
@@ -447,7 +447,7 @@ public class SearchQuery {
    
    @FeignClient(name="custorm", fallback=Hysitx.class)
    public interface IRemoteCallService {
-       @RequestMapping(value="/custorm/getTest",method = RequestMethod.POST,
+       @RequestMapping(value="/custorm/getTest", method = RequestMethod.POST,
                        headers = {"Content-Type=application/json;charset=UTF-8"})
        List<String> test(@RequestParam("name") String name);
    }
@@ -456,7 +456,7 @@ public class SearchQuery {
 2. 在方法参数前面添加@RequestHeader注解，如下：
 
    ```java
-   @FeignClient(name="custorm",fallback=Hysitx.class)
+   @FeignClient(name="custorm", fallback=Hysitx.class)
    public interface IRemoteCallService {
        @RequestMapping(value="/custorm/getTest",method = RequestMethod.POST)
        List<String> test(@RequestParam("name") String name, @RequestHeader("Authorization") String name);
@@ -507,10 +507,28 @@ ribbon:
   ConnectTimeout: 5000
 ```
 
-在openFeign高版本当中，我们可以在默认客户端和命名客户端上配置超时。OpenFeign 使用两个超时参数：
+在openFeign高版本当中，我们可以在默认客户端和命名客户端上配置超时。
 
-- connectTimeout：防止由于服务器处理时间长而阻塞调用者。
-- readTimeout：从连接建立时开始应用，在返回响应时间过长时触发。
+```yaml
+# 针对所有的FeigncClient
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 10000   # 连接超时(毫秒)
+        readTimeout: 10000     # 读取超时(毫秒)
+
+# 针对单个FeignClient 通过contextId指定
+feign:
+  client:
+    config:
+      # 这里的 "api1" 对应上面 @FeignClient(contextId="api1")
+      api1:
+        connectTimeout: 10000   # 连接超时(毫秒)
+        readTimeout: 60000     # 读取超时(毫秒)
+```
+
+
 
 ### 日志级别
 
@@ -837,4 +855,32 @@ public class MessageReceiver {
 }
 
 ```
+
+
+
+## 分布式事务Seata
+
+
+
+### 事务传播
+
+将某个方法或者接口排除分布式事务管理，可以使用`@GlobalTransactional`注解配合`propagation`属性来实现：
+
+```java
+@GetMapping("/updateUser1")
+// 在分布式事务中排除该接口
+@GlobalTransactional(propagation = Propagation.NOT_SUPPORTED)
+public void updateUser1(User user) {
+    // 更新用户
+}
+
+@GetMapping("/updateUser2")
+// 如果该接口被分布式事务管理则会抛异常
+@GlobalTransactional(propagation = Propagation.NEVER)
+public void updateUser2(User user) {
+    // 更新用户
+}
+```
+
+
 
