@@ -239,7 +239,8 @@ JavaFx开发与打包运行
    mvn clean package
    ```
 
-   下载 javafx 运行时依赖
+   下载 javafx 运行时依赖 [传送门](https://gluonhq.com/products/javafx/
+)
 
    运行
 
