@@ -432,13 +432,27 @@ services:
 
 **启动服务**
 
-`docker-compose up`：启动compose配置中定义的服务容器。
+`docker-compose up`：启动compose配置中定义的服务容器，如果所有服务已经启动则不做改变。如果某个服务镜像版本变动，该服务会自动使用新的配置。
 
 举例说明：假设在`docker-compose.yml`文件中定义了一个web服务，可以使用以下命令启动：
 
 ```bash
 docker-compose up -d web
 ```
+
+
+
+**重新创建某个服务容器**
+
+`docker-compose up --force-recreate`：重新创建启动compose配置中定义的服务容器。适用于更改了环境变量或者文件映射中的配置。
+
+举例说明：重启创建并启动修改了nginx配置的web服务。
+
+```bash
+docker-compose up -d --force-recreate web
+```
+
+
 
 **关闭服务**
 
@@ -450,6 +464,8 @@ docker-compose up -d web
 docker-compose down
 ```
 
+
+
 **列出容器**
 
 `docker-compose ps`：列出当前compose配置的所有服务容器。
@@ -459,6 +475,8 @@ docker-compose down
 ```bash
 docker-compose ps
 ```
+
+
 
 **查看日志**
 
@@ -470,6 +488,8 @@ docker-compose ps
 docker-compose logs web
 ```
 
+
+
 **重启服务**
 
 `docker-compose restart`：重启指定的服务容器。
@@ -479,6 +499,8 @@ docker-compose logs web
 ```bash
 docker-compose restart web
 ```
+
+
 
 **构建镜像**
 
@@ -493,6 +515,8 @@ docker-compose build web
 DockerCompose的详细语法参考官网：https://docs.docker.com/compose/compose-file/
 
 其实DockerCompose文件可以看做是将多个docker run命令写到一个文件，只是语法稍有差异。
+
+
 
 ## 5.Docker镜像仓库
 
