@@ -282,3 +282,66 @@ fileMemoryMap:3199121536 duration:147
 
 
 
+### 解决跨域问题的两种办法
+
+在前后端分离的项目中，跨域问题的主要解决办法有两种。
+
+1. 使用代理，如Vue项目开发过程中前端通过nodejs实现代理，或者在生产环境中，使用nginx做为代理。这样前端地址和访问接口地址一样，就不存在跨域问题了。
+
+2. SpringBoot实现CORS（跨域资源共享）
+
+   只要后端响应头 "Access-Control-Allow-Origin" 设置为 "*"，浏览器将不会有跨域警告。原理代码如下所示：
+
+   ```java
+   @GetMapping("/getName")
+   public String getName(HttpServletResponse response, String name) throws Exception{
+       // 设置响应头
+       response.setHeader("Access-Control-Allow-Origin", "*");
+       return name + "哈哈哈";
+   }
+   ```
+
+   临时设置单个接口或者单个Controller中的接口，可以使用`@CrossOrigin`注解实现：
+
+   ```java
+   @CrossOrigin(origins = "*", maxAge = 3600)
+   @RestController
+   @RequestMapping("/api/user")
+   public class UserController {
+       @GetMapping("/info")
+       public String getUserInfo() {
+           return "hello";
+       }
+   }
+   ```
+
+   全局设置可以使用如下`WebMvcConfigurer`配置类进行配置：
+
+   ```java
+   import org.springframework.context.annotation.Bean;
+   import org.springframework.context.annotation.Configuration;
+   import org.springframework.web.servlet.config.annotation.CorsRegistry;
+   import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+   
+   @Configuration
+   public class GlobalCorsConfig {
+       @Bean
+       public WebMvcConfigurer corsConfigurer() {
+           return new WebMvcConfigurer() {
+               @Override
+               public void addCorsMappings(CorsRegistry registry) {
+                   registry.addMapping("/**") // 匹配所有接口
+                           .allowedOriginPatterns("*") // 允许所有源（你也可以指定前端地址）
+                           .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                           .allowedHeaders("*")
+                           .allowCredentials(true) // 允许携带cookie
+                           .maxAge(3600); // OPTIONS 预检请求缓存1小时
+               }
+           };
+       }
+   }
+   
+   ```
+
+   
+
