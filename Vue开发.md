@@ -460,6 +460,68 @@ this.$eventBus.$on("msg", (data) => {
 
 ## Vue 3
 
+### 创建基础项目
+
+vite + vue3 + ts的项目，推荐使用nodejs 20+版本。
+
+1，使用命令根据官方模板创建基础项目
+
+```cmd
+# 使用最新的vite工具初始化项目，使用 vue-ts 模板
+npm init vite@latest demo --template vue-ts
+# 命令行中会出现一些选择，根据需要选择就行了
+```
+
+2，安装组件并云运行
+
+没有什么需要解释的
+
+```cmd
+cd demo
+npm install
+npm run dev
+```
+
+3，使用ui组件
+
+Naive UI 是 Vue 3 生态中非常优秀的组件库，**支持 TypeScript、按需导入、主题定制、SSR 等特性**，
+ 非常适合你这种 **Vue3 + TS + Vite** 的项目。
+
+安装
+
+```cmd
+npm install naive-ui
+```
+
+最简单的使用方式（全局引入）
+
+```ts
+import { createApp } from 'vue'
+import App from './App.vue'
+import naive from 'naive-ui'
+
+const app = createApp(App)
+app.use(naive)
+app.mount('#app')
+```
+
+简单使用是示例
+
+```vue
+<template>
+	<n-button type="primary" @click="count++">点我一下：{{ count }}</n-button>
+</template>
+<script setup lang="ts">
+    
+import { ref } from 'vue'
+const count = ref(0)
+</script>
+```
+
+### Vue3和Vue2的一些使用区别
+
+
+
 
 
 
