@@ -215,3 +215,24 @@ proxy_hide_header Content-Type;
 add_header Content-Type applicaiton/json;
 ```
 
+### 常见问题
+
+1. location 匹配了url前缀，转发后的url是否还包含url的内容？
+
+   匹配进来的时候是包含的，proxy_pass之后就不包含了。
+
+2. nginx中的很多配置是指令，不是代码
+
+   因此不是顺序执行的，比如 access_by_lua_file命令和 rewrite，应该是rewrite命令先执行。
+
+3. nginx无法解析域名如何解决？
+
+   配置resolver。如k8s集群域名可配置如下
+
+   ```
+   http {
+   	resolver 10.96.0.10 valid=10s;
+   }
+   ```
+
+   
