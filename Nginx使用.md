@@ -217,9 +217,9 @@ add_header Content-Type applicaiton/json;
 
 ### 常见问题
 
-1. location 匹配了url前缀，转发后的url是否还包含url的内容？
+1. location 匹配了url前缀，代理转发后的url是否还包含location的内容？
 
-   匹配进来的时候是包含的，proxy_pass之后就不包含了。
+   这取决于proxy_pass的内容，如果以`/`结尾则将会使用`/`替换location的前缀。否则还是包含location的前缀的。`/`是有语义的，不只是好不好看的问题。
 
 2. nginx中的很多配置是指令，不是代码
 
