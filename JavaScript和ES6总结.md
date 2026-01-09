@@ -1308,200 +1308,97 @@ const id = params.get('id')
 
 
 
-### 使用js渲染pdf
+### 使用pdf.js渲染pdf
 
-这里使用`pdf.js`框架实现，它是基于canvas实现的，下面使用的案例是旧版本（用到了两个js文件pdf.min.js和pdf.worker.min.js），4.0以上的新版本使用mjs后缀的文件，用法可能和js不太不一样，[基础可参考](https://mozilla.github.io/pdf.js/examples/)。在github中，老版本和新版本的代码示例不一样，如果要看老版本的，可以在tag中选择。编译过的文件包在如下CDN地址中：[pdf.js CDN](https://www.jsdelivr.com/package/npm/pdfjs-dist?version=3.11.174&tab=files&path=build)，可以下载整个包，本笔记库也已经下载了 [3.11.174版本](references/js库/pdf.js/pdfjs-dist-3.11.174.tgz)了(3.x的最后版本)。
+这里使用`pdf.js`框架实现，它是基于canvas实现的，下面使用的案例是旧版本（用到了两个js文件pdf.min.js和pdf.worker.min.js），4.0以上的新版本使用mjs后缀的文件，在，[基础可参考](https://mozilla.github.io/pdf.js/examples/)。在github中，老版本和新版本的代码示例不一样，如果要看老版本的，可以在tag中选择。编译过的文件包在如下CDN地址中：[pdf.js CDN](https://www.jsdelivr.com/package/npm/pdfjs-dist?version=3.11.174&tab=files&path=build)，可以下载整个包，本笔记库也已经下载了 [3.11.174版本](references/js库/pdf.js/pdfjs-dist-3.11.174.tgz)了(3.x的最后版本)。
 
-这是[pdf.js的github地址](https://github.com/mozilla/pdf.js)。下面以加载《图解算法》为例.
+这是[pdf.js的github地址](https://github.com/mozilla/pdf.js)。下面以加载《图解算法》为例，
+
+> 有的浏览器可能不兼容es6语法。可以下载源码包，然后再手动构建为es5版本即可。
+
+目录结构
 
 ```javascript
-<head>
-    <meta charset="UTF-8">
-    <title>图解算法</title>
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0
-        }
-        /* 设置容器用于显示 PDF */
-        #pdfViewer {
-            width: 100%;
-            height: 500px;
-            margin: 0 auto;
-        }
-        /*居中且只有一列*/
-        #pdfViewer canvas {
-            display: block;
-            margin: 0 auto;
-        }
-    </style>
-	<!-- 引入pdf.min.js文件，其内部会依赖pdf.worker.min.js -->
-    <script src="pdf.min.js" type="application/javascript"></script>
-</head>
-<body style="height: 100%">
-<!-- 用于显示 PDF 文件的容器 -->
-<div id="pdfViewer"></div>
+public/
+├─ index.html
+├─ pdf.mjs
+├─ pdf.worker.mjs
+└─ cmaps/
+   ├─ Adobe-GB1-UCS2.bcmap
+   ├─ Adobe-CNS1-UCS2.bcmap
+   ├─ Adobe-Japan1-UCS2.bcmap
+   └─ ...
 
-<script>
-    // pdf路径
-    const pdfUrl = './算法图解.pdf'
-    const pdfViewer = document.getElementById('pdfViewer');
-    // 使用 PDF.js 加载 PDF 文件
-	const loadPdfOption = {
-        url: pdfUrl,
-        // PDF 中的字体没有嵌入或使用了自定义编码，pdf.js 就会参考 cMap 文件来找到对应的字符，没有配置可能会导致某些pdf显示不出文字
-        cMapUrl: './cmaps/',
-        // 启用打包版本，减少网络请求数量
-        cMapPacked: true
-    }
-    pdfjsLib.getDocument(loadPdfOption).promise.then(pdf => {
-        // 获取 PDF 文件的总页数
-        const numPages = pdf.numPages;
-
-        for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-            pdf.getPage(pageNum).then(page => {
-                // 设置缩放比例
-                const viewport = page.getViewport({scale: 1.5});
-                // 创建用于渲染的 canvas 元素
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                pdfViewer.appendChild(canvas);
-
-                // 渲染 PDF 文件至 canvas
-                page.render({
-                    canvasContext: context,
-                    viewport: viewport
-                });
-            });
-        }
-    }).catch(error => {
-        console.error('加载 PDF 文件时出现问题：', error);
-    });
-</script>
 ```
 
-带有放大缩小重置功能的pdf渲染
+基本Demo，未来可以加上缩放，以及动态渲染功能
 
 ```html
-<!-- html核心元素 -->
-<div id="pdfViewer"></div>
-<div id="loading">
-    <div id="circle"></div>
-</div>
-<script src="./pdf.min.js" type="application/javascript"></script>
-
-<!-- js核心代码 -->
-<script>
-    // 获取参数
-    const params = new URLSearchParams(window.location.search)
-    const title = params.get("title")
-    if (title) {
-        document.title = title
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>PDF预览</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 16px;
     }
-    const pdfUrl = params.get("pdfUrl")
-
-    const pdfViewer = document.getElementById('pdfViewer');
-    const loading = document.getElementById('loading');
-    const DEFAULT_SCALE = 1.5;
-    let currentScale = DEFAULT_SCALE;
-    const MAX_SCALE = 5;
-    const MIN_SCALE = 0.5;
-    // 缓存渲染的页面
-    const renderedPages = new Map();
-
-    const loadOption = {
-        url: pdfUrl,
-        cMapUrl: './cmaps/',
-        cMapPacked: true,
-    };
-
-    // 加载PDF文档
-    let pdfInstance = null;
-    pdfjsLib.getDocument(loadOption).promise.then(pdf => {
-        pdfInstance = pdf;
-        renderAllPages(DEFAULT_SCALE);
-    }).catch(error => {
-        console.error('加载 PDF 文件时出现问题：', error);
-    }).finally(() => {
-        loading.style.display = 'none';
-    });
-
-    // 渲染所有页面
-    function renderAllPages(scale) {
-        loading.style.display = 'flex';
-
-        for (let i = 1; i <= pdfInstance.numPages; i++) {
-            if (renderedPages.has(i)) {
-                // 如果页面已缓存，直接重新渲染
-                const page = renderedPages.get(i);
-                renderPage(page, scale);
-            } else {
-                // 如果页面未缓存，加载并渲染
-                pdfInstance.getPage(i).then(page => {
-                    // 缓存页面
-                    renderedPages.set(i, page);
-                    renderPage(page, scale);
-                });
-            }
-        }
-
-        loading.style.display = 'none';
+    #pdf-container canvas {
+      display: block;
+      margin: 0 auto 20px;
     }
+  </style>
+</head>
+<body>
 
-    // 渲染单个页面
-    function renderPage(page, scale) {
-        const viewport = page.getViewport({ scale });
-        const canvasId = `canvas-${page.pageNumber}`;
-        let canvas = document.getElementById(canvasId);
+<div id="pdf-container"></div>
 
-        if (!canvas) {
-            canvas = document.createElement('canvas');
-            canvas.setAttribute('id', canvasId);
-            pdfViewer.appendChild(canvas);
-        }
+<script type="module">
+  // 引入 pdf.js 主模块（mjs）
+  import * as pdfjsLib from './pdf.mjs';
 
-        const context = canvas.getContext('2d');
-        // const devicePixelRatio = window.devicePixelRatio || 1;
-        const devicePixelRatio = 1.5;
+  // 指定 worker（mjs）
+  pdfjsLib.GlobalWorkerOptions.workerSrc = './pdf.worker.mjs';
 
-        canvas.width = viewport.width * devicePixelRatio;
-        canvas.height = viewport.height * devicePixelRatio;
-        canvas.style.width = `${viewport.width}px`;
-        canvas.style.height = `${viewport.height}px`;
+  // PDF 地址（直接写 URL）
+  const pdfUrl = './算法图解.pdf';
+  // 也可以是后端接口：
+  // const pdfUrl = '/api/file/preview?id=123';
 
-        context.scale(devicePixelRatio, devicePixelRatio);
+  // 加载参数（包含 CMap）
+  const loadOptions = {
+    url: pdfUrl,
+    cMapUrl: './cmaps/',
+    cMapPacked: true,
+  };
 
-        const renderContext = {
-            canvasContext: context,
-            viewport: viewport,
-            enhanceTextRendering: true, // 提高文字渲染清晰度
-        };
-        return page.render(renderContext).promise;
+  const container = document.getElementById('pdf-container');
+
+  // 加载并渲染
+  const loadingTask = pdfjsLib.getDocument(loadOptions);
+
+  loadingTask.promise.then(async (pdf) => {
+    const totalPages = pdf.numPages;
+    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const viewport = page.getViewport({ scale: 1.5 });
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      container.appendChild(canvas);
+      await page.render({
+        canvasContext: context,
+        viewport
+      }).promise;
     }
-
-    // 放大
-    document.getElementById('zoom-out').addEventListener('click', () => {
-        if (currentScale > MIN_SCALE) {
-            currentScale = Math.max(currentScale - 0.2, MIN_SCALE);
-            renderAllPages(currentScale);
-        }
-    });
-    // 缩小
-    document.getElementById('zoom-in').addEventListener('click', () => {
-        if (currentScale < MAX_SCALE) {
-            currentScale = Math.min(currentScale + 0.2, MAX_SCALE);
-            renderAllPages(currentScale);
-        }
-    });
-    // 重置大小
-    document.getElementById('reset').addEventListener('click', () => {
-        currentScale = DEFAULT_SCALE;
-        renderAllPages(currentScale);
-    });
+  }).catch(err => {
+    console.error('PDF 加载失败:', err);
+  });
 </script>
+</body>
+</html>
 ```
 
 
@@ -1617,6 +1514,112 @@ downloads(id).then(res => {
         link.click();
     }
 })
+```
+
+### js的worker子线程
+
+在主线程中做大量的计算型操作，将会导致js线程阻塞，进而导致页面卡顿，这时候可以使用worker线程来做计算，计算完成后再把结果发送给主线程。
+
+下面以vue项目中使用为例。
+
+**目录结构**
+
+```
+src/
+ ├─ workers/
+ │   └─ calc.worker.js
+ ├─ views/
+ │   └─ WorkerDemo.vue
+```
+
+**src/workers/calc.worker.js**
+
+```js
+/**
+ * Worker 子线程
+ * 只做纯计算，无DOM，无BOM，可以使用console.log
+ * 传递引用类型，会被重新拷贝，和主线程的数据不是同一份
+ * self是worker的全局变量，相当于Node线程对象本身，类似主线程的window
+ */
+self.onmessage = function (e) {
+    const { num } = e.data
+    // 模拟一个耗时计算
+    let result = 0
+    for (let i = 0; i < num; i++) {
+    	result += i
+    }
+
+    // 把结果作为一个对象传回主线程
+    self.postMessage({
+    	result
+    })
+}
+
+```
+
+WorkerDemo.vue
+
+```vue
+<template>
+  <div style="padding: 20px">
+    <el-button type="primary" @click="startCalc">
+      点击触发 Worker 计算
+    </el-button>
+    <div style="margin-top: 16px">
+      计算结果：{{ result }}
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'WorkerDemo',
+  data() {
+    return {
+      result: null,
+      worker: null
+    }
+  },
+  mounted() {
+    /**
+     * 初始化 Worker
+     * ⚠️ 注意路径
+     */
+    this.worker = new Worker(
+      new URL('../workers/calc.worker.js', import.meta.url)
+    )
+
+    /**
+     * 接收 Worker 结果
+     */
+    this.worker.onmessage = (e) => {
+      this.result = e.data.result
+      console.log('Worker 返回结果：', e.data)
+    }
+  },
+  beforeDestroy() {
+    /**
+     * 释放 Worker
+     */
+    this.worker && this.worker.terminate()
+  },
+  methods: {
+    /**
+     * 点击按钮触发计算
+     */
+    startCalc() {
+      this.result = '计算中...'
+      /**
+       * 向 Worker 发送数据
+       */
+      this.worker.postMessage({
+        num: 1e8 // 数字大一点，才能看出不卡 UI
+      })
+    }
+  }
+}
+</script>
+
 ```
 
 
