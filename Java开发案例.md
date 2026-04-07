@@ -522,5 +522,5 @@ public class Pinyin2Util {
 }
 ```
 
-主要词典来源于 `https://github.com/mozillazg/phrase-pinyin-data `。工具类中又加了一个项目自定义的词典 `customPinyin.txt`作为定制或者补充。
+主要词典来源于 `https://github.com/mozillazg/phrase-pinyin-data `。文件在本笔记的`/references/pinyin.txt`中。同时工具类中又加了一个项目自定义的词典 `customPinyin.txt`作为定制或者补充。
 
