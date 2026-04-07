@@ -343,5 +343,184 @@ fileMemoryMap:3199121536 duration:147
    
    ```
 
-   
+
+### 拼音工具类
+
+java可以使用的拼音转换库有pinyin4j，但是有点老了（方言多音字很多，且词语分隔不对）。可以使用较新且性能不错的TinyPinyin库，或者使用分词更好的HanLP 1.x。
+
+这里的工具类使用 TinyPinyin 库 + 自定义字典的方法。如果只是使用 TinyPinyin 或者 HanLP，其实有很多多音字是无法处理的，因此自己添加词典就很重要。
+
+首先引入依赖
+
+```xml
+<dependency>
+    <groupId>com.github.promeg</groupId>
+    <artifactId>tinypinyin</artifactId>
+    <version>2.0.3</version>
+    <scope>compile</scope>
+</dependency>
+```
+
+工具类代码
+
+```java
+@Slf4j
+public class Pinyin2Util {
+
+    /**
+     * 拼音词典缓存
+     */
+    private static volatile Map<String, String[]> DICT_CACHE;
+
+    static {
+        // 初始化
+        Pinyin.init(Pinyin.newConfig().with(new PinyinMapDict() {
+            @Override
+            public Map<String, String[]> mapping() {
+                return getDict();
+            }
+        }));
+    }
+
+    /**
+     * 获取全拼（无分隔符）
+     * 长江 -> changjiang
+     */
+    public static String getFullPinyin(String text) {
+        if (isBlank(text)) {
+            return "";
+        }
+        return Pinyin.toPinyin(text, "").toLowerCase();
+    }
+
+    /**
+     * 获取全拼（带分隔符）
+     * 长江 -> chang_jiang
+     */
+    public static String getFullPinyin(String text, String separator) {
+        if (isBlank(text)) {
+            return "";
+        }
+        if (separator == null) {
+            separator = "";
+        }
+        return Pinyin.toPinyin(text, separator).toLowerCase();
+    }
+
+    /**
+     * 获取简拼
+     * 长江 -> cj
+     */
+    public static String getSimplePinyin(String text) {
+        if (isBlank(text)) {
+            return "";
+        }
+
+        // 用分隔符拆分，确保词典生效
+        String[] arr = Pinyin.toPinyin(text, ",").split(",");
+
+        StringBuilder sb = new StringBuilder(arr.length);
+        for (String py : arr) {
+            if (!py.isEmpty()) {
+                sb.append(Character.toLowerCase(py.charAt(0)));
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 获取简拼大写
+     * 长江 -> cj
+     */
+    public static String getSimplePinyinToUpperCase(String text) {
+        return getSimplePinyin(text).toUpperCase();
+    }
+
+    /**
+     * 是否包含中文
+     */
+    public static boolean containsChinese(String text) {
+        if (isBlank(text)) {
+            return false;
+        }
+
+        for (int i = 0; i < text.length(); i++) {
+            if (Pinyin.isChinese(text.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 判空（避免重复 trim）
+     */
+    private static boolean isBlank(String text) {
+        return text == null || text.trim().isEmpty();
+    }
+
+    /**
+     * 获取拼音词典
+     */
+    private static Map<String, String[]> getDict() {
+        // 懒加载
+        if (DICT_CACHE == null) {
+            synchronized (Pinyin2Util.class) {
+                if (DICT_CACHE == null) {
+                    DICT_CACHE = new HashMap<>();
+                    // 基础词典
+                    DICT_CACHE.putAll(loadPinyinDictionary("dictionary/pinyin.txt"));
+                    // 自定义词典
+                    DICT_CACHE.putAll(loadPinyinDictionary("dictionary/customPinyin.txt"));
+                    log.debug("拼音词典加载完成，录入词条数: {}", DICT_CACHE.size());
+                }
+            }
+        }
+        return DICT_CACHE;
+    }
+
+    /**
+     * 从 resources 加载词典
+     */
+    private static Map<String, String[]> loadPinyinDictionary(String path) {
+        Map<String, String[]> map = new HashMap<>();
+        try (InputStream inputStream = TestPinyin.class
+                .getClassLoader()
+                .getResourceAsStream(path)) {
+            if (inputStream == null) {
+                return map;
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
+                    // 去掉空行和注释行
+                    if (line.isEmpty() || line.startsWith("#")) {
+                        continue;
+                    }
+                    // 格式：长江:chang jiang
+                    String[] parts = line.split(":");
+                    if (parts.length != 2) {
+                        continue;
+                    }
+                    String word = parts[0].trim();
+                    String pinyin = parts[1].trim();
+                    int commentIndex = pinyin.indexOf('#');
+                    if (pinyin.contains("#")) {
+                        pinyin = pinyin.substring(0, commentIndex);
+                    }
+                    // TinyPinyin 要大写
+                    map.put(word, pinyin.toUpperCase().split(StringPool.SPACE));
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("加载拼音词典失败", e);
+        }
+        return map;
+    }
+}
+```
+
+主要词典来源于 `https://github.com/mozillazg/phrase-pinyin-data `。工具类中又加了一个项目自定义的词典 `customPinyin.txt`作为定制或者补充。
 
